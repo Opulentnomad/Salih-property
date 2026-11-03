@@ -78,3 +78,32 @@ class CoreLogicTest {
         assertEquals(-3L, LeagueEngine.weekStart(3)) // Sunday belongs to the previous week
     }
 }
+
+class ExerciseGraderTest {
+    private val all = com.rihla.english.core.curriculum.SeedCurriculumData.units
+        .flatMap { it.nodes }.flatMap { it.exercises }
+
+    @Test fun `canonical answers grade as correct`() {
+        all.forEach { e ->
+            val answer = when (e) {
+                is com.rihla.english.core.model.FlashcardAudio -> com.rihla.english.core.engine.UserAnswer.Acknowledged
+                is com.rihla.english.core.model.MultipleChoice -> com.rihla.english.core.engine.UserAnswer.Choice(e.correctIndex)
+                is com.rihla.english.core.model.WordBankSentence -> com.rihla.english.core.engine.UserAnswer.Tokens(e.answerTokens)
+                is com.rihla.english.core.model.MatchPairs -> com.rihla.english.core.engine.UserAnswer.MatchCompleted(0)
+                is com.rihla.english.core.model.ListeningChallenge ->
+                    if (e.mode == com.rihla.english.core.model.ListeningMode.SELECT) com.rihla.english.core.engine.UserAnswer.Choice(e.correctIndex)
+                    else com.rihla.english.core.engine.UserAnswer.Tokens(e.answerTokens)
+                is com.rihla.english.core.model.SpeakingChallenge -> com.rihla.english.core.engine.UserAnswer.Speech(listOf(e.targetText.lowercase()))
+            }
+            assertTrue(e.id, com.rihla.english.core.engine.ExerciseGrader.grade(e, answer).correct)
+        }
+    }
+
+    @Test fun `wrong answers grade as incorrect`() {
+        val wb = all.filterIsInstance<com.rihla.english.core.model.WordBankSentence>().first()
+        val wrong = com.rihla.english.core.engine.UserAnswer.Tokens(wb.answerTokens.reversed())
+        assertFalse(com.rihla.english.core.engine.ExerciseGrader.grade(wb, wrong).correct)
+        val match = all.filterIsInstance<com.rihla.english.core.model.MatchPairs>().first()
+        assertFalse(com.rihla.english.core.engine.ExerciseGrader.grade(match, com.rihla.english.core.engine.UserAnswer.MatchCompleted(1)).correct)
+    }
+}

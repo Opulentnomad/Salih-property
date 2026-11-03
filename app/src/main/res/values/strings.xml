@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Default locale is Arabic: the whole app chrome targets native Arabic speakers. -->
+<resources>
+    <string name="app_name">رحلة الإنجليزية</string>
+
+    <!-- Navigation -->
+    <string name="nav_learn">تعلّم</string>
+    <string name="nav_shop">المتجر والإنجازات</string>
+
+    <!-- Top bar & stats -->
+    <string name="streak_title">سلسلة الأيام 🔥</string>
+    <string name="streak_body">حقق هدفك اليومي (%1$d نقطة) كل يوم لتطيل سلسلتك. أفضل سلسلة لك: %2$d يوم.</string>
+    <string name="streak_today_done">✅ حققت هدف اليوم!</string>
+    <string name="streak_today_progress">تقدّم اليوم: %1$d / %2$d نقطة</string>
+    <string name="streak_freezes">تجميد السلسلة المتاح: %1$d ❄️</string>
+    <string name="gems_title">الجواهر 💎</string>
+    <string name="gems_body">لديك %1$d جوهرة. اكسبها من الدروس والصناديق والأوسمة، واصرفها في المتجر.</string>
+    <string name="hearts_title">القلوب ❤️</string>
+    <string name="hearts_full">قلوبك ممتلئة! كل خطأ في الدرس يكلّفك قلبًا واحدًا.</string>
+    <string name="hearts_body">لديك %1$d من %2$d قلوب. قلب جديد خلال %3$s.</string>
+    <string name="hearts_practice">تدرّب لاستعادة قلب</string>
+    <string name="hearts_refill">إعادة ملء (%1$d 💎)</string>
+    <string name="close">إغلاق</string>
+    <string name="double_xp_active">⚡ ×٢ %1$s</string>
+    <string name="level_label">المستوى %1$d</string>
+
+    <!-- Home / skill tree -->
+    <string name="start">ابدأ</string>
+    <string name="start_lesson">ابدأ الدرس (+%1$d XP مكافأة الإنهاء)</string>
+    <string name="review_lesson">مراجعة الدرس</string>
+    <string name="lesson_locked">🔒 أكمل الدروس السابقة أولًا لفتح هذا الدرس.</string>
+    <string name="chest_locked">🔒 أكمل الدرس السابق لفتح الصندوق.</string>
+    <string name="chest_opened_already">لقد فتحت هذا الصندوق بالفعل.</string>
+    <string name="practice_mistakes">تدريب الأخطاء</string>
+    <string name="practice_mistakes_count">تدريب الأخطاء (%1$d)</string>
+    <string name="daily_goal">الهدف اليومي</string>
+    <string name="words_learned">%1$d كلمة</string>
+    <string name="loading">جارٍ التحميل…</string>
+    <string name="chest_reward_title">صندوق كنز! 🎁</string>
+    <string name="chest_reward_gems">+%1$d جوهرة 💎</string>
+    <string name="chest_reward_freeze">+١ تجميد سلسلة ❄️</string>
+    <string name="awesome">رائع!</string>
+    <string name="course_complete">🏆 أكملت الدورة كاملة! استمر بالمراجعة للحفاظ على مستواك.</string>
+
+    <!-- Lesson arena -->
+    <string name="check">تحقق</string>
+    <string name="continue_label">متابعة</string>
+    <string name="correct_title">أحسنت! 🎉</string>
+    <string name="correct_combo">🔥 %1$d إجابات صحيحة متتالية! +%2$d XP مكافأة</string>
+    <string name="xp_gained">+%1$d XP</string>
+    <string name="incorrect_title">إجابة غير صحيحة</string>
+    <string name="correct_answer_label">الإجابة الصحيحة:</string>
+    <string name="retry_badge">🔁 مراجعة خطأ سابق</string>
+    <string name="combo_badge">🔥 %1$d</string>
+    <string name="quit_title">هل تريد الخروج؟</string>
+    <string name="quit_body">سيضيع تقدّمك في هذا الدرس.</string>
+    <string name="quit_confirm">خروج</string>
+    <string name="quit_cancel">متابعة التعلّم</string>
+    <string name="out_of_hearts_title">نفدت قلوبك 💔</string>
+    <string name="out_of_hearts_body">لا تقلق! يمكنك استعادة القلوب بالطرق التالية:</string>
+    <string name="out_of_hearts_wait">⏳ قلب جديد خلال %1$s</string>
+    <string name="out_of_hearts_quit">إنهاء الدرس</string>
+    <string name="not_enough_gems">لا تملك جواهر كافية (ينقصك %1$d 💎).</string>
+    <string name="intro_title">قبل أن نبدأ 💡</string>
+    <string name="intro_start">لنبدأ!</string>
+    <string name="grammar_bridge_title">جسر القواعد: من العربية إلى الإنجليزية</string>
+    <string name="grammar_bridge_hidden">كلمة غير موجودة في العربية</string>
+    <string name="show_grammar_tip">💡 تلميح القواعد</string>
+    <string name="practice_title">تدريب الأخطاء 💪</string>
+    <string name="practice_intro">نراجع الآن الكلمات التي حان وقت مراجعتها والأخطاء السابقة. لن تخسر قلوبًا هنا، وستربح قلبًا عند الإنهاء ❤️</string>
+    <string name="lesson_error">تعذّر تحميل الدرس.</string>
+
+    <!-- Exercises -->
+    <string name="exercise_new_word">كلمة جديدة ✨</string>
+    <string name="exercise_pronunciation">النطق: %1$s</string>
+    <string name="exercise_translate">ترجم هذه الجملة</string>
+    <string name="exercise_match">اختر الأزواج المتطابقة</string>
+    <string name="exercise_match_audio">استمع واختر الترجمة المطابقة</string>
+    <string name="exercise_match_letters">طابق الحرف الكبير مع الصغير</string>
+    <string name="exercise_listen_select">ماذا سمعت؟</string>
+    <string name="exercise_listen_assemble">اكتب ما تسمعه</string>
+    <string name="exercise_speak">انطق هذه العبارة</string>
+    <string name="speak_tap_to_talk">اضغط وتحدّث</string>
+    <string name="speak_listening">أستمع إليك…</string>
+    <string name="speak_heard">سمعتُ: «%1$s»</string>
+    <string name="speak_skip">لا أستطيع التحدث الآن</string>
+    <string name="speak_unavailable">التعرّف على الكلام غير متاح على هذا الجهاز.</string>
+    <string name="speak_permission_denied">نحتاج إذن الميكروفون لتمارين النطق.</string>
+    <string name="speak_error">لم أسمعك جيدًا، حاول مرة أخرى.</string>
+    <string name="audio_normal">استمع</string>
+    <string name="audio_slow">ببطء</string>
+    <string name="tts_unavailable">محرك النطق غير متاح. ثبّت بيانات اللغة الإنجليزية من إعدادات تحويل النص إلى كلام.</string>
+
+    <!-- Victory -->
+    <string name="victory_title">أكملت الدرس! 🎉</string>
+    <string name="victory_practice_title">أنهيت التدريب! 💪</string>
+    <string name="victory_xp">نقاط الخبرة</string>
+    <string name="victory_accuracy">الدقة</string>
+    <string name="victory_streak">السلسلة</string>
+    <string name="victory_streak_extended">+١ اليوم!</string>
+    <string name="victory_perfect">درس مثالي بلا أخطاء! 🎯</string>
+    <string name="victory_chest_tap">اضغط لفتح صندوق المكافأة</string>
+    <string name="victory_level_up">⬆️ وصلت إلى المستوى %1$d!</string>
+    <string name="victory_goal">🎯 حققت هدفك اليومي!</string>
+    <string name="victory_freeze_used">❄️ تم استخدام تجميد السلسلة لحماية سلسلتك.</string>
+    <string name="victory_heart">+١ قلب ❤️</string>
+    <string name="victory_badges">أوسمة جديدة!</string>
+
+    <!-- Shop & achievements -->
+    <string name="tab_shop">المتجر</string>
+    <string name="tab_badges">الأوسمة</string>
+    <string name="tab_league">الدوري</string>
+    <string name="shop_balance">رصيدك</string>
+    <string name="buy">شراء</string>
+    <string name="owned_freezes">تملك %1$d / %2$d</string>
+    <string name="owned_hearts">قلوبك %1$d / %2$d</string>
+    <string name="boost_remaining">نشط: %1$s</string>
+    <string name="purchase_success">تم الشراء بنجاح! ✅</string>
+    <string name="stats_title">إحصائياتك</string>
+    <string name="stat_total_xp">مجموع XP</string>
+    <string name="stat_best_streak">أفضل سلسلة</string>
+    <string name="stat_lessons">الدروس</string>
+    <string name="stat_words">الكلمات</string>
+    <string name="badges_unlocked">%1$d / %2$d وسام</string>
+    <string name="league_ends_in">ينتهي الأسبوع خلال %1$d يوم</string>
+    <string name="league_promotion_zone">⬆️ منطقة الصعود</string>
+    <string name="league_demotion_zone">⬇️ منطقة الهبوط</string>
+    <string name="league_promoted">🎉 صعدت إلى %1$s!</string>
+    <string name="league_demoted">هبطت إلى %1$s. حاول أكثر هذا الأسبوع!</string>
+    <string name="league_stayed">بقيت في %1$s.</string>
+    <string name="you">أنت</string>
+
+    <!-- Home events -->
+    <string name="event_freeze_used">❄️ فاتك يوم، لكن تجميد السلسلة حمى سلسلتك!</string>
+    <string name="event_streak_lost">انقطعت سلسلتك (%1$d يوم). ابدأ سلسلة جديدة اليوم! 💪</string>
+    <string name="event_badge">🎖️ وسام جديد: %1$s</string>
+</resources>
