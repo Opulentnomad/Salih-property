@@ -3,7 +3,10 @@ package com.rihla.english.core.engine
 import com.rihla.english.core.model.Badge
 import com.rihla.english.core.model.LeagueOutcome
 import com.rihla.english.core.model.LeagueTier
+import com.rihla.english.core.model.SessionKind
 import com.rihla.english.core.model.ShopItem
+import com.rihla.english.core.season.Season
+import com.rihla.english.core.season.SeasonCalendar
 import com.rihla.english.core.model.UserStats
 import com.rihla.english.core.model.UserStats.Companion.NO_DAY
 import kotlin.math.max
@@ -23,6 +26,12 @@ sealed interface GamificationEvent {
     data class HeartsGained(val amount: Int) : GamificationEvent
     data class LeagueResolved(val outcome: LeagueOutcome, val newTier: LeagueTier) : GamificationEvent
     data class ChestOpened(val gems: Int, val bonusFreeze: Boolean) : GamificationEvent
+
+    /** Missed days fell on Eid: the streak was kept for free. */
+    data class StreakProtectedBySeason(val days: Int) : GamificationEvent
+
+    /** A day of the Ramadan challenge was completed (crescent number [day]). */
+    data class RamadanCrescentLit(val litCount: Int) : GamificationEvent
 }
 
 /** Result of applying a rule: the new stats plus the events to celebrate. */
@@ -39,6 +48,8 @@ data class LessonResult(
     val speakingCorrect: Int,
     val isPractice: Boolean,
     val doubleXpActive: Boolean,
+    val kind: SessionKind = if (isPractice) SessionKind.PRACTICE else SessionKind.LESSON,
+    val errorCorrectionsCorrect: Int = 0,
 ) {
     val isPerfect: Boolean get() = mistakes == 0 && totalAnswers > 0
     val accuracyPercent: Int
@@ -56,7 +67,12 @@ sealed interface PurchaseResult {
  * Pure and deterministic: every function takes the current [UserStats] and returns a new one,
  * so it can be applied atomically inside a DataStore transaction and unit-tested on the JVM.
  */
-class GamificationEngine {
+class GamificationEngine(
+    /** Season lookup (injectable for tests). */
+    private val seasonOf: (Long) -> Season? = SeasonCalendar::seasonOn,
+    /** Hijri year if the day is in Ramadan, else null (injectable for tests). */
+    private val ramadanYearOf: (Long) -> Int? = SeasonCalendar::ramadanYearOf,
+) {
 
     // ---------------------------------------------------------------- XP & combos
 
@@ -98,8 +114,14 @@ class GamificationEngine {
         if (s.currentStreak > 0 && s.lastGoalEpochDay != NO_DAY) {
             val gap = todayEpochDay - s.lastGoalEpochDay
             if (gap >= 2) {
-                val missedDays = (gap - 1).toInt()
-                s = if (s.streakFreezes >= missedDays) {
+                // Days inside a streak-protecting season (Eid) never count as missed.
+                val skipped = (s.lastGoalEpochDay + 1 until todayEpochDay)
+                val missedDays = skipped.count { seasonOf(it)?.protectsStreak != true }
+                val protectedDays = skipped.count() - missedDays
+                s = if (missedDays == 0) {
+                    events += GamificationEvent.StreakProtectedBySeason(protectedDays)
+                    s.copy(lastGoalEpochDay = todayEpochDay - 1)
+                } else if (s.streakFreezes >= missedDays) {
                     events += GamificationEvent.StreakFreezeUsed(missedDays)
                     s.copy(
                         streakFreezes = s.streakFreezes - missedDays,
@@ -182,6 +204,9 @@ class GamificationEngine {
         s = s.copy(
             gems = s.gems + gems,
             lastCompletedEpochDay = todayEpochDay,
+            soundDrills = s.soundDrills + if (result.kind == SessionKind.SOUND) 1 else 0,
+            errorCorrectionsCorrect = s.errorCorrectionsCorrect + result.errorCorrectionsCorrect,
+            celebratedNationalDay = s.celebratedNationalDay || seasonOf(todayEpochDay) == Season.NATIONAL_DAY,
             lessonsCompleted = s.lessonsCompleted + if (result.isPractice) 0 else 1,
             perfectLessons = s.perfectLessons + if (result.isPerfect && !result.isPractice) 1 else 0,
             practiceSessions = s.practiceSessions + if (result.isPractice) 1 else 0,
@@ -189,7 +214,7 @@ class GamificationEngine {
             bestCombo = max(s.bestCombo, result.bestCombo),
         )
 
-        if (result.isPractice && s.hearts < UserStats.MAX_HEARTS) {
+        if (result.kind == SessionKind.PRACTICE && s.hearts < UserStats.MAX_HEARTS) {
             val hearts = s.hearts + 1
             s = s.copy(
                 hearts = hearts,
@@ -229,8 +254,47 @@ class GamificationEngine {
                 lastGoalEpochDay = todayEpochDay,
             )
             events += GamificationEvent.StreakExtended(streak)
+
+            // Ramadan challenge: each day the goal is reached lights a crescent.
+            ramadanYearOf(todayEpochDay)?.let { year ->
+                val lit = if (s.ramadanHijriYear == year) s.ramadanGoalDays + 1 else 1
+                s = s.copy(ramadanGoalDays = lit, ramadanHijriYear = year)
+                events += GamificationEvent.RamadanCrescentLit(lit)
+            }
         }
         return Outcome(s, events)
+    }
+
+    // ---------------------------------------------------------------- Stories & daily plan
+
+    /** Finishing an interactive story: XP by stars (counts toward the daily goal), gems and counters. */
+    fun completeStory(stats: UserStats, stars: Int, todayEpochDay: Long, nowMillis: Long, firstTime: Boolean): Outcome {
+        val refreshed = refresh(stats, todayEpochDay, nowMillis)
+        val events = refreshed.events.toMutableList()
+        val base = 15 + 10 * stars.coerceIn(1, 3)
+        val xp = if (refreshed.stats.isDoubleXpActive(nowMillis)) base * 2 else base
+        events += GamificationEvent.XpGained(xp, 0)
+        val xpOutcome = addXp(refreshed.stats, xp, todayEpochDay)
+        events += xpOutcome.events
+        val gems = if (firstTime) STORY_FIRST_TIME_GEMS + stars else stars
+        events += GamificationEvent.GemsGained(gems)
+        val s = xpOutcome.stats.copy(
+            gems = xpOutcome.stats.gems + gems,
+            storiesCompleted = xpOutcome.stats.storiesCompleted + 1,
+            perfectStories = xpOutcome.stats.perfectStories + if (stars >= 3) 1 else 0,
+            lastCompletedEpochDay = todayEpochDay,
+            celebratedNationalDay = xpOutcome.stats.celebratedNationalDay || seasonOf(todayEpochDay) == Season.NATIONAL_DAY,
+        )
+        return withBadges(Outcome(s, events), completedUnitIds = emptySet())
+    }
+
+    /** Claims the "خطة اليوم" bonus once per day when all daily tasks are done. */
+    fun claimDailyBonus(stats: UserStats, todayEpochDay: Long, allTasksDone: Boolean): Outcome {
+        if (!allTasksDone || stats.dailyBonusClaimedDay == todayEpochDay) return Outcome(stats)
+        return Outcome(
+            stats.copy(gems = stats.gems + DAILY_BONUS_GEMS, dailyBonusClaimedDay = todayEpochDay),
+            listOf(GamificationEvent.GemsGained(DAILY_BONUS_GEMS)),
+        )
     }
 
     // ---------------------------------------------------------------- Chests & shop
@@ -310,6 +374,12 @@ class GamificationEngine {
         if (stats.practiceSessions >= 3) add(Badge.PERSISTENT)
         if (stats.speakingCorrect >= 10) add(Badge.BRAVE_SPEAKER)
         if (stats.league >= LeagueTier.GOLD) add(Badge.GOLD_LEAGUE)
+        if (stats.ramadanGoalDays >= RAMADAN_BADGE_DAYS) add(Badge.RAMADAN_CRESCENT)
+        if (stats.celebratedNationalDay) add(Badge.NATIONAL_PRIDE)
+        if (stats.storiesCompleted >= 3) add(Badge.STORYTELLER)
+        if (stats.perfectStories >= 1) add(Badge.SMOOTH_TALKER)
+        if (stats.errorCorrectionsCorrect >= 15) add(Badge.ERROR_HUNTER)
+        if (stats.soundDrills >= 3) add(Badge.SHARP_EAR)
     }
 
     /** Unlocks newly earned badges (each grants [BADGE_GEMS]). Badges are never revoked. */
@@ -339,6 +409,10 @@ class GamificationEngine {
         const val LESSON_GEMS = 5
         const val PERFECT_LESSON_GEMS = 5
         const val BADGE_GEMS = 20
+        const val STORY_FIRST_TIME_GEMS = 10
+        const val DAILY_BONUS_GEMS = 15
+        const val RAMADAN_BADGE_DAYS = 10
+        const val RAMADAN_DAYS = 30
         const val CHEST_MIN_GEMS = 15
         const val CHEST_MAX_GEMS = 40
         const val CHEST_FREEZE_CHANCE_PERCENT = 25

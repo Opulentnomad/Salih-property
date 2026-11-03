@@ -20,8 +20,8 @@ class SeedCurriculumDataTest {
     private val lessons = units.flatMap { it.nodes }.filter { it.type == NodeType.LESSON }
     private val exercises = lessons.flatMap { it.exercises }
 
-    @Test fun `curriculum has four units with lessons and chests`() {
-        assertEquals(4, units.size)
+    @Test fun `curriculum has six units with lessons and chests`() {
+        assertEquals(6, units.size)
         units.forEach { unit ->
             assertTrue(unit.nodes.any { it.type == NodeType.LESSON })
             assertTrue(unit.nodes.any { it.type == NodeType.CHEST })

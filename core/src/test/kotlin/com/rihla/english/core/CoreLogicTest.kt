@@ -94,6 +94,7 @@ class ExerciseGraderTest {
                     if (e.mode == com.rihla.english.core.model.ListeningMode.SELECT) com.rihla.english.core.engine.UserAnswer.Choice(e.correctIndex)
                     else com.rihla.english.core.engine.UserAnswer.Tokens(e.answerTokens)
                 is com.rihla.english.core.model.SpeakingChallenge -> com.rihla.english.core.engine.UserAnswer.Speech(listOf(e.targetText.lowercase()))
+                is com.rihla.english.core.model.ErrorCorrection -> com.rihla.english.core.engine.UserAnswer.Correction(e.wrongIndex, e.correctOption)
             }
             assertTrue(e.id, com.rihla.english.core.engine.ExerciseGrader.grade(e, answer).correct)
         }

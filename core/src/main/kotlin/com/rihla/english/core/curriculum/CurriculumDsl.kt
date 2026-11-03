@@ -3,6 +3,8 @@ package com.rihla.english.core.curriculum
 import com.rihla.english.core.engine.AnswerMatcher
 import com.rihla.english.core.model.BridgeToken
 import com.rihla.english.core.model.CourseUnit
+import com.rihla.english.core.model.ErrorCorrection
+import com.rihla.english.core.model.ErrorPattern
 import com.rihla.english.core.model.Exercise
 import com.rihla.english.core.model.FlashcardAudio
 import com.rihla.english.core.model.GrammarBridge
@@ -17,7 +19,7 @@ import com.rihla.english.core.model.PathNode
 import com.rihla.english.core.model.SpeakingChallenge
 import com.rihla.english.core.model.VocabItem
 import com.rihla.english.core.model.WordBankSentence
-import com.rihla.english.core.model.withVocabIds
+import com.rihla.english.core.model.withTags
 import kotlin.random.Random
 
 /*
@@ -48,11 +50,12 @@ class UnitBuilder(private val unitId: String) {
         icon: String,
         intro: String? = null,
         grammarBridge: GrammarBridge? = null,
+        pattern: ErrorPattern? = null,
         content: LessonBuilder.() -> Unit,
     ) {
         lessonCount++
         val id = "${unitId}_l$lessonCount"
-        val builder = LessonBuilder(id).apply(content)
+        val builder = LessonBuilder(id, pattern).apply(content)
         nodes += PathNode(
             id = id,
             unitId = unitId,
@@ -93,7 +96,7 @@ class UnitBuilder(private val unitId: String) {
 }
 
 @CurriculumDslMarker
-class LessonBuilder(private val lessonId: String) {
+class LessonBuilder(private val lessonId: String, private val lessonPattern: ErrorPattern? = null) {
     private val exercises = mutableListOf<Exercise>()
     val vocabulary = mutableListOf<VocabItem>()
 
@@ -174,18 +177,51 @@ class LessonBuilder(private val lessonId: String) {
         exercises += ListeningChallenge(nextId(), audio, ListeningMode.ASSEMBLE, distractors = distractors, translationAr = ar, explanationAr = why)
     }
 
-    /** SPEAKING_CHALLENGE validated by speech recognition. */
-    fun say(text: String, ar: String, phonetic: String, tip: String, variants: List<String> = emptyList()) {
-        exercises += SpeakingChallenge(nextId(), text, ar, phonetic, tip, variants)
+    /** SPEAKING_CHALLENGE validated by speech recognition; [confusables] detect minimal-pair slips. */
+    fun say(
+        text: String,
+        ar: String,
+        phonetic: String,
+        tip: String,
+        variants: List<String> = emptyList(),
+        confusables: List<String> = emptyList(),
+        pattern: ErrorPattern? = null,
+    ) {
+        exercises += SpeakingChallenge(nextId(), text, ar, phonetic, tip, variants, confusables, pattern = pattern)
     }
 
-    /** Tags each exercise with the lesson vocabulary it contains (whole-word match). */
+    /**
+     * ERROR_CORRECTION ("spot the mistake"): [wrong] contains one typical error at [wrongWord];
+     * [answer] is the right replacement ("" = delete the word) among [options].
+     */
+    fun fix(
+        wrong: String,
+        wrongWord: String,
+        options: List<String>,
+        answer: String,
+        ar: String,
+        why: String,
+        pattern: ErrorPattern? = null,
+    ) {
+        val id = nextId()
+        val tokens = wrong.split(' ')
+        val wrongIndex = tokens.indexOf(wrongWord)
+        require(wrongIndex >= 0) { "$id: '$wrongWord' not found in '$wrong'" }
+        val (opts, index) = shuffled(id, options, answer)
+        exercises += ErrorCorrection(id, tokens, wrongIndex, opts, index, ar, why, pattern = pattern)
+    }
+
+    /**
+     * Tags each exercise with the lesson vocabulary it contains (whole-word match) and with its
+     * mistake pattern (its own, or the lesson's default for graded exercises).
+     */
     fun buildExercises(): List<Exercise> = exercises.map { exercise ->
         val content = " " + AnswerMatcher.normalize(exercise.englishContent()) + " "
         val ids = vocabulary.filter { item ->
             content.contains(" " + AnswerMatcher.normalize(item.english) + " ")
         }.map { it.id }
-        exercise.withVocabIds(ids)
+        val pattern = exercise.pattern ?: lessonPattern.takeIf { exercise.isGraded }
+        exercise.withTags(ids, pattern)
     }
 }
 

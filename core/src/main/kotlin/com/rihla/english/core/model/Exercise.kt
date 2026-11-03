@@ -11,6 +11,9 @@ enum class ExerciseType {
     MATCH_PAIRS,
     LISTENING_CHALLENGE,
     SPEAKING_CHALLENGE,
+
+    /** "Spot the mistake": tap the wrong word in a sentence, then pick its correction. */
+    ERROR_CORRECTION,
 }
 
 /**
@@ -24,6 +27,9 @@ sealed interface Exercise {
 
     /** Vocabulary ids practised by this exercise (feeds the SM-2 scheduler). */
     val vocabIds: List<String>
+
+    /** The Arabic-speaker mistake pattern this exercise trains, if any (feeds the mistake profile). */
+    val pattern: ErrorPattern?
 
     /** All English text in the exercise; used for vocabulary tagging. */
     fun englishContent(): String
@@ -47,6 +53,7 @@ data class FlashcardAudio(
     /** For alphabet cards: the lowercase/uppercase pair, e.g. "A a". */
     val letterPair: String? = null,
     override val vocabIds: List<String> = emptyList(),
+    override val pattern: ErrorPattern? = null,
 ) : Exercise {
     override val type get() = ExerciseType.FLASHCARD_AUDIO
     override val isGraded get() = false
@@ -69,6 +76,7 @@ data class MultipleChoice(
     /** If set, the stem can be played aloud. */
     val audioText: String? = null,
     override val vocabIds: List<String> = emptyList(),
+    override val pattern: ErrorPattern? = null,
 ) : Exercise {
     override val type get() = ExerciseType.MULTIPLE_CHOICE
     override fun englishContent() = buildString {
@@ -92,6 +100,7 @@ data class WordBankSentence(
     val explanationAr: String,
     val grammarBridge: GrammarBridge? = null,
     override val vocabIds: List<String> = emptyList(),
+    override val pattern: ErrorPattern? = null,
 ) : Exercise {
     override val type get() = ExerciseType.WORD_BANK_SENTENCE
     val answerSentence: String get() = answerTokens.joinToString(" ")
@@ -120,6 +129,7 @@ data class MatchPairs(
     val pairs: List<MatchPair>,
     val mode: MatchMode = MatchMode.ENGLISH_TO_ARABIC,
     override val vocabIds: List<String> = emptyList(),
+    override val pattern: ErrorPattern? = null,
 ) : Exercise {
     override val type get() = ExerciseType.MATCH_PAIRS
     override fun englishContent() = pairs.joinToString(" ") { it.english }
@@ -149,6 +159,7 @@ data class ListeningChallenge(
     /** Arabic explanation focused on the sound contrast (e.g. P vs B). */
     val explanationAr: String,
     override val vocabIds: List<String> = emptyList(),
+    override val pattern: ErrorPattern? = null,
 ) : Exercise {
     override val type get() = ExerciseType.LISTENING_CHALLENGE
     val answerTokens: List<String> get() = audioText.split(' ').filter { it.isNotBlank() }
@@ -165,18 +176,51 @@ data class SpeakingChallenge(
     val arabicPhonetic: String,
     val tipAr: String,
     val acceptedVariants: List<String> = emptyList(),
+    /** Minimal-pair words a learner may produce instead (e.g. "bear" for "pear"). */
+    val confusables: List<String> = emptyList(),
     override val vocabIds: List<String> = emptyList(),
+    override val pattern: ErrorPattern? = null,
 ) : Exercise {
     override val type get() = ExerciseType.SPEAKING_CHALLENGE
     override fun englishContent() = targetText
 }
 
-/** Copies an exercise with a new vocab id list, regardless of concrete type. */
-fun Exercise.withVocabIds(ids: List<String>): Exercise = when (this) {
-    is FlashcardAudio -> copy(vocabIds = ids)
-    is MultipleChoice -> copy(vocabIds = ids)
-    is WordBankSentence -> copy(vocabIds = ids)
-    is MatchPairs -> copy(vocabIds = ids)
-    is ListeningChallenge -> copy(vocabIds = ids)
-    is SpeakingChallenge -> copy(vocabIds = ids)
+/**
+ * ERROR_CORRECTION — "Spot the mistake". A sentence containing one typical Arabic-speaker error
+ * is shown as word chips; the learner taps the wrong word, then chooses the correct replacement.
+ */
+@Serializable
+@SerialName("error_correction")
+data class ErrorCorrection(
+    override val id: String,
+    /** The faulty sentence, one chip per token. */
+    val tokens: List<String>,
+    val wrongIndex: Int,
+    /** Replacement candidates for the wrong token ("" means "delete this word"). */
+    val options: List<String>,
+    val correctOption: Int,
+    val translationAr: String,
+    val explanationAr: String,
+    override val vocabIds: List<String> = emptyList(),
+    override val pattern: ErrorPattern? = null,
+) : Exercise {
+    override val type get() = ExerciseType.ERROR_CORRECTION
+
+    /** The corrected sentence. */
+    val correctedSentence: String
+        get() = tokens.mapIndexedNotNull { i, t -> if (i == wrongIndex) options[correctOption].ifEmpty { null } else t }
+            .joinToString(" ")
+
+    override fun englishContent() = correctedSentence
+}
+
+/** Copies an exercise with new vocab ids / pattern, regardless of concrete type. */
+fun Exercise.withTags(ids: List<String>, pattern: ErrorPattern?): Exercise = when (this) {
+    is FlashcardAudio -> copy(vocabIds = ids, pattern = pattern)
+    is MultipleChoice -> copy(vocabIds = ids, pattern = pattern)
+    is WordBankSentence -> copy(vocabIds = ids, pattern = pattern)
+    is MatchPairs -> copy(vocabIds = ids, pattern = pattern)
+    is ListeningChallenge -> copy(vocabIds = ids, pattern = pattern)
+    is SpeakingChallenge -> copy(vocabIds = ids, pattern = pattern)
+    is ErrorCorrection -> copy(vocabIds = ids, pattern = pattern)
 }

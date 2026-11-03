@@ -1,6 +1,7 @@
 package com.rihla.english.core.curriculum
 
 import com.rihla.english.core.model.CourseUnit
+import com.rihla.english.core.model.ErrorPattern
 import com.rihla.english.core.model.MatchMode
 
 /**
@@ -16,9 +17,9 @@ import com.rihla.english.core.model.MatchMode
  */
 object SeedCurriculumData {
 
-    const val VERSION = 1
+    const val VERSION = 2
 
-    val units: List<CourseUnit> by lazy { listOf(unit1(), unit2(), unit3(), unit4()) }
+    val units: List<CourseUnit> by lazy { listOf(unit1(), unit2(), unit3(), unit4(), unit5(), unit6()) }
 
     // =====================================================================================
     // UNIT 1 — Alphabet & Essential Phonics
@@ -127,6 +128,7 @@ object SeedCurriculumData {
 
         lesson(
             "تحدي P و B", "P vs B", "🅿️",
+            pattern = ErrorPattern.SOUND_P_B,
             intro = "العربية فيها (ب) فقط، أما الإنجليزية ففيها B و P.\nصوت P = باء مع نفخة هواء قوية. جرّب: ضع ورقة أمام فمك؛ مع P تتحرك الورقة، ومع B لا تتحرك!",
         ) {
             card("Pear", "كمثرى", "🍐", "پِير", "/peər/", "P: أغلق شفتيك ثم افتحهما بنفخة هواء قوية.")
@@ -143,12 +145,13 @@ object SeedCurriculumData {
             )
             match("Pear" to "كمثرى", "Bear" to "دب", "Pin" to "دبوس", "Bin" to "سلة مهملات", mode = MatchMode.AUDIO_TO_ARABIC)
             hear("Pin", listOf("Pin", "Bin"), "دبوس", "استمع لنفخة الهواء في بداية Pin.")
-            say("Pear", "كمثرى", "پِير", "انفخ الهواء مع P: ضع يدك أمام فمك لتشعر بالنفخة.")
-            say("Bear", "دب", "بِير", "B بلا نفخة هواء، مثل الباء العربية.")
+            say("Pear", "كمثرى", "پِير", "انفخ الهواء مع P: ضع يدك أمام فمك لتشعر بالنفخة.", confusables = listOf("bear"))
+            say("Bear", "دب", "بِير", "B بلا نفخة هواء، مثل الباء العربية.", confusables = listOf("pear"))
         }
 
         lesson(
             "تحدي F و V", "F vs V", "✌️",
+            pattern = ErrorPattern.SOUND_V_F,
             intro = "صوت F = الفاء العربية تمامًا.\nأما V فله وضع الفم نفسه (الأسنان العليا على الشفة السفلى) لكن مع اهتزاز الحنجرة. ضع يدك على حلقك: مع V ستشعر بالاهتزاز!",
         ) {
             card("Fan", "مروحة", "🌀", "فان", "/fæn/", "F = ف بلا اهتزاز.")
@@ -166,12 +169,13 @@ object SeedCurriculumData {
             )
             match("Fan" to "مروحة", "Van" to "شاحنة صغيرة", "Fine" to "بخير", "Five" to "خمسة", mode = MatchMode.AUDIO_TO_ARABIC)
             hearBuild("Very fine", listOf("fan", "vine", "five"), "بخير جدًا", "Very تبدأ بـ V و fine تبدأ بـ F — لاحظ الفرق.")
-            say("Very", "جدًا", "ڤيري", "عضّ شفتك السفلى بلطف وأخرج صوتًا مهتزًا: ڤ ڤ ڤيري.")
+            say("Very", "جدًا", "ڤيري", "عضّ شفتك السفلى بلطف وأخرج صوتًا مهتزًا: ڤ ڤ ڤيري.", confusables = listOf("ferry"))
             say("Five", "خمسة", "فايڤ", "ابدأ بفاء عادية واختم بـ V مهتزة.")
         }
 
         lesson(
             "sh و ch و th والحروف الصامتة", "Digraphs & Silent Letters", "🤫",
+            pattern = ErrorPattern.SOUND_TH,
             intro = "بعض الحروف تجتمع لتصنع صوتًا واحدًا جديدًا:\nsh = ش   •   ch = تش   •   th = ث أو ذ\nوبعض الحروف تُكتب ولا تُنطق، مثل k في knife!",
         ) {
             card("Ship", "سفينة", "🚢", "شِب", "/ʃɪp/", "sh = ش")
@@ -194,7 +198,7 @@ object SeedCurriculumData {
             hear("Ship", listOf("Ship", "Chip"), "سفينة", "Ship تبدأ بـ sh (ش)، أما Chip فتبدأ بـ ch (تش).")
             hear("Three", listOf("Three", "Tree"), "ثلاثة", "Three = ثْري (ثلاثة) و Tree = تري (شجرة). أخرج لسانك مع th!")
             match("Ship" to "سفينة", "Chair" to "كرسي", "Knife" to "سكين", "Hour" to "ساعة (٦٠ دقيقة)")
-            say("Three", "ثلاثة", "ثْرِي", "ضع طرف لسانك بين أسنانك وانطق (ث) ثم (ري).")
+            say("Three", "ثلاثة", "ثْرِي", "ضع طرف لسانك بين أسنانك وانطق (ث) ثم (ري).", confusables = listOf("tree"))
             say("Chair", "كرسي", "تشِير", "ابدأ بـ (ت) ثم (ش) بسرعة معًا: تش.")
         }
 
@@ -335,6 +339,7 @@ object SeedCurriculumData {
 
         lesson(
             "الألوان", "Colors", "🎨",
+            pattern = ErrorPattern.ADJECTIVE_ORDER,
             intro = "في الإنجليزية الصفة تأتي قبل الاسم: «سيارة حمراء» = a red car (اللون أولًا!).",
             grammarBridge = bridge(
                 listOf("سيارة", "حمراء"),
@@ -381,6 +386,7 @@ object SeedCurriculumData {
     ) {
         lesson(
             "أنا طالب: الفعل am", "I am a student", "🧱",
+            pattern = ErrorPattern.MISSING_BE,
             intro = "في العربية نقول «أنا طالب» بلا فعل. في الإنجليزية لا بد من فعل الكون am بعد I، ومن الأداة a قبل الاسم المفرد.",
             grammarBridge = bridge(
                 listOf("أنا", "طالب"),
@@ -424,6 +430,7 @@ object SeedCurriculumData {
 
         lesson(
             "is و are", "He is / They are", "🔗",
+            pattern = ErrorPattern.MISSING_BE,
             intro = "am مع I فقط\nis مع المفرد: he, she, it\nare مع you, we, they",
             grammarBridge = bridge(
                 listOf("هي", "طبيبة"),
@@ -467,6 +474,7 @@ object SeedCurriculumData {
 
         lesson(
             "النفي: not", "Negatives with not", "🚫",
+            pattern = ErrorPattern.MISSING_BE,
             intro = "للنفي نضع not بعد am / is / are مباشرة:\nI am not tired = أنا لستُ متعبًا.",
             grammarBridge = bridge(
                 listOf("أنا", "لستُ", "متعبًا"),
@@ -509,6 +517,7 @@ object SeedCurriculumData {
 
         lesson(
             "أشياء يومية: This is", "This is a book", "📚",
+            pattern = ErrorPattern.ARTICLES,
             intro = "This is = هذا / هذه (للقريب).\nمرة أخرى is مطلوبة: «هذا كتاب» = This is a book.\nونستخدم an بدل a قبل الصوت المتحرك: an apple.",
             grammarBridge = bridge(
                 listOf("هذا", "كتاب"),
@@ -595,6 +604,7 @@ object SeedCurriculumData {
 
         lesson(
             "الطعام والشراب", "Food & Drinks", "🍞",
+            pattern = ErrorPattern.VERB_AS_ADJECTIVE,
             intro = "مع الأفعال مثل like (يحب) لا نستخدم am:\nI like tea ✅    I am like tea ❌",
             grammarBridge = bridge(
                 listOf("أنا", "أحب", "الشاي"),
@@ -666,6 +676,7 @@ object SeedCurriculumData {
 
         lesson(
             "أفعال شائعة", "Common Verbs", "🏃",
+            pattern = ErrorPattern.VERB_AS_ADJECTIVE,
             intro = "الفعل في المضارع البسيط: I eat = أنا آكل.\nلا نضع am قبل الفعل! am / is / are تأتي مع الأسماء والصفات فقط.",
             grammarBridge = bridge(
                 listOf("أنا", "آكل", "خبزًا"),
@@ -700,6 +711,235 @@ object SeedCurriculumData {
             hearBuild("I drink coffee", listOf("eat", "am", "tea"), "أنا أشرب القهوة", "I drink coffee = أنا أشرب القهوة.")
             say("I read a book", "أنا أقرأ كتابًا", "آي رِيد أ بُك", "ea في read = ي طويلة.")
             say("I go to work", "أنا أذهب إلى العمل", "آي غُو تُو وُرك", "صِل الكلمات: آي غُوتُو وُرك.")
+        }
+
+        chest("الكنز الأكبر 🏆")
+    }
+
+    // =====================================================================================
+    // UNIT 5 — Arab Traps: the mistakes that come from thinking in Arabic
+    // =====================================================================================
+    private fun unit5() = courseUnit(
+        id = "u5", order = 4,
+        titleAr = "الوحدة ٥: فخاخ العربي",
+        titleEn = "Arab Traps",
+        descriptionAr = "أخطاء يقع فيها أغلب العرب لأننا نترجم من العربية. اكتشفها وصحّحها قبل أن تصبح عادة!",
+        color = 0xFFFF6B5A,
+    ) {
+        lesson(
+            "لا تنسَ am / is / are", "Don't drop the verb to be", "🧱",
+            intro = "الخطأ رقم ١ عند العرب: «He late» بدل «He is late».\nفي الإنجليزية كل جملة تحتاج فعلًا. إذا لم يوجد فعل، أضف am / is / are.",
+            pattern = ErrorPattern.MISSING_BE,
+        ) {
+            card("Ready", "جاهز", "✅", "رِيدي", "/ˈred.i/")
+            card("Late", "متأخر", "⏰", "لِيت", "/leɪt/")
+            card("Here", "هنا", "📍", "هِير", "/hɪər/")
+            card("Open", "مفتوح", "🔓", "أوپن", "/ˈoʊ.pən/")
+            fix("He late today", "He", listOf("He is", "He are", "His"), "He is", "هو متأخر اليوم", "نحتاج is بعد He: He is late today.")
+            fix("The shop open now", "shop", listOf("shop is", "shop are", "shops"), "shop is", "المحل مفتوح الآن", "المحل مفرد، فنقول The shop is open.")
+            fix("We ready", "We", listOf("We are", "We is", "We am"), "We are", "نحن جاهزون", "مع We نستخدم are: We are ready.")
+            fix("I here", "I", listOf("I am", "I is", "I are"), "I am", "أنا هنا", "مع I نستخدم am دائمًا: I am here.")
+            bank("الباب مفتوح", "The door is open", listOf("are", "a", "am"), "الباب مفرد: The door is open.")
+            choice(
+                "اختر الجملة الصحيحة",
+                options = listOf("My father is a doctor.", "My father doctor.", "My father are doctor.", "My father a doctor."),
+                answer = "My father is a doctor.", english = true,
+                why = "«أبي طبيب» = My father is a doctor. نحتاج is و a.",
+            )
+            match("Ready" to "جاهز", "Late" to "متأخر", "Here" to "هنا", "Open" to "مفتوح")
+            hearBuild("The coffee is ready", listOf("are", "a", "am"), "القهوة جاهزة", "The coffee is ready — لا تنسَ is.")
+            say("I am ready", "أنا جاهز", "آي آم رِيدي", "يمكنك قولها مختصرة: I'm ready.", variants = listOf("I'm ready"))
+        }
+
+        lesson(
+            "I agree وليس I am agree", "No 'am' before verbs", "🙅",
+            intro = "العكس أيضًا خطأ شائع: نضع am قبل الفعل!\nI agree ✅   I am agree ❌\nI know ✅   I am know ❌\nam / is / are لا تأتي قبل الأفعال في المضارع البسيط.",
+            pattern = ErrorPattern.VERB_AS_ADJECTIVE,
+        ) {
+            card("Agree", "يوافق", "🤝", "أَغْرِي", "/əˈɡriː/", "agree فعل وليست صفة: I agree.")
+            card("Know", "يعرف", "🧠", "نُو", "/noʊ/", "k صامتة. والنفي: I don't know.")
+            card("Want", "يريد", "🙋", "وُنْت", "/wɒnt/")
+            card("Need", "يحتاج", "🆘", "نِيد", "/niːd/")
+            fix("I am agree with you", "am", listOf("", "is", "are"), "", "أنا أوافقك", "agree فعل، فلا نضع قبله am: I agree with you.")
+            fix("I am want coffee", "am", listOf("", "is", "do"), "", "أريد قهوة", "want فعل: I want coffee.")
+            fix("We are need help", "are", listOf("", "is", "am"), "", "نحتاج مساعدة", "need فعل: We need help.")
+            fix("I am not know", "am", listOf("do", "is", ""), "do", "لا أعرف", "نفي الفعل يكون بـ do not: I do not know (I don't know).")
+            bank("أنا أوافقك", "I agree with you", listOf("am", "is", "to"), "I agree with you — بدون am.")
+            choice(
+                "اختر الجملة الصحيحة",
+                options = listOf("I know the answer.", "I am know the answer.", "I knowing the answer.", "I am knows the answer."),
+                answer = "I know the answer.", english = true,
+                why = "know فعل: I know the answer.",
+            )
+            match("Agree" to "يوافق", "Know" to "يعرف", "Want" to "يريد", "Need" to "يحتاج")
+            hear("I need help", listOf("I need help", "I am need help", "I needs help"), "أحتاج مساعدة", "I need help — لا am ولا s مع I.")
+            say("I agree with you", "أنا أوافقك", "آي أَغْرِي وِذ يُو", "لا تضف am!")
+        }
+
+        lesson(
+            "حرف s السحري", "He works, she likes", "🐍",
+            intro = "في المضارع، إذا كان الفاعل he / she / it أو اسمًا مفردًا، نضيف s للفعل:\nI work → He works\nI like → She likes\nوالنفي: He doesn't (وليس He don't).",
+            pattern = ErrorPattern.THIRD_PERSON_S,
+        ) {
+            card("Works", "يعمل (هو / هي)", "💼", "وُركس", "/wɜːks/", "work + s مع he / she.")
+            card("Lives", "يسكن", "🏠", "لِڤز", "/lɪvz/")
+            card("Goes", "يذهب (هو / هي)", "🚶", "غُوز", "/ɡoʊz/", "go تصبح goes.")
+            card("Doesn't", "لا (للمفرد الغائب)", "🙅", "دَزِنْت", "/ˈdʌz.ənt/", "He doesn't = هو لا.")
+            fix("She like tea", "like", listOf("likes", "liking", "is like"), "likes", "هي تحب الشاي", "مع She نضيف s: She likes tea.")
+            fix("My brother work in Riyadh", "work", listOf("works", "working", "is work"), "works", "أخي يعمل في الرياض", "My brother = he، فنقول works.")
+            fix("He don't know", "don't", listOf("doesn't", "not", "isn't"), "doesn't", "هو لا يعرف", "مع He نستخدم doesn't.")
+            fix("Sara live in Jeddah", "live", listOf("lives", "living", "is live"), "lives", "سارة تسكن في جدة", "Sara = she، فنقول lives.")
+            bank("أبي يعمل في البنك", "My father works in a bank", listOf("work", "is", "at"), "My father works — مع الأب (هو) نضيف s.", alternatives = listOf("My father works in the bank"))
+            choice(
+                "أكمل الجملة:", prompt = "She ___ to school every day.",
+                options = listOf("goes", "go", "is go", "going"), answer = "goes", english = true,
+                why = "She + goes. الفعل go يصبح goes مع he / she.",
+            )
+            match("Works" to "يعمل (هو / هي)", "Lives" to "يسكن", "Goes" to "يذهب (هو / هي)", "Doesn't" to "لا (للمفرد الغائب)")
+            hear(
+                "He doesn't like coffee",
+                listOf("He doesn't like coffee", "He don't like coffee", "He likes coffee", "She doesn't like coffee"),
+                "هو لا يحب القهوة", "استمع جيدًا لـ doesn't مع He.",
+            )
+            say("She works in a hospital", "هي تعمل في مستشفى", "شِي وُركس إن أ هوسبيتال", "لا تنسَ s في works!")
+        }
+
+        chest()
+
+        lesson(
+            "turn on وليس open", "Verbs you can't translate", "💡",
+            intro = "بعض الأفعال لا تُترجم حرفيًا من العربية:\nافتح النور ← Turn on the light (وليس open)\nسكّر التلفزيون ← Turn off the TV\nخذ صورة ← Take a picture\nسوّيت غلطة ← I made a mistake",
+            pattern = ErrorPattern.WRONG_VERB,
+        ) {
+            card("Turn on", "يشغّل", "💡", "تِيرن أون", "/tɜːn ɒn/", "للأجهزة والأنوار: turn on.")
+            card("Turn off", "يطفئ", "🔌", "تِيرن أوف", "/tɜːn ɒf/")
+            card("Take a picture", "يلتقط صورة", "📸", "تيك أ پِكتشر", "/teɪk ə ˈpɪk.tʃər/")
+            card("Make a mistake", "يرتكب خطأ", "❌", "ميك أ مِستيك", "/meɪk ə mɪˈsteɪk/")
+            fix("Please open the light", "open", listOf("turn on", "make", "do"), "turn on", "شغّل النور من فضلك", "مع الأنوار والأجهزة نقول turn on.")
+            fix("Close the TV please", "Close", listOf("Turn off", "Shut", "Stop"), "Turn off", "أطفئ التلفزيون من فضلك", "مع الأجهزة نقول turn off.")
+            fix("Can I catch a picture", "catch", listOf("take", "make", "do"), "take", "هل يمكنني التقاط صورة؟", "نقول take a picture.")
+            fix("I did a mistake", "did", listOf("made", "took", "said"), "made", "ارتكبت خطأً", "نقول make a mistake → I made a mistake.")
+            bank("شغّل المكيّف من فضلك", "Turn on the AC please", listOf("open", "close", "is"), "Turn on the AC — وليس open.", alternatives = listOf("Please turn on the AC"))
+            choice(
+                "كيف تقول «أطفئ النور»؟",
+                options = listOf("Turn off the light.", "Close the light.", "Kill the light.", "Open the light."),
+                answer = "Turn off the light.", english = true,
+                why = "للأنوار: turn on (شغّل) و turn off (أطفئ).",
+            )
+            match("Turn on" to "يشغّل", "Turn off" to "يطفئ", "Take a picture" to "يلتقط صورة", "Make a mistake" to "يرتكب خطأ")
+            hearBuild("Turn off the TV please", listOf("close", "open", "is"), "أطفئ التلفزيون من فضلك", "Turn off the TV.")
+            say("Turn off the light", "أطفئ النور", "تِيرن أوف ذَ لايت", "th في the = ذ.")
+        }
+
+        lesson(
+            "حروف الجر", "on Monday, at 5, married to", "📍",
+            intro = "حروف الجر لا تُترجم حرفيًا:\non + الأيام: on Monday\nat + الساعة: at 5 o'clock\nin + المدن والشهور: in Riyadh, in May\nمتزوج من ← married to (وليس with)",
+            pattern = ErrorPattern.PREPOSITIONS,
+        ) {
+            card("On Monday", "يوم الاثنين", "📅", "أون مَندي", "/ɒn ˈmʌn.deɪ/", "مع الأيام نستخدم on.")
+            card("At 5 o'clock", "الساعة الخامسة", "🕔", "آت فايڤ أُكلوك", "/æt faɪv əˈklɒk/", "مع الساعة نستخدم at.")
+            card("In Riyadh", "في الرياض", "🏙️", "إن رِياض", "/ɪn rɪˈjɑːd/", "مع المدن نستخدم in.")
+            card("Married to", "متزوج من", "💍", "ماريد تُو", "/ˈmær.id tuː/", "married to وليس married with.")
+            fix("See you in Monday", "in", listOf("on", "at", "from"), "on", "أراك يوم الاثنين", "مع أيام الأسبوع نستخدم on.")
+            fix("The meeting is in 5 o'clock", "in", listOf("at", "on", "from"), "at", "الاجتماع الساعة الخامسة", "مع الساعة نستخدم at.")
+            fix("She is married with a doctor", "with", listOf("to", "from", "on"), "to", "هي متزوجة من طبيب", "نقول married to.")
+            fix("I live at Riyadh", "at", listOf("in", "on", "to"), "in", "أسكن في الرياض", "مع المدن نستخدم in.")
+            bank("أراك يوم الأحد", "See you on Sunday", listOf("in", "at", "the"), "on + اليوم: See you on Sunday.")
+            choice(
+                "أكمل الجملة:", prompt = "The class starts ___ 8 o'clock.",
+                options = listOf("at", "in", "on", "from"), answer = "at", english = true,
+                why = "مع الساعة نستخدم at.",
+            )
+            match("On Monday" to "يوم الاثنين", "At 5 o'clock" to "الساعة الخامسة", "In Riyadh" to "في الرياض", "Married to" to "متزوج من")
+            hear("I work in Riyadh", listOf("I work in Riyadh", "I work at Riyadh", "I walk in Riyadh"), "أعمل في الرياض", "in + المدينة. وانتبه: work (يعمل) و walk (يمشي).")
+            say("See you on Monday", "أراك يوم الاثنين", "سي يُو أون مَندي", "on مع الأيام.")
+        }
+
+        chest("كنز صياد الأخطاء")
+    }
+
+    // =====================================================================================
+    // UNIT 6 — Situations from your life (Gulf)
+    // =====================================================================================
+    private fun unit6() = courseUnit(
+        id = "u6", order = 5,
+        titleAr = "الوحدة ٦: مواقف من حياتك",
+        titleEn = "Real-life situations",
+        descriptionAr = "المطار، السائق، العيادة، والعمل: الإنجليزية التي تحتاجها فعلًا في يومك.",
+        color = 0xFF0EA5A4,
+    ) {
+        lesson("في المطار", "At the airport", "✈️", intro = "كلمات ستسمعها في كل رحلة. بعد هذا الدرس جرّب موقف «في المطار» في تبويب المواقف 💬") {
+            card("Passport", "جواز سفر", "🛂", "پاسپورت", "/ˈpɑːs.pɔːt/")
+            card("Boarding pass", "بطاقة صعود الطائرة", "🎫", "بوردنغ پاس", "/ˈbɔː.dɪŋ pɑːs/")
+            card("Gate", "بوابة", "🚪", "غيت", "/ɡeɪt/")
+            card("Flight", "رحلة جوية", "🛫", "فلايت", "/flaɪt/", "gh صامتة.")
+            card("Luggage", "أمتعة", "🧳", "لَغِج", "/ˈlʌɡ.ɪdʒ/")
+            choice(
+                "الموظف يقول: Can I see your passport? ماذا يطلب؟", prompt = "Can I see your passport?",
+                options = listOf("جواز سفرك", "تذكرتك", "حقيبتك", "اسمك"), answer = "جواز سفرك", english = false,
+                why = "passport = جواز السفر.", audio = "Can I see your passport?",
+            )
+            bank("أنا مسافر إلى لندن", "I am flying to London", listOf("fly", "in", "is"), "I am flying to + المكان.", alternatives = listOf("I'm flying to London"))
+            bank("مقعد بجانب النافذة من فضلك", "A window seat please", listOf("open", "the", "is"), "A window seat, please.")
+            match("Passport" to "جواز سفر", "Boarding pass" to "بطاقة صعود الطائرة", "Gate" to "بوابة", "Luggage" to "أمتعة")
+            hear("Your flight is at gate twelve", listOf("Your flight is at gate twelve", "Your flight is at gate twenty", "Your fight is at gate twelve"), "رحلتك عند البوابة ١٢", "twelve = ١٢ و twenty = ٢٠.")
+            say("Here is my passport", "هذا جواز سفري", "هير إز ماي پاسپورت", "P في passport بنفخة هواء.")
+        }
+
+        lesson("مع السائق", "Giving directions", "🚗", intro = "وجّه السائق بثقة: يمين، يسار، مستقيم، وقف هنا.") {
+            card("Turn right", "انعطف يمينًا", "➡️", "تِيرن رايت", "/tɜːn raɪt/")
+            card("Turn left", "انعطف يسارًا", "⬅️", "تِيرن لِفت", "/tɜːn left/")
+            card("Go straight", "امشِ مستقيمًا", "⬆️", "غو ستريت", "/ɡoʊ streɪt/", "gh صامتة في straight.")
+            card("Stop here", "توقف هنا", "🛑", "ستوپ هير", "/stɒp hɪər/")
+            card("Traffic light", "إشارة المرور", "🚦", "ترافِك لايت", "/ˈtræf.ɪk laɪt/")
+            bank("توقف هنا من فضلك", "Stop here please", listOf("close", "is", "the"), "Stop here, please — وليس close.", alternatives = listOf("Please stop here"))
+            bank("انعطف يسارًا عند الإشارة", "Turn left at the traffic light", listOf("in", "right", "go"), "at the traffic light = عند الإشارة.")
+            choice(
+                "السائق يسأل: Left or right? وأنت تريد اليمين.", prompt = "Left or right?",
+                options = listOf("Right, please.", "Left, please.", "Straight, please.", "Stop, please."), answer = "Right, please.", english = true,
+                why = "right = يمين و left = يسار.", audio = "Left or right?",
+            )
+            match("Turn right" to "انعطف يمينًا", "Turn left" to "انعطف يسارًا", "Go straight" to "امشِ مستقيمًا", "Stop here" to "توقف هنا")
+            hearBuild("Go straight then turn right", listOf("left", "stop", "is"), "امشِ مستقيمًا ثم انعطف يمينًا", "then = ثم.")
+            say("Turn right at the traffic light", "انعطف يمينًا عند الإشارة", "تِيرن رايت آت ذَ ترافِك لايت", "قلها ببطء أولًا.")
+        }
+
+        chest()
+
+        lesson("في العيادة", "At the clinic", "🏥", intro = "صف ما تشعر به: I have a + الألم.\nلا تقل My head is pain، بل I have a headache.") {
+            card("Headache", "صداع", "🤕", "هِدِيك", "/ˈhed.eɪk/", "ache = ألم، وتُنطق (إيك).")
+            card("Fever", "حرارة", "🤒", "فِيڤَر", "/ˈfiː.vər/")
+            card("Medicine", "دواء", "💊", "مِدِسِن", "/ˈmed.ɪ.sən/")
+            card("Appointment", "موعد", "📅", "أپوينتمِنت", "/əˈpɔɪnt.mənt/")
+            card("I feel sick", "أشعر بالمرض", "🤢", "آي فيل سِك", "/aɪ fiːl sɪk/")
+            bank("عندي صداع", "I have a headache", listOf("am", "is", "my"), "I have a headache — وليس My head is pain.")
+            bank("أحتاج موعدًا", "I need an appointment", listOf("a", "am", "is"), "an قبل appointment لأنها تبدأ بصوت متحرك.")
+            choice(
+                "كيف تقول «عندي حرارة»؟",
+                options = listOf("I have a fever.", "I am fever.", "My fever is.", "I fever."), answer = "I have a fever.", english = true,
+                why = "عندي = I have.",
+            )
+            match("Headache" to "صداع", "Fever" to "حرارة", "Medicine" to "دواء", "Appointment" to "موعد")
+            hear("Take this medicine twice a day", listOf("Take this medicine twice a day", "Take this medicine three times a day", "Take this medicine once a day"), "خذ هذا الدواء مرتين يوميًا", "once = مرة، twice = مرتين، three times = ثلاث مرات.")
+            say("I have a headache", "عندي صداع", "آي هاڤ أ هِدِيك", "v في have مهتزة.")
+        }
+
+        lesson("في العمل", "At work", "💼", intro = "عبارات الاجتماعات والإيميل التي ستحتاجها في عملك.") {
+            card("Meeting", "اجتماع", "👥", "مِيتنغ", "/ˈmiː.tɪŋ/")
+            card("Email", "بريد إلكتروني", "📧", "إيمِيل", "/ˈiː.meɪl/")
+            card("Deadline", "موعد التسليم", "⏰", "دِدلاين", "/ˈded.laɪn/")
+            card("Manager", "مدير", "👔", "مانِجَر", "/ˈmæn.ɪ.dʒər/")
+            card("Colleague", "زميل عمل", "🤝", "كولِيغ", "/ˈkɒl.iːɡ/")
+            bank("عندي اجتماع الساعة العاشرة", "I have a meeting at ten", listOf("in", "on", "am"), "at + الساعة.", alternatives = listOf("I have a meeting at 10"))
+            bank("سأرسل لك إيميل", "I will send you an email", listOf("a", "am", "to"), "an email لأن email تبدأ بصوت متحرك.")
+            choice(
+                "كيف تبدأ إيميلًا رسميًا؟",
+                options = listOf("Dear Mr. Smith,", "Hey man,", "Hello habibi,", "Yo Smith,"), answer = "Dear Mr. Smith,", english = true,
+                why = "في الإيميل الرسمي نبدأ بـ Dear + اللقب + الاسم.",
+            )
+            match("Meeting" to "اجتماع", "Email" to "بريد إلكتروني", "Deadline" to "موعد التسليم", "Manager" to "مدير")
+            hearBuild("The deadline is on Thursday", listOf("in", "at", "are"), "موعد التسليم يوم الخميس", "on + اليوم.")
+            say("I will send the email today", "سأرسل الإيميل اليوم", "آي وِل سِند ذَ إيمِيل تودِي", "will = سوف.")
         }
 
         chest("الكنز الأكبر 🏆")

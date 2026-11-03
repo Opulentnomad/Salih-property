@@ -39,6 +39,16 @@ data class UserStats(
     val speakingCorrect: Int = 0,
     val bestCombo: Int = 0,
     val unlockedBadges: Set<String> = emptySet(),
+
+    val storiesCompleted: Int = 0,
+    val perfectStories: Int = 0,
+    val soundDrills: Int = 0,
+    val errorCorrectionsCorrect: Int = 0,
+    /** Ramadan challenge: days the goal was reached during Ramadan of [ramadanHijriYear]. */
+    val ramadanGoalDays: Int = 0,
+    val ramadanHijriYear: Int = 0,
+    val celebratedNationalDay: Boolean = false,
+    val dailyBonusClaimedDay: Long = NO_DAY,
 ) {
     fun isDoubleXpActive(nowMillis: Long) = doubleXpUntilMillis > nowMillis
     val dailyGoalReached: Boolean get() = dailyXp >= dailyGoalXp
@@ -104,6 +114,12 @@ enum class Badge(val titleAr: String, val descriptionAr: String, val emoji: Stri
     PERSISTENT("المثابر", "أكمل ٣ جلسات لمراجعة الأخطاء", "💪"),
     BRAVE_SPEAKER("المتحدث الجريء", "انطق ١٠ عبارات بشكل صحيح", "🎤"),
     GOLD_LEAGUE("بطل الذهب", "اصعد إلى الدوري الذهبي", "🏆"),
+    RAMADAN_CRESCENT("هلال رمضان", "حقق هدفك ١٠ أيام في رمضان", "🌙"),
+    NATIONAL_PRIDE("فخر الوطن", "تعلّم في أسبوع اليوم الوطني", "🇸🇦"),
+    STORYTELLER("الراوي", "أكمل ٣ مواقف حوارية", "💬"),
+    SMOOTH_TALKER("لبق الحديث", "أنهِ موقفًا حواريًا بثلاث نجوم", "🌟"),
+    ERROR_HUNTER("صياد الأخطاء", "صحّح ١٥ خطأً شائعًا", "🔍"),
+    SHARP_EAR("أذن ذهبية", "أكمل ٣ تمارين في مختبر النطق", "👂"),
 }
 
 /** A row in the weekly league leaderboard. */

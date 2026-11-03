@@ -1,5 +1,6 @@
 package com.rihla.english.core.engine
 
+import com.rihla.english.core.model.ErrorCorrection
 import com.rihla.english.core.model.Exercise
 import com.rihla.english.core.model.FlashcardAudio
 import com.rihla.english.core.model.ListeningChallenge
@@ -17,6 +18,9 @@ sealed interface UserAnswer {
     data class Tokens(val words: List<String>) : UserAnswer
     data class MatchCompleted(val mistakes: Int) : UserAnswer
     data class Speech(val candidates: List<String>) : UserAnswer
+
+    /** ERROR_CORRECTION: the token tapped as wrong and the replacement chosen. */
+    data class Correction(val tappedIndex: Int, val optionIndex: Int) : UserAnswer
 }
 
 data class GradeResult(
@@ -27,6 +31,8 @@ data class GradeResult(
     val explanationAr: String?,
     /** Pronunciation similarity 0..1 for speaking exercises. */
     val score: Double? = null,
+    /** Speaking: the minimal-pair word the learner seems to have said instead (e.g. "bear" for "pear"). */
+    val confusedWith: String? = null,
 )
 
 /** Grades a [UserAnswer] against an [Exercise]. Pure function — shared by UI and tests. */
@@ -70,11 +76,26 @@ object ExerciseGrader {
             val candidates = (answer as? UserAnswer.Speech)?.candidates.orEmpty()
             val targets = listOf(exercise.targetText) + exercise.acceptedVariants
             val score = AnswerMatcher.pronunciationScore(candidates, targets)
+            // Did the recogniser hear the minimal-pair partner better than the target?
+            val confused = exercise.confusables.firstOrNull { other ->
+                AnswerMatcher.pronunciationScore(candidates, listOf(other)) > score &&
+                    AnswerMatcher.pronunciationAccepted(candidates, listOf(other))
+            }
             GradeResult(
-                correct = score >= AnswerMatcher.PRONUNCIATION_THRESHOLD,
+                correct = confused == null && score >= AnswerMatcher.PRONUNCIATION_THRESHOLD,
                 correctAnswer = exercise.targetText,
                 explanationAr = exercise.tipAr,
                 score = score,
+                confusedWith = confused,
+            )
+        }
+
+        is ErrorCorrection -> {
+            val a = answer as? UserAnswer.Correction
+            GradeResult(
+                correct = a != null && a.tappedIndex == exercise.wrongIndex && a.optionIndex == exercise.correctOption,
+                correctAnswer = exercise.correctedSentence,
+                explanationAr = exercise.explanationAr,
             )
         }
     }

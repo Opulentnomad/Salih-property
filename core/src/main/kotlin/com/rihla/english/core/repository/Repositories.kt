@@ -1,6 +1,10 @@
 package com.rihla.english.core.repository
 
 import com.rihla.english.core.model.CourseUnit
+import com.rihla.english.core.model.ErrorPattern
+import com.rihla.english.core.model.LearningInsights
+import com.rihla.english.core.model.SessionKind
+import com.rihla.english.core.model.UserProfile
 import com.rihla.english.core.model.Exercise
 import com.rihla.english.core.model.PathNode
 import com.rihla.english.core.model.UserStats
@@ -38,6 +42,9 @@ interface CurriculumRepository {
     /** Builds a review session from past mistakes and SM-2 due vocabulary. */
     suspend fun buildPracticeSession(todayEpochDay: Long, maxExercises: Int = 10): List<Exercise>
 
+    /** Exercises that train one mistake pattern, preferring lessons the learner has completed. */
+    suspend fun buildPatternSession(pattern: ErrorPattern, maxExercises: Int = 10): List<Exercise>
+
     suspend fun recordOutcomes(outcomes: List<ExerciseOutcome>, isPractice: Boolean, todayEpochDay: Long, nowMillis: Long)
 }
 
@@ -51,4 +58,28 @@ interface UserStatsRepository {
     suspend fun update(transform: (UserStats) -> UserStats) {
         updateAndGet { transform(it) to Unit }
     }
+}
+
+/** Learning analytics: mistake profile, sound mastery, daily activity and story progress. */
+interface InsightsRepository {
+    val insights: Flow<LearningInsights>
+
+    /**
+     * Records a finished session: XP for the day, the session kind, and first-try results per
+     * mistake pattern (true = correct on the first attempt).
+     */
+    suspend fun recordSession(
+        todayEpochDay: Long,
+        xp: Int,
+        kind: SessionKind,
+        patternResults: List<Pair<ErrorPattern, Boolean>>,
+    )
+
+    suspend fun recordStory(todayEpochDay: Long, storyId: String, stars: Int, xp: Int)
+}
+
+/** Learner profile from onboarding (name, goal, reminder time). */
+interface ProfileRepository {
+    val profile: Flow<UserProfile>
+    suspend fun update(transform: (UserProfile) -> UserProfile)
 }
