@@ -5,15 +5,8 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -25,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -35,42 +29,40 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.rihla.english.R
+import com.rihla.english.core.journey.SceneArt
 import com.rihla.english.core.model.DailyGoalLevel
 import com.rihla.english.core.model.LearningGoal
-import com.rihla.english.ui.components.PressableSurface
-import com.rihla.english.ui.components.RihlaButton
-import com.rihla.english.ui.progress.ReminderOptions
-import com.rihla.english.ui.theme.Night
-import com.rihla.english.ui.theme.NightSkyBrush
-import com.rihla.english.ui.theme.Saffron
-import com.rihla.english.ui.theme.SaffronDark
+import com.rihla.english.ui.components.CineButton
+import com.rihla.english.ui.components.EnglishText
+import com.rihla.english.ui.components.SceneBackdrop
+import com.rihla.english.ui.theme.Cine
+import com.rihla.english.ui.theme.EnglishTextStyles
 
-/**
- * First-run journey: welcome → name → why → daily time → reminder. Personalising the goal and
- * the reminder up front is what turns a download into a daily habit.
- */
+/** Reminder hour → label (null hour = no reminder). */
+private val ReminderOptions: List<Pair<Int?, Int>> = listOf(
+    8 to R.string.time_8am, 13 to R.string.time_1pm, 18 to R.string.time_6pm, 21 to R.string.time_9pm, null to R.string.reminder_off,
+)
+
+/** First run, like the opening titles of a film: welcome → name → why → daily time → reminder. */
 @Composable
 fun OnboardingScreen(onFinish: (name: String, goal: LearningGoal?, level: DailyGoalLevel, reminderHour: Int?) -> Unit) {
     var step by rememberSaveable { mutableStateOf(0) }
@@ -78,102 +70,71 @@ fun OnboardingScreen(onFinish: (name: String, goal: LearningGoal?, level: DailyG
     var goal by rememberSaveable { mutableStateOf<LearningGoal?>(null) }
     var level by rememberSaveable { mutableStateOf(DailyGoalLevel.REGULAR) }
     var reminder by rememberSaveable { mutableStateOf<Int?>(21) }
-    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-        onFinish(name, goal, level, reminder)
-    }
+    val notifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { onFinish(name, goal, level, reminder) }
 
     fun finish() {
-        if (reminder != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        } else {
-            onFinish(name, goal, level, reminder)
-        }
+        if (reminder != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+        else onFinish(name, goal, level, reminder)
     }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(NightSkyBrush),
-    ) {
+    Column(Modifier.fillMaxSize().background(Cine.Ink)) {
+        if (step == 0) {
+            Box(Modifier.fillMaxWidth().height(340.dp)) {
+                SceneBackdrop(SceneArt.TAXI, Modifier.fillMaxSize())
+                Box(Modifier.fillMaxWidth().height(26.dp).background(Cine.Letterbox))
+                Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.5f to Color.Transparent, 1f to Cine.Ink)))
+            }
+        }
         Column(
-            Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .imePadding()
-                .padding(24.dp),
+            Modifier.weight(1f).fillMaxWidth().then(if (step == 0) Modifier else Modifier.statusBarsPadding()).imePadding().padding(24.dp),
         ) {
-            // Step dots
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 repeat(5) { i ->
                     Box(
-                        Modifier
-                            .padding(3.dp)
-                            .width(if (i == step) 26.dp else 10.dp)
-                            .height(10.dp)
-                            .clip(RoundedCornerShape(5.dp))
-                            .background(if (i <= step) Saffron else Color.White.copy(alpha = 0.25f)),
+                        Modifier.padding(3.dp).width(if (i == step) 24.dp else 8.dp).height(4.dp).clip(RoundedCornerShape(2.dp))
+                            .background(if (i <= step) Cine.Amber else Cine.Line),
                     )
                 }
             }
-            AnimatedContent(
-                targetState = step,
-                transitionSpec = { (slideInHorizontally { -it / 3 } + fadeIn()) togetherWith fadeOut() },
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                label = "onboarding",
-            ) { current ->
-                Column(
-                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 28.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
+            AnimatedContent(step, transitionSpec = { fadeIn() togetherWith fadeOut() }, modifier = Modifier.weight(1f), label = "onboarding") { current ->
+                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     when (current) {
-                        0 -> Welcome()
+                        0 -> {
+                            Text(stringResource(R.string.onb_welcome_title), style = MaterialTheme.typography.displayMedium)
+                            EnglishText("Riyadh → London", style = EnglishTextStyles.option, color = Cine.Amber)
+                            Text(stringResource(R.string.onb_welcome_body), style = MaterialTheme.typography.bodyLarge, color = Cine.TextSoft)
+                        }
                         1 -> {
-                            Title(stringResource(R.string.onb_name_title), "🙋")
+                            Title(stringResource(R.string.onb_name_title))
                             OutlinedTextField(
                                 value = name,
                                 onValueChange = { name = it.take(24) },
                                 placeholder = { Text(stringResource(R.string.onb_name_hint)) },
                                 singleLine = true,
-                                textStyle = MaterialTheme.typography.titleLarge.copy(color = Color.White),
+                                textStyle = MaterialTheme.typography.titleLarge,
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                                 keyboardActions = KeyboardActions(onNext = { step = 2 }),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Saffron,
-                                    unfocusedBorderColor = Color.White.copy(alpha = 0.4f),
-                                    cursorColor = Saffron,
-                                    focusedPlaceholderColor = Color.White.copy(alpha = 0.5f),
-                                    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.5f),
-                                ),
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Cine.Amber, unfocusedBorderColor = Cine.Line, cursorColor = Cine.Amber),
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }
                         2 -> {
-                            Title(stringResource(R.string.onb_goal_title), "🎯")
-                            LearningGoal.entries.forEach { g ->
-                                OptionCard("${g.emoji}  ${g.titleAr}", selected = goal == g) { goal = g }
-                            }
+                            Title(stringResource(R.string.onb_goal_title))
+                            LearningGoal.entries.forEach { g -> Option(g.titleAr, goal == g) { goal = g } }
                         }
                         3 -> {
-                            Title(stringResource(R.string.onb_level_title), "⏱️")
-                            DailyGoalLevel.entries.forEach { l ->
-                                OptionCard("${l.emoji}  ${l.titleAr} — ${l.minutesAr}", selected = level == l) { level = l }
-                            }
+                            Title(stringResource(R.string.onb_level_title))
+                            DailyGoalLevel.entries.forEach { l -> Option(stringResource(R.string.onb_minutes, l.titleAr, l.minutes), level == l) { level = l } }
                         }
                         else -> {
-                            Title(stringResource(R.string.onb_reminder_title), "⏰")
-                            Text(stringResource(R.string.onb_reminder_body), style = MaterialTheme.typography.bodyLarge, color = Color.White.copy(alpha = 0.85f))
-                            ReminderOptions.forEach { (hour, label) ->
-                                OptionCard(
-                                    if (label == 0) stringResource(R.string.settings_reminder_off) else "🔔  " + stringResource(label),
-                                    selected = reminder == hour,
-                                ) { reminder = hour }
-                            }
+                            Title(stringResource(R.string.onb_reminder_title))
+                            Text(stringResource(R.string.onb_reminder_body), style = MaterialTheme.typography.bodyLarge, color = Cine.Muted)
+                            ReminderOptions.forEach { (hour, label) -> Option(stringResource(label), reminder == hour) { reminder = hour } }
                         }
                     }
                 }
             }
-            RihlaButton(
+            CineButton(
                 text = stringResource(
                     when (step) {
                         0 -> R.string.onb_start
@@ -182,53 +143,31 @@ fun OnboardingScreen(onFinish: (name: String, goal: LearningGoal?, level: DailyG
                     },
                 ),
                 onClick = { if (step < 4) step++ else finish() },
-                color = Saffron,
-                shadowColor = SaffronDark,
-                textColor = Night,
                 enabled = step != 2 || goal != null,
+                modifier = Modifier.navigationBarsPadding(),
             )
         }
     }
 }
 
 @Composable
-private fun Welcome() {
-    val float = rememberInfiniteTransition(label = "camel")
-    val dy by float.animateFloat(0f, -14f, infiniteRepeatable(tween(1200), RepeatMode.Reverse), label = "dy")
-    val pop = remember { Animatable(0.6f) }
-    LaunchedEffect(Unit) { pop.animateTo(1f, tween(600)) }
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Spacer(Modifier.height(24.dp))
-        Text("🐪", fontSize = 110.sp, modifier = Modifier.graphicsLayer { translationY = dy; scaleX = pop.value; scaleY = pop.value })
-        Text("🌙  ✨  🌴", fontSize = 26.sp)
-        Text(stringResource(R.string.onb_welcome_title), style = MaterialTheme.typography.displayMedium, color = Color.White, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.onb_welcome_body), style = MaterialTheme.typography.bodyLarge, color = Color.White.copy(alpha = 0.85f), textAlign = TextAlign.Center)
-    }
+private fun Title(text: String) {
+    Text(text, style = MaterialTheme.typography.headlineLarge)
+    Spacer(Modifier.height(4.dp))
 }
 
 @Composable
-private fun Title(text: String, emoji: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(emoji, fontSize = 34.sp)
-        Spacer(Modifier.width(10.dp))
-        Text(text, style = MaterialTheme.typography.headlineLarge, color = Color.White)
-    }
-}
-
-@Composable
-private fun OptionCard(text: String, selected: Boolean, onClick: () -> Unit) {
-    PressableSurface(
+private fun Option(text: String, selected: Boolean, onClick: () -> Unit) {
+    OutlinedButton(
         onClick = onClick,
-        color = if (selected) Saffron else Color.White.copy(alpha = 0.1f),
-        shadowColor = if (selected) SaffronDark else Color.White.copy(alpha = 0.05f),
-        border = BorderStroke(2.dp, if (selected) Saffron else Color.White.copy(alpha = 0.25f)),
-        shape = RoundedCornerShape(18.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, if (selected) Cine.Amber else Cine.Line),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = if (selected) Cine.AmberTint else Cine.Panel,
+            contentColor = if (selected) Cine.AmberSoft else Cine.Text,
+        ),
     ) {
-        Text(
-            text,
-            style = MaterialTheme.typography.titleMedium,
-            color = if (selected) Night else Color.White,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 16.dp),
-        )
+        Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth())
     }
 }

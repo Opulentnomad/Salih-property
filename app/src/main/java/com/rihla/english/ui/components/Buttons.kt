@@ -1,130 +1,71 @@
 package com.rihla.english.ui.components
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.MaterialTheme
-import com.rihla.english.ui.theme.Green
-import com.rihla.english.ui.theme.GreenDark
-import com.rihla.english.ui.theme.RihlaTheme
+import com.rihla.english.ui.theme.Cine
 
-/**
- * Chunky "3D" button: a darker base layer sits under the face, and the face sinks into it
- * while pressed — the tactile style that makes gamified apps feel responsive.
- */
+/** Primary action: solid amber "film light" button. */
 @Composable
-fun PressableSurface(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    color: Color,
-    shadowColor: Color,
-    enabled: Boolean = true,
-    shape: Shape = RoundedCornerShape(16.dp),
-    depth: Dp = 4.dp,
-    border: BorderStroke? = null,
-    content: @Composable BoxScope.() -> Unit,
-) {
-    val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
-    val offset by animateDpAsState(if (pressed && enabled) depth else 0.dp, label = "press")
-    Box(modifier) {
-        Box(
-            Modifier
-                .matchParentSize()
-                .padding(top = depth)
-                .clip(shape)
-                .background(shadowColor),
-        )
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .padding(bottom = depth)
-                .offset(y = offset)
-                .clip(shape)
-                .background(color)
-                .then(if (border != null) Modifier.border(border, shape) else Modifier)
-                .clickable(
-                    interactionSource = interaction,
-                    indication = null,
-                    enabled = enabled,
-                    role = Role.Button,
-                    onClick = onClick,
-                ),
-            contentAlignment = Alignment.Center,
-            content = content,
-        )
-    }
-}
-
-@Composable
-fun RihlaButton(
+fun CineButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    color: Color = Green,
-    shadowColor: Color = GreenDark,
-    textColor: Color = Color.White,
     enabled: Boolean = true,
+    color: Color = Cine.Amber,
+    leading: (@Composable () -> Unit)? = null,
 ) {
-    val colors = RihlaTheme.colors
-    PressableSurface(
+    Button(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        color = if (enabled) color else colors.locked,
-        shadowColor = if (enabled) shadowColor else colors.lockedShadow,
         enabled = enabled,
+        modifier = modifier.fillMaxWidth().heightIn(min = 54.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = color,
+            contentColor = Cine.Ink,
+            disabledContainerColor = Cine.Panel,
+            disabledContentColor = Cine.Faint,
+        ),
+        contentPadding = PaddingValues(horizontal = 20.dp),
     ) {
-        Box(Modifier.height(52.dp), contentAlignment = Alignment.Center) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (enabled) textColor else colors.textSecondary,
-            )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            leading?.invoke()
+            Text(text, style = MaterialTheme.typography.labelLarge)
         }
     }
 }
 
-/** Outlined secondary variant (white face, grey border). */
+/** Secondary action: hairline outline on ink. */
 @Composable
-fun RihlaOutlinedButton(
+fun CineOutlinedButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    textColor: Color = com.rihla.english.ui.theme.Blue,
+    enabled: Boolean = true,
+    contentColor: Color = Cine.Text,
 ) {
-    val colors = RihlaTheme.colors
-    PressableSurface(
+    OutlinedButton(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        color = colors.cardBackground,
-        shadowColor = colors.border,
-        border = BorderStroke(2.dp, colors.border),
+        enabled = enabled,
+        modifier = modifier.fillMaxWidth().heightIn(min = 52.dp),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Cine.Line),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor),
     ) {
-        Box(Modifier.height(52.dp), contentAlignment = Alignment.Center) {
-            Text(text = text, style = MaterialTheme.typography.labelLarge, color = textColor)
-        }
+        Text(text, style = MaterialTheme.typography.labelLarge)
     }
 }

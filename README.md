@@ -1,146 +1,68 @@
-# رحلة الإنجليزية — Rihla English
+# رحلة — Rihla
 
-An offline-first Android app that teaches English to native Arabic speakers from absolute zero
-(A0/A1), with a full gamification layer: XP and combos, daily streaks with streak freezes, hearts,
-gems, treasure chests, a gem shop, weekly leagues and achievement badges.
+An offline-first Android app that teaches English to Arabic speakers as an **interactive
+film**. You play a Saudi traveller who leaves Riyadh, lands in London and builds a life there,
+chapter by chapter. There are no hearts, points or leagues: what pulls you forward is the story,
+a notebook of phrases you collect, and a passport that fills with stamps.
 
-- **Arabic RTL interface.** Navigation, instructions, grammar tips and feedback are all in Arabic.
-- **English shown LTR.** Every English letter, word and sentence is forced left-to-right and set in
-  large, high-contrast type, including word chips, which stay in English word order.
-- **Built for Arabic speakers:**
-  - Minimal-pair drills for sounds Arabic doesn't have: P/B (pear/bear, pin/bin), F/V (fan/van,
-    fine/vine), the digraphs sh/ch/th, and silent letters (knife, write, hour).
-  - Grammar Bridges: a visual mapping from an Arabic nominal sentence to its English version. For
-    example, «أنا طالب» → *I **am** **a** student*. The copula and article that Arabic leaves out
-    are highlighted.
-  - Pronunciation is spelled in Arabic letters (هَلُو) next to the IPA.
+## How it teaches
 
-## What makes it different (v2)
-
-- **"Rihla" visual identity.** A desert-journey palette (oasis teal, saffron, sunset coral, night-sky
-  navy over warm sand) and bundled rounded fonts: Baloo Bhaijaan 2 for the Arabic interface and
-  Nunito for English. Every unit is a "destination" on the journey.
-- **Arab Traps (فخاخ العربي).** Unit 5 targets mistakes that come from thinking in Arabic, such as
-  *I am agree*, *She like*, *open the light* and *married with*. It uses a new **spot-the-mistake**
-  exercise: tap the wrong word, then pick the fix. Every exercise in the course is tagged with a
-  mistake pattern, so the **Progress** tab shows a personal mistake profile with a "practise this"
-  button for each pattern.
-- **Sound Lab (مختبر النطق).** Minimal-pair drills for P/B, V/F, th, sh/ch, i/ee and e/i, each
-  with a mastery ring. Speaking items know their minimal-pair partner, so the app can say exactly
-  what it heard: «سمعتُ bear بدل pear».
-- **Situations from your life (مواقف من حياتك).** Six chat-style interactive stories set in the
-  airport, a taxi, a clinic, a hotel, a job interview and a first day at university abroad. Lines
-  are read aloud. You tap or *say* your reply. A weak reply triggers a realistic reaction and a
-  retry, and each story is scored with 1–3 stars. Unit 6 teaches the vocabulary for these situations.
-- **Local seasons.** A Ramadan challenge with 30 crescents (one for each day you meet your goal)
-  and a badge. Your streak is protected automatically during Eid al-Fitr and Eid al-Adha. National
-  Day and Founding Day get banners and a badge. Hijri dates come from the JDK's Umm al-Qura
-  calendar.
-- **Habit features.** First-run onboarding (your name, your reason for learning, daily time, a
-  reminder time) and a daily reminder notification (WorkManager) whose message changes for
-  streak-at-risk and Ramadan. The home screen has a greeting and daily-goal ring, a daily plan of
-  three tasks with a bonus chest, and a "continue your journey" card. The Progress tab has a
-  weekly XP chart, a 5-week calendar and settings.
-
-## Tech stack
-
-| Concern | Choice |
+| Method | In the app |
 |---|---|
-| UI | Kotlin, Jetpack Compose, Material 3 |
-| Architecture | Clean Architecture + MVVM, unidirectional data flow (`StateFlow<UiState>`) |
-| Curriculum and learning progress | Room (exercise payloads stored as polymorphic JSON via kotlinx.serialization) |
-| Gamification stats | Jetpack DataStore (Preferences), updated in atomic transactions |
-| Spaced repetition | SM-2 per vocabulary item |
-| Audio | `TextToSpeech` (en-US, falls back to en-GB, prefers an offline voice). 🔊 normal speed and 🐢 0.65× slow |
-| Speaking | `SpeechRecognizer` (prefers offline) with fuzzy matching (Levenshtein, contractions, digits) |
-| DI | Manual container (`AppContainer`), no annotation processing besides Room |
+| **Interactive story** (the backbone) | 10 chapters × 3 scenes: Riyadh airport → Heathrow → hotel → café → the Tube → shopping → clinic → university → job interview → dinner with friends |
+| **Comprehensible input** | Characters speak in English (read aloud by text-to-speech, at normal speed or 0.65× slow), with Arabic subtitles. Nothing is quizzed before you've understood it |
+| **Lexical chunks** | Each line highlights a ready-made phrase (*purpose of your visit*, *Could I have…?*) and saves it to your notebook |
+| **Natural replies** | You choose what to say. The app tells you whether a reply sounds natural, acceptable or unnatural, and why. Unnatural replies are typical Arabic-speaker traps (*I am agree*, *since two weeks*, *a suitcase black*), so they get targeted coaching and you try again |
+| **Shadowing** (كرّر بعدي) | Hear a phrase, then repeat it. Your real microphone level is drawn as a waveform under the reference, and speech recognition gives a pronunciation match score. You can skip with "I can't speak right now" |
+| **Sentence mining** (دفتري) | Every phrase you meet is kept in its sentence and scheduled for review with SM-2. A review session plays the sentence, you recall the meaning, then grade yourself |
+| **Real-life missions** | After each chapter you get a task to do outside the app (order a coffee in English, describe your route, teach your family three phrases). Completing it earns a passport stamp |
 
-## Modules
+Habit support: first-run onboarding (name, reason for learning, daily minutes, reminder time),
+a daily reminder notification whose message changes with your situation (Ramadan, days of
+commitment, the next scene), a "days of commitment" count that never punishes you, and seasonal
+greetings (Ramadan, Eid, National Day) based on the Umm al-Qura calendar.
+
+## Design
+
+The look is cinematic: a near-black cinema-ink background, warm amber "film light" as the only
+accent, and blue reserved for "natural". Fonts are bundled so the app works offline (all SIL
+OFL): Reem Kufi for Arabic titles, IBM Plex Sans Arabic for body text, and Inter for English
+"subtitles". The interface is Arabic RTL, and every piece of English is forced LTR. Each of the
+12 scene backdrops is drawn in code (`SceneBackdrop.kt`) with letterbox bars. Icons are
+thin-stroke drawings, with no emoji.
+
+## Architecture
 
 ```
-:core   Pure Kotlin/JVM: no Android. Unit-tested.
-  model/        Curriculum, Exercise (6 types, sealed + @Serializable), UserStats, Badge, League, ShopItem
-  engine/       GamificationEngine, LeagueEngine, Sm2Scheduler, AnswerMatcher, ExerciseGrader,
-                SkillPath (unlock rules), LessonQueue (mistake-recovery queue)
-  repository/   CurriculumRepository, UserStatsRepository (interfaces)
-  curriculum/   SeedCurriculumData.kt + a small builder DSL
+:core   Pure Kotlin/JVM, unit-tested
+  journey/Model.kt        Chapter → Scene → Beat (Narration, Line+Chunk, Reply, Shadow), Mission
+  journey/Script.kt       The screenplay: 10 chapters, 30 scenes, 10 missions
+  journey/ScenePlayer.kt  Immutable scene state machine
+  journey/Progress.kt     Progress, notebook (SM-2), missions, stamps, commitment days, repositories
+  engine/                 AnswerMatcher (speech scoring), Sm2Scheduler
+  season/                 SeasonCalendar (Hijri seasons)
+  model/                  ErrorPattern (Arabic-speaker traps), UserProfile
 
-:app    Android
-  data/local/       Room entities, DAOs, RihlaDatabase, UserStatsDataStore
-  data/repository/  CurriculumRepositoryImpl (seeding, practice sessions, SM-2 + mistakes)
-  audio/            TtsManager, SpeechRecognizerManager
-  di/               AppContainer
-  ui/gamification/  GamificationViewModel (activity-scoped)
-  ui/lesson/        LessonViewModel, LessonArenaScreen, FeedbackSheet, exercises/*
-  ui/home/          SkillTreeHomeScreen (snake path)
-  ui/victory/       LessonVictoryScreen (confetti + chest opening)
-  ui/shop/          ShopAndAchievementsScreen (shop, badges, league)
-  ui/components/    TopGamificationBar, GrammarBridgeCard, 3D buttons, LTR/RTL helpers
+:app    Android (Kotlin, Jetpack Compose, Material 3, MVVM + StateFlow)
+  data/JourneyStore.kt    DataStore (JSON) persistence for progress + profile
+  audio/                  TextToSpeech and SpeechRecognizer wrappers
+  reminders/              WorkManager daily reminder
+  ui/journey|scene|notebook|passport|onboarding|navigation|components|theme
 ```
 
-The gamification rules all live in `GamificationEngine`, a set of pure functions from
-`UserStats` to a new `UserStats` plus a list of events. ViewModels apply them inside a single
-DataStore transaction, so updates can't race and every rule can be tested on the JVM.
-
-## Gamification rules
-
-| Mechanic | Rule |
-|---|---|
-| XP | +10 per correct answer. From the 3rd correct answer in a row, each answer gets +5 combo bonus. Finishing a lesson adds +15, and a perfect lesson adds another +5. |
-| Double XP ⚡ | 15-minute boost bought in the shop. It multiplies all XP by 2. |
-| Daily goal and streak 🔥 | Reaching 30 XP in a day extends the streak (once per day). |
-| Streak freeze ❄️ | You can own up to 2. When you open the app after missing days, freezes are used to cover them. If you don't have enough, the streak resets. |
-| Hearts ❤️ | Max 5. Each mistake in a lesson costs 1. One heart comes back every 30 minutes. A refill costs 40 💎. Each finished practice session gives +1 heart. Practice never costs hearts. |
-| Gems 💎 | +5 per lesson, +5 more for a perfect lesson, +20 per badge, and 15–40 per chest (25% chance of a bonus freeze). Everyone starts with 100. |
-| Shop | Streak freeze 50 💎 · Heart refill 40 💎 · Double XP 60 💎 |
-| Leagues 🏆 | Bronze → Silver → Gold → Diamond, in groups of 10. At the end of the week the top 3 move up and the bottom 3 move down. Rivals are simulated offline and deterministically. |
-| Badges 🎖️ | 11 in total, including «أول درس», «سلسلة 7 أيام 🔥», «قناص الدقة 100% 🎯», «سيّد الحروف», «صائد الكنوز». |
-| Mistake recovery | A missed exercise moves to the end of the queue. A lesson only ends once every item has been answered correctly. |
-| SM-2 | Each word gets one review per session: quality 5 if right first time, 3 if right after a retry, 1 if never right. "Practice Mistakes" mixes recent mistakes with words that are due. |
-
-## Curriculum (seed data)
-
-The course has 6 units, 29 lessons, 12 chests and 379 exercises, plus 6 interactive stories and 6 sound drills. Every lesson uses flashcards,
-multiple choice, matching, listening and speaking, and most use word-bank sentences too.
-
-1. **Alphabet & Essential Phonics:** letters A–Z in upper and lower case, P vs B, F vs V, sh/ch/th
-   and silent letters.
-2. **First Words & Greetings:** hello and goodbye, introducing yourself, pronouns
-   (I/you/he/she/we/they), numbers 1–10, colours (adjective before noun).
-3. **Building Your First Sentences:** *am / is / are*, negatives with *not*, *This is a…*, *a/an*.
-4. **Daily Survival English:** family (*my*), food (*I like…*), ordering at a café, common verbs
-   (no copula before a verb).
-
-To change the content, edit `core/.../curriculum/SeedCurriculumData.kt` and bump `VERSION`. The
-app re-seeds the content tables and keeps learner progress, because ids are stable.
+To edit the story, change `core/.../journey/Script.kt`. The ids are stable (`ch2_s1`), so saved
+progress survives edits. The unit tests check that every scene can be played to the end, that
+ids and stamps are unique, and that every line's speaker is in the chapter's cast.
 
 ## Build and run
 
-You need Android Studio (Ladybug or newer) with JDK 17+ and Android SDK 35.
+Each push to the branch is built by GitHub Actions. The debug APK is kept as a **private
+artifact** on the run page (Actions → Build APK → Artifacts).
 
 ```bash
-./gradlew :app:installDebug     # build and install on a device or emulator
-./gradlew :core:test            # domain rules + seed-data integrity tests
-./gradlew :app:testDebugUnitTest
+./gradlew :app:installDebug
+./gradlew :core:test :app:testDebugUnitTest
 ```
 
-For audio to work offline, the device needs English voice data installed (Settings → Accessibility
-→ Text-to-speech). Speech recognition works offline only on devices that have an offline English
-model. If recognition isn't available, the speaking challenges offer "لا أستطيع التحدث الآن"
-("I can't speak right now") to skip them without penalty.
-
-## Verification status
-
-The authoring environment couldn't reach Google's Maven repository, so AGP and AndroidX couldn't be
-downloaded and the APK has **not** been built here. What was checked:
-
-- `:core` compiled and passed all 25 JVM tests: engine rules, SM-2, matcher, grader, unlock rules,
-  the queue, and seed-data checks such as unique ids, valid answers, every canonical answer grading
-  as correct, and a JSON round-trip of every exercise.
-- All `:app` Kotlin sources type-checked with zero errors against JetBrains Compose Desktop 1.7.3
-  (the same Compose and Material 3 APIs as the Compose BOM used here), real `android.*` framework
-  classes, and signature stubs for the Room, DataStore, Navigation, Lifecycle and Activity APIs.
-- `LessonViewModelTest` (6 tests) ran against the real ViewModel and engine with fake repositories.
-
-Still to check on a real build: Room's KSP query validation, the first build's schema export to
-`app/schemas/`, and on-device behaviour of TTS and speech recognition.
+For audio to work offline, the device needs English voice data installed (Settings →
+Accessibility → Text-to-speech).

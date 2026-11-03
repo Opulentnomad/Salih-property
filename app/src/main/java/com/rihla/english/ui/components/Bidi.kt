@@ -35,7 +35,7 @@ fun Rtl(content: @Composable () -> Unit) {
 fun EnglishText(
     text: String,
     modifier: Modifier = Modifier,
-    style: TextStyle = EnglishTextStyles.large,
+    style: TextStyle = EnglishTextStyles.subtitle,
     color: Color = Color.Unspecified,
     textAlign: TextAlign = TextAlign.Start,
 ) {

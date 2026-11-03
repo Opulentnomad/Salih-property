@@ -19,6 +19,8 @@ import androidx.work.WorkerParameters
 import com.rihla.english.MainActivity
 import com.rihla.english.R
 import com.rihla.english.RihlaApplication
+import com.rihla.english.core.journey.Journey
+import com.rihla.english.core.journey.Script
 import com.rihla.english.core.season.Season
 import com.rihla.english.core.season.SeasonCalendar
 import java.time.Duration
@@ -65,22 +67,26 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
 
     override suspend fun doWork(): Result {
         val container = (applicationContext as RihlaApplication).container
-        val profile = container.profileRepository.profile.first()
-        if (!profile.remindersEnabled) return Result.success()
+        val profile = container.journeyStore.profile.first()
+        if (!profile.remindersEnabled || !profile.onboarded) return Result.success()
 
-        val stats = container.userStatsRepository.stats.first()
+        val progress = container.journeyStore.progress.first()
         val today = container.clock.todayEpochDay()
-        val goalMetToday = stats.dailyXpEpochDay == today && stats.dailyXp >= stats.dailyGoalXp
-        if (goalMetToday) return Result.success()
+        // Already studied today: no nudge.
+        if (Journey.minutesToday(progress, today) >= profile.dailyMinutes) return Result.success()
 
         val ctx = applicationContext
         val name = profile.name.ifBlank { ctx.getString(R.string.reminder_friend) }
+        val next = Journey.nextScene(Script.chapters, progress)
+        val days = Journey.commitmentDays(progress, today)
         val (title, body) = when {
             SeasonCalendar.seasonOn(today) == Season.RAMADAN ->
                 ctx.getString(R.string.reminder_ramadan_title) to ctx.getString(R.string.reminder_ramadan_body, name)
-            stats.currentStreak > 0 ->
-                ctx.getString(R.string.reminder_streak_title, stats.currentStreak) to ctx.getString(R.string.reminder_streak_body, name)
-            else -> ctx.getString(R.string.reminder_default_title) to ctx.getString(R.string.reminder_default_body, name)
+            days > 1 ->
+                ctx.getString(R.string.reminder_streak_title, days) to ctx.getString(R.string.reminder_streak_body, name)
+            next != null ->
+                ctx.getString(R.string.reminder_scene_title) to ctx.getString(R.string.reminder_scene_body, name, next.titleAr)
+            else -> ctx.getString(R.string.reminder_review_title) to ctx.getString(R.string.reminder_review_body, name)
         }
         notify(title, body)
         return Result.success()
