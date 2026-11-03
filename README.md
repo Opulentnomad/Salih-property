@@ -15,6 +15,33 @@ gems, treasure chests, a gem shop, weekly leagues and achievement badges.
     are highlighted.
   - Pronunciation is spelled in Arabic letters (هَلُو) next to the IPA.
 
+## What makes it different (v2)
+
+- **"Rihla" visual identity.** A desert-journey palette (oasis teal, saffron, sunset coral, night-sky
+  navy over warm sand) and bundled rounded fonts: Baloo Bhaijaan 2 for the Arabic interface and
+  Nunito for English. Every unit is a "destination" on the journey.
+- **Arab Traps (فخاخ العربي).** Unit 5 targets mistakes that come from thinking in Arabic, such as
+  *I am agree*, *She like*, *open the light* and *married with*. It uses a new **spot-the-mistake**
+  exercise: tap the wrong word, then pick the fix. Every exercise in the course is tagged with a
+  mistake pattern, so the **Progress** tab shows a personal mistake profile with a "practise this"
+  button for each pattern.
+- **Sound Lab (مختبر النطق).** Minimal-pair drills for P/B, V/F, th, sh/ch, i/ee and e/i, each
+  with a mastery ring. Speaking items know their minimal-pair partner, so the app can say exactly
+  what it heard: «سمعتُ bear بدل pear».
+- **Situations from your life (مواقف من حياتك).** Six chat-style interactive stories set in the
+  airport, a taxi, a clinic, a hotel, a job interview and a first day at university abroad. Lines
+  are read aloud. You tap or *say* your reply. A weak reply triggers a realistic reaction and a
+  retry, and each story is scored with 1–3 stars. Unit 6 teaches the vocabulary for these situations.
+- **Local seasons.** A Ramadan challenge with 30 crescents (one for each day you meet your goal)
+  and a badge. Your streak is protected automatically during Eid al-Fitr and Eid al-Adha. National
+  Day and Founding Day get banners and a badge. Hijri dates come from the JDK's Umm al-Qura
+  calendar.
+- **Habit features.** First-run onboarding (your name, your reason for learning, daily time, a
+  reminder time) and a daily reminder notification (WorkManager) whose message changes for
+  streak-at-risk and Ramadan. The home screen has a greeting and daily-goal ring, a daily plan of
+  three tasks with a bonus chest, and a "continue your journey" card. The Progress tab has a
+  weekly XP chart, a 5-week calendar and settings.
+
 ## Tech stack
 
 | Concern | Choice |
@@ -73,7 +100,7 @@ DataStore transaction, so updates can't race and every rule can be tested on the
 
 ## Curriculum (seed data)
 
-The course has 4 units, 20 lessons, 8 chests and 270 exercises. Every lesson uses flashcards,
+The course has 6 units, 29 lessons, 12 chests and 379 exercises, plus 6 interactive stories and 6 sound drills. Every lesson uses flashcards,
 multiple choice, matching, listening and speaking, and most use word-bank sentences too.
 
 1. **Alphabet & Essential Phonics:** letters A–Z in upper and lower case, P vs B, F vs V, sh/ch/th

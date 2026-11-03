@@ -49,6 +49,14 @@ class UserStatsDataStore(private val dataStore: DataStore<Preferences>) : UserSt
         val speakingCorrect = intPreferencesKey("speaking_correct")
         val bestCombo = intPreferencesKey("best_combo")
         val badges = stringSetPreferencesKey("badges")
+        val storiesCompleted = intPreferencesKey("stories_completed")
+        val perfectStories = intPreferencesKey("perfect_stories")
+        val soundDrills = intPreferencesKey("sound_drills")
+        val errorCorrections = intPreferencesKey("error_corrections")
+        val ramadanGoalDays = intPreferencesKey("ramadan_goal_days")
+        val ramadanHijriYear = intPreferencesKey("ramadan_hijri_year")
+        val nationalDay = intPreferencesKey("celebrated_national_day")
+        val dailyBonusDay = longPreferencesKey("daily_bonus_day")
     }
 
     override val stats: Flow<UserStats> = dataStore.data.map { it.toStats() }.distinctUntilChanged()
@@ -92,6 +100,14 @@ class UserStatsDataStore(private val dataStore: DataStore<Preferences>) : UserSt
             speakingCorrect = this[Keys.speakingCorrect] ?: d.speakingCorrect,
             bestCombo = this[Keys.bestCombo] ?: d.bestCombo,
             unlockedBadges = this[Keys.badges] ?: d.unlockedBadges,
+            storiesCompleted = this[Keys.storiesCompleted] ?: d.storiesCompleted,
+            perfectStories = this[Keys.perfectStories] ?: d.perfectStories,
+            soundDrills = this[Keys.soundDrills] ?: d.soundDrills,
+            errorCorrectionsCorrect = this[Keys.errorCorrections] ?: d.errorCorrectionsCorrect,
+            ramadanGoalDays = this[Keys.ramadanGoalDays] ?: d.ramadanGoalDays,
+            ramadanHijriYear = this[Keys.ramadanHijriYear] ?: d.ramadanHijriYear,
+            celebratedNationalDay = (this[Keys.nationalDay] ?: 0) == 1,
+            dailyBonusClaimedDay = this[Keys.dailyBonusDay] ?: d.dailyBonusClaimedDay,
         )
     }
 
@@ -122,5 +138,13 @@ class UserStatsDataStore(private val dataStore: DataStore<Preferences>) : UserSt
         this[Keys.speakingCorrect] = s.speakingCorrect
         this[Keys.bestCombo] = s.bestCombo
         this[Keys.badges] = s.unlockedBadges
+        this[Keys.storiesCompleted] = s.storiesCompleted
+        this[Keys.perfectStories] = s.perfectStories
+        this[Keys.soundDrills] = s.soundDrills
+        this[Keys.errorCorrections] = s.errorCorrectionsCorrect
+        this[Keys.ramadanGoalDays] = s.ramadanGoalDays
+        this[Keys.ramadanHijriYear] = s.ramadanHijriYear
+        this[Keys.nationalDay] = if (s.celebratedNationalDay) 1 else 0
+        this[Keys.dailyBonusDay] = s.dailyBonusClaimedDay
     }
 }

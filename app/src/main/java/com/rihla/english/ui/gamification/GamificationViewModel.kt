@@ -15,6 +15,20 @@ import com.rihla.english.core.engine.NodeState
 import com.rihla.english.core.engine.PurchaseResult
 import com.rihla.english.core.engine.SkillPath
 import com.rihla.english.core.model.Badge
+import com.rihla.english.core.model.DailyGoalLevel
+import com.rihla.english.core.model.DailyPlan
+import com.rihla.english.core.model.DailyTask
+import com.rihla.english.core.model.LearningGoal
+import com.rihla.english.core.model.LearningInsights
+import com.rihla.english.core.model.StoryProgress
+import com.rihla.english.core.model.UserProfile
+import com.rihla.english.core.season.Season
+import com.rihla.english.core.season.SeasonCalendar
+import com.rihla.english.core.story.SeedStories
+import com.rihla.english.core.story.Story
+import com.rihla.english.core.repository.InsightsRepository
+import com.rihla.english.core.repository.ProfileRepository
+import com.rihla.english.reminders.ReminderScheduler
 import com.rihla.english.core.model.CourseUnit
 import com.rihla.english.core.model.LeagueEntry
 import com.rihla.english.core.model.LeagueOutcome
@@ -45,6 +59,7 @@ data class NodeUi(val node: PathNode, val state: NodeState, val isCurrent: Boole
 data class UnitUi(val unit: CourseUnit, val nodes: List<NodeUi>)
 data class ChestRewardUi(val gems: Int, val bonusFreeze: Boolean)
 data class BadgeUi(val badge: Badge, val unlocked: Boolean)
+data class StoryCardUi(val story: Story, val locked: Boolean, val progress: StoryProgress)
 
 data class HomeUiState(
     val isLoading: Boolean = true,
@@ -58,7 +73,17 @@ data class HomeUiState(
     val leagueEntries: List<LeagueEntry> = emptyList(),
     val leagueRank: Int = 0,
     val leagueDaysLeft: Int = 7,
-)
+    val profile: UserProfile = UserProfile(),
+    val insights: LearningInsights = LearningInsights(),
+    val todayEpochDay: Long = 0,
+    val season: Season? = null,
+    val ramadanDay: Int? = null,
+    val dailyTasks: List<DailyTask> = emptyList(),
+    val dailyBonusClaimed: Boolean = false,
+    val stories: List<StoryCardUi> = emptyList(),
+) {
+    val allDailyTasksDone: Boolean get() = dailyTasks.isNotEmpty() && dailyTasks.all { it.done }
+}
 
 /** Second-by-second countdowns, kept separate so only the widgets that show them recompose. */
 data class TimerState(val nextHeartMillis: Long? = null, val doubleXpRemainingMillis: Long? = null)
@@ -72,7 +97,14 @@ class GamificationViewModel(
     private val statsRepository: UserStatsRepository,
     private val engine: GamificationEngine,
     private val clock: AppClock,
+    private val insightsRepository: InsightsRepository,
+    private val profileRepository: ProfileRepository,
+    private val appContext: android.content.Context,
 ) : ViewModel() {
+
+    /** Null until the profile is loaded, so the app can decide whether to show onboarding. */
+    val profile: StateFlow<UserProfile?> = profileRepository.profile
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val messageChannel = Channel<UiMessage>(Channel.BUFFERED)
     val messages: Flow<UiMessage> = messageChannel.receiveAsFlow()
@@ -87,13 +119,34 @@ class GamificationViewModel(
     private var lastRefreshDay = Long.MIN_VALUE
 
     val uiState: StateFlow<HomeUiState> = combine(
-        statsRepository.stats,
-        curriculum.observeUnits(),
-        curriculum.observeCompletedNodeIds(),
-        curriculum.observeWordsLearned(),
-        curriculum.observeMistakeCount(),
-    ) { stats, units, completed, words, mistakes ->
-        buildState(stats, units, completed, words, mistakes)
+        combine(
+            statsRepository.stats,
+            curriculum.observeUnits(),
+            curriculum.observeCompletedNodeIds(),
+            curriculum.observeWordsLearned(),
+            curriculum.observeMistakeCount(),
+        ) { stats, units, completed, words, mistakes -> buildState(stats, units, completed, words, mistakes) },
+        insightsRepository.insights,
+        profileRepository.profile,
+    ) { base, insights, profile ->
+        val today = clock.todayEpochDay()
+        val completed = base.units.flatMap { it.nodes }.filter { it.state == NodeState.COMPLETED }.map { it.node.id }.toSet()
+        base.copy(
+            profile = profile,
+            insights = insights,
+            todayEpochDay = today,
+            season = SeasonCalendar.seasonOn(today),
+            ramadanDay = SeasonCalendar.ramadanDay(today),
+            dailyTasks = DailyPlan.tasksFor(insights, today),
+            dailyBonusClaimed = base.stats.dailyBonusClaimedDay == today,
+            stories = SeedStories.all.map { story ->
+                StoryCardUi(
+                    story = story,
+                    locked = story.requiredNodeId != null && story.requiredNodeId !in completed,
+                    progress = insights.stories[story.id] ?: StoryProgress(),
+                )
+            },
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, HomeUiState())
 
     init {
@@ -182,6 +235,7 @@ class GamificationViewModel(
 
     private fun messageFor(event: GamificationEvent): UiMessage? = when (event) {
         is GamificationEvent.StreakFreezeUsed -> UiMessage.Res(R.string.event_freeze_used)
+        is GamificationEvent.StreakProtectedBySeason -> UiMessage.Res(R.string.event_eid_protected)
         is GamificationEvent.StreakLost -> UiMessage.Res(R.string.event_streak_lost, listOf(event.previousStreak))
         is GamificationEvent.BadgeUnlocked -> UiMessage.Res(R.string.event_badge, listOf(event.badge.titleAr))
         is GamificationEvent.LeagueResolved -> when (event.outcome) {
@@ -219,6 +273,48 @@ class GamificationViewModel(
         _chestReward.value = null
     }
 
+    /** "خطة اليوم" reward once all three daily tasks are done. */
+    fun claimDailyBonus() {
+        val state = uiState.value
+        if (!state.allDailyTasksDone || state.dailyBonusClaimed) return
+        viewModelScope.launch {
+            val today = clock.todayEpochDay()
+            statsRepository.update { engine.claimDailyBonus(it, today, allTasksDone = true).stats }
+            _chestReward.value = ChestRewardUi(DailyPlan.BONUS_GEMS, bonusFreeze = false)
+        }
+    }
+
+    // ------------------------------------------------------------------ onboarding & settings
+
+    fun completeOnboarding(name: String, goal: LearningGoal?, level: DailyGoalLevel, reminderHour: Int?) {
+        viewModelScope.launch {
+            statsRepository.update { it.copy(dailyGoalXp = level.xp) }
+            profileRepository.update {
+                it.copy(
+                    name = name.trim().take(24),
+                    goal = goal,
+                    onboarded = true,
+                    remindersEnabled = reminderHour != null,
+                    reminderHour = reminderHour ?: it.reminderHour,
+                    reminderMinute = 0,
+                )
+            }
+            if (reminderHour != null) ReminderScheduler.schedule(appContext, reminderHour, 0)
+            else ReminderScheduler.cancel(appContext)
+        }
+    }
+
+    fun setReminder(hour: Int?) {
+        viewModelScope.launch {
+            profileRepository.update { it.copy(remindersEnabled = hour != null, reminderHour = hour ?: it.reminderHour, reminderMinute = 0) }
+            if (hour != null) ReminderScheduler.schedule(appContext, hour, 0) else ReminderScheduler.cancel(appContext)
+        }
+    }
+
+    fun setDailyGoal(level: DailyGoalLevel) {
+        viewModelScope.launch { statsRepository.update { it.copy(dailyGoalXp = level.xp) } }
+    }
+
     fun purchase(item: ShopItem) {
         viewModelScope.launch {
             val result = statsRepository.updateAndGet { stats ->
@@ -245,6 +341,9 @@ class GamificationViewModel(
                     statsRepository = container.userStatsRepository,
                     engine = container.gamificationEngine,
                     clock = container.clock,
+                    insightsRepository = container.insightsRepository,
+                    profileRepository = container.profileRepository,
+                    appContext = this[APPLICATION_KEY] as RihlaApplication,
                 )
             }
         }

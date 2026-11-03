@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#FFFFFFFF</color>
-    <color name="brand_green">#FF58CC02</color>
+    <color name="background">#FFFFF8EC</color>
+    <color name="brand_night">#FF16213E</color>
+    <color name="brand_saffron">#FFFFB020</color>
 </resources>

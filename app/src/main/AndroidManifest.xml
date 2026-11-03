@@ -4,6 +4,9 @@
     <!-- Speaking challenges: on-device speech recognition. Requested at runtime only when needed. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Daily study reminder (Android 13+ asks the user during onboarding). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Package visibility (Android 11+) so we can bind to the TTS engine and the speech recognizer. -->
     <queries>
         <intent>

@@ -14,7 +14,7 @@ import com.rihla.english.ui.components.LocalSpeechPlayer
 import com.rihla.english.ui.components.LocalSpeechRecognizer
 import com.rihla.english.ui.components.Rtl
 import com.rihla.english.ui.gamification.GamificationViewModel
-import com.rihla.english.ui.navigation.RihlaNavHost
+import com.rihla.english.ui.navigation.RihlaApp
 import com.rihla.english.ui.theme.RihlaTheme
 
 class MainActivity : ComponentActivity() {
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
                         LocalSpeechRecognizer provides container.speechRecognizer,
                     ) {
                         Surface(color = MaterialTheme.colorScheme.background) {
-                            RihlaNavHost(gamificationViewModel)
+                            RihlaApp(gamificationViewModel)
                         }
                     }
                 }

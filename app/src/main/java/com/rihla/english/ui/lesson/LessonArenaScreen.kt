@@ -62,7 +62,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rihla.english.R
 import com.rihla.english.core.engine.UserAnswer
+import com.rihla.english.core.model.ErrorCorrection
 import com.rihla.english.core.model.Exercise
+import com.rihla.english.core.model.SessionKind
 import com.rihla.english.core.model.FlashcardAudio
 import com.rihla.english.core.model.ListeningChallenge
 import com.rihla.english.core.model.MatchPairs
@@ -76,6 +78,7 @@ import com.rihla.english.ui.components.GrammarBridgeCard
 import com.rihla.english.ui.components.LocalSpeechPlayer
 import com.rihla.english.ui.components.RihlaButton
 import com.rihla.english.ui.components.RihlaOutlinedButton
+import com.rihla.english.ui.lesson.exercises.ErrorCorrectionView
 import com.rihla.english.ui.lesson.exercises.FlashcardView
 import com.rihla.english.ui.lesson.exercises.ListeningView
 import com.rihla.english.ui.lesson.exercises.MatchPairsView
@@ -278,6 +281,7 @@ private fun ExerciseHost(
         is MatchPairs -> MatchPairsView(exercise, presentation, enabled, onSubmitNow)
         is ListeningChallenge -> ListeningView(exercise, presentation, enabled, onAnswerChanged)
         is SpeakingChallenge -> SpeakingView(exercise, enabled, onSubmitNow, onSkipSpeaking)
+        is ErrorCorrection -> ErrorCorrectionView(exercise, enabled, onAnswerChanged)
     }
 }
 
@@ -351,13 +355,14 @@ private fun LessonIntro(state: LessonUiState, onStart: () -> Unit, onClose: () -
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            val practice = state.kind == SessionKind.PRACTICE
             Text(
-                if (state.isPractice) stringResource(R.string.practice_title) else state.titleAr,
+                if (practice) stringResource(R.string.practice_title) else state.focusPattern?.let { "${it.emoji} ${it.titleAr}" } ?: state.titleAr,
                 style = MaterialTheme.typography.headlineLarge,
                 color = colors.textPrimary,
             )
             Text(stringResource(R.string.intro_title), style = MaterialTheme.typography.titleLarge, color = Purple)
-            val tip = if (state.isPractice) stringResource(R.string.practice_intro) else state.introTipAr
+            val tip = if (practice) stringResource(R.string.practice_intro) else state.introTipAr
             tip?.let {
                 Box(
                     Modifier
@@ -368,6 +373,20 @@ private fun LessonIntro(state: LessonUiState, onStart: () -> Unit, onClose: () -
                 ) { ArabicText(it, style = MaterialTheme.typography.bodyLarge, color = colors.textPrimary) }
             }
             state.grammarBridge?.let { GrammarBridgeCard(it) }
+            state.focusPattern?.let { pattern ->
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(colors.cardBackground)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(stringResource(R.string.intro_example), style = MaterialTheme.typography.titleMedium, color = colors.textSecondary)
+                    com.rihla.english.ui.components.EnglishText("❌  ${pattern.exampleWrong}", style = com.rihla.english.ui.theme.EnglishTextStyles.medium, color = colors.wrongText)
+                    com.rihla.english.ui.components.EnglishText("✅  ${pattern.exampleRight}", style = com.rihla.english.ui.theme.EnglishTextStyles.medium, color = colors.correctText)
+                }
+            }
         }
         RihlaButton(
             text = stringResource(R.string.intro_start),

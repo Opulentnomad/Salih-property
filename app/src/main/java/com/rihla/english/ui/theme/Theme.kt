@@ -11,10 +11,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rihla.english.R
 
 private val LightScheme = lightColorScheme(
     primary = Green,
@@ -23,13 +25,14 @@ private val LightScheme = lightColorScheme(
     onSecondary = Color.White,
     tertiary = Orange,
     error = Red,
-    background = Color.White,
+    background = Sand,
     onBackground = Ink,
     surface = Color.White,
     onSurface = Ink,
-    surfaceVariant = Color(0xFFF7F7F7),
+    surfaceContainerLow = Color.White,
+    surfaceVariant = Color(0xFFFFF1DA),
     onSurfaceVariant = InkSoft,
-    outline = Gray,
+    outline = SandDeep,
 )
 
 private val DarkScheme = darkColorScheme(
@@ -39,16 +42,35 @@ private val DarkScheme = darkColorScheme(
     onSecondary = Color.White,
     tertiary = Orange,
     error = Red,
-    background = Color(0xFF131F24),
-    onBackground = Color(0xFFF1F7FB),
-    surface = Color(0xFF131F24),
-    onSurface = Color(0xFFF1F7FB),
-    surfaceVariant = Color(0xFF1F2F35),
-    onSurfaceVariant = Color(0xFF9EB1BC),
-    outline = Color(0xFF37464F),
+    background = Color(0xFF0F1830),
+    onBackground = Color(0xFFF4F1EA),
+    surface = Color(0xFF1B2747),
+    onSurface = Color(0xFFF4F1EA),
+    surfaceVariant = Color(0xFF1B2747),
+    onSurfaceVariant = Color(0xFFA9B1C9),
+    outline = Color(0xFF2E3B5E),
 )
 
-private val base = TextStyle(fontFamily = FontFamily.Default)
+/** Rounded, friendly display face with full Arabic + Latin coverage (SIL OFL). */
+val RihlaFont = FontFamily(
+    Font(R.font.baloo_bhaijaan_500, FontWeight.Normal),
+    Font(R.font.baloo_bhaijaan_500, FontWeight.Medium),
+    Font(R.font.baloo_bhaijaan_700, FontWeight.SemiBold),
+    Font(R.font.baloo_bhaijaan_700, FontWeight.Bold),
+    Font(R.font.baloo_bhaijaan_800, FontWeight.ExtraBold),
+)
+
+/** Highly legible rounded Latin face for English learning content (SIL OFL). */
+val EnglishFont = FontFamily(
+    Font(R.font.nunito_500, FontWeight.Normal),
+    Font(R.font.nunito_500, FontWeight.Medium),
+    Font(R.font.nunito_700, FontWeight.SemiBold),
+    Font(R.font.nunito_700, FontWeight.Bold),
+    Font(R.font.nunito_800, FontWeight.ExtraBold),
+)
+
+private val base = TextStyle(fontFamily = RihlaFont)
+private val english = TextStyle(fontFamily = EnglishFont)
 
 val RihlaTypography = Typography(
     displayLarge = base.copy(fontSize = 44.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 52.sp),
@@ -65,16 +87,16 @@ val RihlaTypography = Typography(
 
 /** Large, high-contrast style for English learning content (always LTR). */
 object EnglishTextStyles {
-    val hero = base.copy(fontSize = 40.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 48.sp, letterSpacing = 0.5.sp)
-    val large = base.copy(fontSize = 28.sp, fontWeight = FontWeight.Bold, lineHeight = 36.sp)
-    val medium = base.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold, lineHeight = 30.sp)
-    val chip = base.copy(fontSize = 19.sp, fontWeight = FontWeight.SemiBold, lineHeight = 24.sp)
+    val hero = english.copy(fontSize = 40.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 48.sp, letterSpacing = 0.5.sp)
+    val large = english.copy(fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 36.sp)
+    val medium = english.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold, lineHeight = 30.sp)
+    val chip = english.copy(fontSize = 19.sp, fontWeight = FontWeight.Bold, lineHeight = 24.sp)
 }
 
 private val RihlaShapes = Shapes(
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(24.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(20.dp),
+    large = RoundedCornerShape(28.dp),
 )
 
 @Composable

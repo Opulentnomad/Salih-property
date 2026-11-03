@@ -134,4 +134,105 @@
     <string name="event_freeze_used">❄️ فاتك يوم، لكن تجميد السلسلة حمى سلسلتك!</string>
     <string name="event_streak_lost">انقطعت سلسلتك (%1$d يوم). ابدأ سلسلة جديدة اليوم! 💪</string>
     <string name="event_badge">🎖️ وسام جديد: %1$s</string>
+    <!-- v2: navigation -->
+    <string name="nav_journey">الرحلة</string>
+    <string name="nav_stories">المواقف</string>
+    <string name="nav_sounds">النطق</string>
+    <string name="nav_progress">تقدّمي</string>
+    <string name="nav_store">المتجر</string>
+
+    <!-- v2: home -->
+    <string name="greeting_morning">صباح الخير</string>
+    <string name="greeting_evening">مساء الخير</string>
+    <string name="greeting_line">%1$s يا %2$s 👋</string>
+    <string name="greeting_anonymous">%1$s 👋</string>
+    <string name="hero_goal_progress">%1$d / %2$d XP اليوم</string>
+    <string name="hero_goal_done">حققت هدف اليوم! 🎉</string>
+    <string name="hero_streak">🔥 %1$d يوم متتالي</string>
+    <string name="daily_plan_title">خطة اليوم</string>
+    <string name="daily_plan_hint">أنجز المهام الثلاث لتفتح صندوق اليوم 🎁</string>
+    <string name="daily_plan_bonus">افتح صندوق اليوم (+%1$d 💎)</string>
+    <string name="daily_plan_claimed">✅ استلمت مكافأة اليوم. أبدعت!</string>
+    <string name="continue_title">تابع رحلتك</string>
+    <string name="continue_cta">يلا نكمل</string>
+    <string name="season_ramadan_progress">أضأت %1$d من ٣٠ هلالًا</string>
+    <string name="season_ramadan_day">اليوم %1$d من رمضان</string>
+
+    <!-- v2: stories -->
+    <string name="stories_title">مواقف من حياتك 💬</string>
+    <string name="stories_subtitle">عِش مواقف حقيقية من الخليج وتدرّب على الرد بالإنجليزية.</string>
+    <string name="story_locked">🔒 أكمل درس «%1$s» لفتح هذا الموقف</string>
+    <string name="story_your_turn">دورك! اختر ردّك:</string>
+    <string name="story_tap_continue">اضغط للمتابعة</string>
+    <string name="story_speak_reply">🎤 قل ردّك</string>
+    <string name="story_no_match">لم أتعرف على ردّك، اختر بالضغط على أحد الخيارات.</string>
+    <string name="story_good">رد ممتاز 👌</string>
+    <string name="story_ok">مقبول 👍</string>
+    <string name="story_bad">حاول مرة أخرى 🤔</string>
+    <string name="story_finished">أنهيت الموقف!</string>
+    <string name="story_replay">أعد الموقف</string>
+    <string name="story_xp">+%1$d XP</string>
+    <string name="story_best">أفضل نتيجة</string>
+
+    <!-- v2: sound lab -->
+    <string name="sounds_title">مختبر النطق 👂</string>
+    <string name="sounds_subtitle">أصوات تحيّر أغلب العرب. تدرّب على كل صوت، والمختبر يخبرك بالضبط ماذا سمع منك.</string>
+    <string name="sound_mastery">إتقان %1$d%%</string>
+    <string name="sound_not_started">لم تبدأ بعد</string>
+    <string name="sound_start">تدرّب</string>
+
+    <!-- v2: progress -->
+    <string name="progress_title">تقدّمي 📈</string>
+    <string name="progress_week">نشاطك آخر ٧ أيام</string>
+    <string name="progress_calendar">تقويم الالتزام</string>
+    <string name="progress_mistakes">ملف أخطائك 🔍</string>
+    <string name="progress_mistakes_empty">أكمل بعض الدروس وسنكتشف الأخطاء التي تتكرر معك.</string>
+    <string name="progress_practice_this">تدرّب عليها</string>
+    <string name="progress_accuracy">دقتك %1$d%%</string>
+    <string name="progress_sounds">إتقان الأصوات 👂</string>
+    <string name="progress_settings">الإعدادات ⚙️</string>
+    <string name="settings_daily_goal">الهدف اليومي</string>
+    <string name="settings_reminder">التذكير اليومي</string>
+    <string name="settings_reminder_off">بدون</string>
+    <string name="progress_ramadan">تحدّي رمضان 🌙</string>
+
+    <!-- v2: onboarding -->
+    <string name="onb_welcome_title">أهلًا بك في رحلة</string>
+    <string name="onb_welcome_body">تعلّم الإنجليزية بطريقة صُممت للعرب: النطق اللي يحيّرنا، الأخطاء اللي نقع فيها، ومواقف من حياتك اليومية.</string>
+    <string name="onb_start">يلا نبدأ</string>
+    <string name="onb_name_title">وش نناديك؟</string>
+    <string name="onb_name_hint">اكتب اسمك</string>
+    <string name="onb_goal_title">ليش تبي تتعلم الإنجليزية؟</string>
+    <string name="onb_level_title">كم وقت تقدر تعطي يوميًا؟</string>
+    <string name="onb_reminder_title">متى نذكّرك؟</string>
+    <string name="onb_reminder_body">تذكير لطيف كل يوم يحافظ على سلسلتك 🔥</string>
+    <string name="onb_next">التالي</string>
+    <string name="onb_finish">ابدأ رحلتي 🚀</string>
+    <string name="time_8am">٨ صباحًا</string>
+    <string name="time_1pm">١ ظهرًا</string>
+    <string name="time_6pm">٦ مساءً</string>
+    <string name="time_9pm">٩ مساءً</string>
+
+    <!-- v2: reminders -->
+    <string name="reminder_channel">تذكير التعلّم اليومي</string>
+    <string name="reminder_friend">صديقي</string>
+    <string name="reminder_ramadan_title">رمضان كريم 🌙</string>
+    <string name="reminder_ramadan_body">%1$s، درس قصير بعد الإفطار يضيء هلالًا جديدًا ✨</string>
+    <string name="reminder_streak_title">🔥 سلسلة %1$d يوم في خطر!</string>
+    <string name="reminder_streak_body">%1$s، درس واحد فقط يحافظ على سلسلتك. يلا!</string>
+    <string name="reminder_default_title">🐪 رحلتك تنتظرك</string>
+    <string name="reminder_default_body">%1$s، خمس دقائق إنجليزي اليوم؟</string>
+    <string name="event_eid_protected">🎈 سلسلتك محمية في أيام العيد!</string>
+
+    <!-- v2: exercises & results -->
+    <string name="exercise_fix">اكتشف الخطأ وصحّحه 🔍</string>
+    <string name="exercise_fix_tap">١. اضغط على الكلمة الخاطئة</string>
+    <string name="exercise_fix_choose">٢. اختر التصحيح</string>
+    <string name="exercise_fix_delete">احذف الكلمة 🗑️</string>
+    <string name="exercise_fix_meaning">المعنى: %1$s</string>
+    <string name="speak_confused">سمعتُ «%1$s» بدل «%2$s». ركّز على الصوت!</string>
+    <string name="victory_sound_title">تمرين النطق مكتمل! 👂</string>
+    <string name="victory_pattern_title">تدرّبت على فخ جديد! 🔍</string>
+    <string name="victory_ramadan">🌙 أضأت الهلال رقم %1$d في تحدي رمضان!</string>
+    <string name="intro_example">مثال</string>
 </resources>

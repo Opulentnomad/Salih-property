@@ -4,6 +4,7 @@ import com.rihla.english.core.curriculum.SeedCurriculumData
 import com.rihla.english.core.engine.Sm2Scheduler
 import com.rihla.english.core.engine.Sm2State
 import com.rihla.english.core.model.CourseUnit
+import com.rihla.english.core.model.ErrorPattern
 import com.rihla.english.core.model.Exercise
 import com.rihla.english.core.model.GrammarBridge
 import com.rihla.english.core.model.NodeType
@@ -146,6 +147,17 @@ class CurriculumRepositoryImpl(
                 .take(maxExercises).forEach { picked[it.id] = it }
         }
         return picked.values.take(maxExercises).shuffled()
+    }
+
+    override suspend fun buildPatternSession(pattern: ErrorPattern, maxExercises: Int): List<Exercise> {
+        val completed = progressDao.observeCompletedNodeIdsOnce().toSet()
+        val allNodeIds = SeedCurriculumData.units.flatMap { it.nodes }.map { it.id }
+        val tagged = curriculumDao.getGradedExercisesForNodes(allNodeIds)
+            .mapNotNull { entity -> entity.decode()?.let { entity.nodeId to it } }
+            .filter { (_, e) -> e.pattern == pattern }
+        // Prefer material from lessons already completed, then top up from the rest.
+        val (seen, unseen) = tagged.partition { (nodeId, _) -> nodeId in completed }
+        return (seen.shuffled() + unseen.shuffled()).map { it.second }.take(maxExercises).shuffled()
     }
 
     override suspend fun recordOutcomes(

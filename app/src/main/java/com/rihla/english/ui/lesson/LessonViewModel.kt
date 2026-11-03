@@ -20,6 +20,10 @@ import com.rihla.english.core.engine.PurchaseResult
 import com.rihla.english.core.engine.SkillPath
 import com.rihla.english.core.engine.UserAnswer
 import com.rihla.english.core.model.Badge
+import com.rihla.english.core.model.ErrorCorrection
+import com.rihla.english.core.model.ErrorPattern
+import com.rihla.english.core.model.SessionId
+import com.rihla.english.core.model.SessionKind
 import com.rihla.english.core.model.Exercise
 import com.rihla.english.core.model.GrammarBridge
 import com.rihla.english.core.model.ShopItem
@@ -27,6 +31,8 @@ import com.rihla.english.core.model.SpeakingChallenge
 import com.rihla.english.core.model.UserStats
 import com.rihla.english.core.repository.CurriculumRepository
 import com.rihla.english.core.repository.ExerciseOutcome
+import com.rihla.english.core.repository.InsightsRepository
+import com.rihla.english.core.sound.SoundLab
 import com.rihla.english.core.repository.UserStatsRepository
 import com.rihla.english.ui.UiMessage
 import com.rihla.english.util.AppClock
@@ -53,6 +59,8 @@ data class AnswerFeedback(
     val explanationAr: String?,
     /** What the speech recognizer heard (speaking challenges). */
     val heardText: String? = null,
+    /** Speaking: the minimal-pair word that was heard instead of the target. */
+    val confusedWith: String? = null,
 )
 
 /** Everything the victory screen celebrates. */
@@ -69,11 +77,17 @@ data class VictorySummary(
     val newLevel: Int?,
     val dailyGoalReached: Boolean,
     val badges: List<Badge>,
+    val kind: SessionKind = if (isPractice) SessionKind.PRACTICE else SessionKind.LESSON,
+    /** Number of crescents lit this Ramadan, if one was lit by this session. */
+    val ramadanCrescents: Int? = null,
 )
 
 data class LessonUiState(
     val phase: LessonPhase = LessonPhase.LOADING,
     val isPractice: Boolean = false,
+    val kind: SessionKind = SessionKind.LESSON,
+    /** For pattern / sound sessions: the pattern being trained (intro shows its example). */
+    val focusPattern: ErrorPattern? = null,
     val titleAr: String = "",
     val introTipAr: String? = null,
     val grammarBridge: GrammarBridge? = null,
@@ -103,12 +117,17 @@ class LessonViewModel(
     private val statsRepository: UserStatsRepository,
     private val engine: GamificationEngine,
     private val clock: AppClock,
+    private val insights: InsightsRepository,
 ) : ViewModel() {
 
     private val nodeId: String = checkNotNull(savedStateHandle[ARG_NODE_ID]) { "nodeId argument missing" }
-    private val isPractice = nodeId == PRACTICE_ID
+    private val sessionId = SessionId.parse(nodeId)
+    private val kind = sessionId.kind
 
-    private val _state = MutableStateFlow(LessonUiState(isPractice = isPractice))
+    /** Every non-lesson session is risk-free practice: no hearts lost, no path progress. */
+    private val isPractice = kind != SessionKind.LESSON
+
+    private val _state = MutableStateFlow(LessonUiState(isPractice = isPractice, kind = kind))
     val state: StateFlow<LessonUiState> = _state.asStateFlow()
 
     private var queue = LessonQueue(emptyList())
@@ -122,6 +141,7 @@ class LessonViewModel(
     private var totalAnswers = 0
     private var mistakes = 0
     private var speakingCorrect = 0
+    private var errorCorrectionsCorrect = 0
     private var sessionXp = 0
     private var heartsTicker: Job? = null
     private var doubleXpUntilMillis = 0L
@@ -143,18 +163,32 @@ class LessonViewModel(
         var title = ""
         var intro: String? = null
         var bridge: GrammarBridge? = null
-        if (isPractice) {
-            exercises = curriculum.buildPracticeSession(clock.todayEpochDay())
-        } else {
-            val node = curriculum.getNode(nodeId)
-            if (node == null || node.exercises.isEmpty()) {
-                _state.update { it.copy(phase = LessonPhase.ERROR) }
-                return
+        var focus: ErrorPattern? = null
+        when (val id = sessionId) {
+            SessionId.Practice -> exercises = curriculum.buildPracticeSession(clock.todayEpochDay())
+            is SessionId.Pattern -> {
+                exercises = curriculum.buildPatternSession(id.pattern)
+                title = id.pattern.titleAr
+                intro = id.pattern.explanationAr
+                focus = id.pattern
             }
-            exercises = node.exercises
-            title = node.titleAr
-            intro = node.introTipAr
-            bridge = node.grammarBridge
+            is SessionId.Sound -> {
+                exercises = SoundLab.buildSession(id.pattern)
+                title = id.pattern.titleAr
+                intro = SoundLab.drills[id.pattern]?.mouthTipAr ?: id.pattern.explanationAr
+                focus = id.pattern
+            }
+            is SessionId.Lesson -> {
+                val node = curriculum.getNode(id.nodeId)
+                if (node == null || node.exercises.isEmpty()) {
+                    _state.update { it.copy(phase = LessonPhase.ERROR) }
+                    return
+                }
+                exercises = node.exercises
+                title = node.titleAr
+                intro = node.introTipAr
+                bridge = node.grammarBridge
+            }
         }
         if (exercises.isEmpty()) {
             _state.update { it.copy(phase = LessonPhase.ERROR) }
@@ -179,6 +213,7 @@ class LessonViewModel(
                 titleAr = title,
                 introTipAr = intro,
                 grammarBridge = bridge,
+                focusPattern = focus,
                 hearts = hearts,
                 exercise = queue.current,
                 presentation = 1,
@@ -219,6 +254,7 @@ class LessonViewModel(
             bestCombo = maxOf(bestCombo, combo)
             correctAnswers++
             if (exercise is SpeakingChallenge) speakingCorrect++
+            if (exercise is ErrorCorrection && firstTry) errorCorrectionsCorrect++
             val double = doubleXpUntilMillis > now // evaluated per answer: a boost can expire mid-lesson
             val xp = engine.xpForCorrectAnswer(combo, double)
             val bonus = xp - engine.xpForCorrectAnswer(comboAfterAnswer = 1, doubleXp = double)
@@ -236,7 +272,7 @@ class LessonViewModel(
             _state.update {
                 it.copy(
                     combo = 0,
-                    feedback = AnswerFeedback(false, 0, 0, 0, grade.correctAnswer, grade.explanationAr, heard),
+                    feedback = AnswerFeedback(false, 0, 0, 0, grade.correctAnswer, grade.explanationAr, heard, grade.confusedWith),
                 )
             }
             if (!isPractice) {
@@ -303,8 +339,10 @@ class LessonViewModel(
                 speakingCorrect = speakingCorrect,
                 isPractice = isPractice,
                 doubleXpActive = doubleXpUntilMillis > now,
+                kind = kind,
+                errorCorrectionsCorrect = errorCorrectionsCorrect,
             )
-            if (!isPractice) curriculum.markNodeCompleted(nodeId, result.accuracyPercent, now)
+            if (kind == SessionKind.LESSON) curriculum.markNodeCompleted(nodeId, result.accuracyPercent, now)
             val completedUnits = SkillPath.completedUnitIds(
                 curriculum.observeUnits().first(),
                 curriculum.observeCompletedNodeIds().first(),
@@ -317,11 +355,20 @@ class LessonViewModel(
                 outcomes = outcomes.mapNotNull { (id, r) ->
                     exercisesById[id]?.let { ExerciseOutcome(it, if (isPractice) null else nodeId, r.first, r.second) }
                 },
-                isPractice = isPractice,
+                isPractice = kind == SessionKind.PRACTICE,
                 todayEpochDay = today,
                 nowMillis = now,
             )
-            _state.update { it.copy(phase = LessonPhase.FINISHED, victory = summarize(result, outcome)) }
+            val summary = summarize(result, outcome)
+            insights.recordSession(
+                todayEpochDay = today,
+                xp = summary.xpEarned,
+                kind = kind,
+                patternResults = outcomes.mapNotNull { (id, r) ->
+                    exercisesById[id]?.takeIf { it.isGraded }?.pattern?.let { it to r.first }
+                },
+            )
+            _state.update { it.copy(phase = LessonPhase.FINISHED, victory = summary) }
         }
     }
 
@@ -340,6 +387,8 @@ class LessonViewModel(
             newLevel = events.filterIsInstance<GamificationEvent.LevelUp>().lastOrNull()?.newLevel,
             dailyGoalReached = events.any { it is GamificationEvent.DailyGoalReached },
             badges = events.filterIsInstance<GamificationEvent.BadgeUnlocked>().map { it.badge },
+            kind = kind,
+            ramadanCrescents = events.filterIsInstance<GamificationEvent.RamadanCrescentLit>().lastOrNull()?.litCount,
         )
     }
 
@@ -403,6 +452,7 @@ class LessonViewModel(
                     statsRepository = container.userStatsRepository,
                     engine = container.gamificationEngine,
                     clock = container.clock,
+                    insights = container.insightsRepository,
                 )
             }
         }

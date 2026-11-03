@@ -87,8 +87,17 @@ fun FeedbackSheet(feedback: AnswerFeedback, onContinue: () -> Unit, modifier: Mo
                 MiniSpeaker(feedback.correctAnswer)
             }
         }
-        feedback.heardText?.let {
-            Text(stringResource(R.string.speak_heard, it), style = MaterialTheme.typography.bodyMedium, color = accent)
+        val confused = feedback.confusedWith
+        if (confused != null && feedback.correctAnswer != null) {
+            Text(
+                stringResource(R.string.speak_confused, confused, feedback.correctAnswer),
+                style = MaterialTheme.typography.titleMedium,
+                color = accent,
+            )
+        } else {
+            feedback.heardText?.let {
+                Text(stringResource(R.string.speak_heard, it), style = MaterialTheme.typography.bodyMedium, color = accent)
+            }
         }
         if (!feedback.correct && feedback.explanationAr != null) {
             ArabicText(feedback.explanationAr, style = MaterialTheme.typography.bodyLarge, color = colors.textPrimary)

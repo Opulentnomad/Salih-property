@@ -5,6 +5,10 @@ import com.rihla.english.core.curriculum.SeedCurriculumData
 import com.rihla.english.core.engine.GamificationEngine
 import com.rihla.english.core.engine.UserAnswer
 import com.rihla.english.core.model.CourseUnit
+import com.rihla.english.core.model.ErrorCorrection
+import com.rihla.english.core.model.ErrorPattern
+import com.rihla.english.core.model.LearningInsights
+import com.rihla.english.core.model.SessionKind
 import com.rihla.english.core.model.Exercise
 import com.rihla.english.core.model.FlashcardAudio
 import com.rihla.english.core.model.ListeningChallenge
@@ -17,6 +21,7 @@ import com.rihla.english.core.model.UserStats
 import com.rihla.english.core.model.WordBankSentence
 import com.rihla.english.core.repository.CurriculumRepository
 import com.rihla.english.core.repository.ExerciseOutcome
+import com.rihla.english.core.repository.InsightsRepository
 import com.rihla.english.core.repository.UserStatsRepository
 import com.rihla.english.util.AppClock
 import kotlinx.coroutines.Dispatchers
@@ -40,18 +45,20 @@ class LessonViewModelTest {
 
     private lateinit var curriculum: FakeCurriculumRepository
     private lateinit var stats: FakeStatsRepository
+    private lateinit var insights: FakeInsights
     private val engine = GamificationEngine()
 
     @Before fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         curriculum = FakeCurriculumRepository()
         stats = FakeStatsRepository(UserStats())
+        insights = FakeInsights()
     }
 
     @After fun tearDown() = Dispatchers.resetMain()
 
     private fun viewModel(nodeId: String = "u1_l1") = LessonViewModel(
-        SavedStateHandle(mapOf(LessonViewModel.ARG_NODE_ID to nodeId)), curriculum, stats, engine, FixedClock,
+        SavedStateHandle(mapOf(LessonViewModel.ARG_NODE_ID to nodeId)), curriculum, stats, engine, FixedClock, insights,
     )
 
     private fun correctAnswer(e: Exercise): UserAnswer = when (e) {
@@ -61,11 +68,13 @@ class LessonViewModelTest {
         is MatchPairs -> UserAnswer.MatchCompleted(0)
         is ListeningChallenge -> if (e.mode == ListeningMode.SELECT) UserAnswer.Choice(e.correctIndex) else UserAnswer.Tokens(e.answerTokens)
         is SpeakingChallenge -> UserAnswer.Speech(listOf(e.targetText))
+        is ErrorCorrection -> UserAnswer.Correction(e.wrongIndex, e.correctOption)
     }
 
     private fun wrongAnswer(e: Exercise): UserAnswer = when (e) {
         is MultipleChoice -> UserAnswer.Choice((e.correctIndex + 1) % e.options.size)
         is MatchPairs -> UserAnswer.MatchCompleted(2)
+        is ErrorCorrection -> UserAnswer.Correction(-1, 0)
         else -> UserAnswer.Tokens(listOf("definitely", "wrong"))
     }
 
@@ -187,6 +196,38 @@ class LessonViewModelTest {
         assertEquals(3, stats.state.value.hearts)
         assertEquals(1, stats.state.value.practiceSessions)
     }
+
+    @Test fun `sound lab session is heart-free and records pattern results`() = runTest {
+        stats.state.value = UserStats(hearts = 1)
+        val vm = viewModel("sound_SOUND_P_B")
+        assertEquals(SessionKind.SOUND, vm.state.value.kind)
+        vm.startFromIntro()
+        vm.submit(wrongAnswer(vm.state.value.exercise!!))
+        vm.continueAfterFeedback()
+        assertEquals(1, stats.state.value.hearts)
+        vm.playToEnd()
+        assertEquals(LessonPhase.FINISHED, vm.state.value.phase)
+        assertEquals(1, stats.state.value.soundDrills)
+        assertTrue(insights.sessions.single().second.all { it.first == ErrorPattern.SOUND_P_B })
+        assertTrue(insights.sessions.single().second.any { !it.second })
+    }
+
+    @Test fun `arab traps lesson counts first-try error corrections`() = runTest {
+        val vm = viewModel("u5_l2")
+        vm.startFromIntro()
+        vm.playToEnd()
+        assertEquals(LessonPhase.FINISHED, vm.state.value.phase)
+        assertEquals(4, stats.state.value.errorCorrectionsCorrect)
+    }
+}
+
+private class FakeInsights : InsightsRepository {
+    val sessions = mutableListOf<Pair<SessionKind, List<Pair<ErrorPattern, Boolean>>>>()
+    override val insights: Flow<LearningInsights> = MutableStateFlow(LearningInsights())
+    override suspend fun recordSession(todayEpochDay: Long, xp: Int, kind: SessionKind, patternResults: List<Pair<ErrorPattern, Boolean>>) {
+        sessions += kind to patternResults
+    }
+    override suspend fun recordStory(todayEpochDay: Long, storyId: String, stars: Int, xp: Int) = Unit
 }
 
 private object FixedClock : AppClock {
@@ -221,6 +262,8 @@ private class FakeCurriculumRepository : CurriculumRepository {
     }
     override suspend fun buildPracticeSession(todayEpochDay: Long, maxExercises: Int): List<Exercise> =
         nodes.first().exercises.filter { it.isGraded && it !is SpeakingChallenge }.take(maxExercises)
+    override suspend fun buildPatternSession(pattern: ErrorPattern, maxExercises: Int): List<Exercise> =
+        nodes.flatMap { it.exercises }.filter { it.pattern == pattern }.take(maxExercises)
     override suspend fun recordOutcomes(outcomes: List<ExerciseOutcome>, isPractice: Boolean, todayEpochDay: Long, nowMillis: Long) {
         recorded += outcomes
     }

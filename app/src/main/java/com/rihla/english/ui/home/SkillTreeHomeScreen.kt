@@ -52,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -133,15 +134,6 @@ fun SkillTreeHomeScreen(
 
     // Flatten units into list rows so we can scroll to the current lesson.
     val rows = remember(state.units) { buildRows(state.units) }
-    var didInitialScroll by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(rows, state.currentLessonId) {
-        if (!didInitialScroll && rows.isNotEmpty()) {
-            val index = rows.indexOfFirst { it is HomeRow.Node && it.node.node.id == state.currentLessonId }
-            if (index > 1) listState.scrollToItem(index + 1 - 2) // +1 for the daily goal card
-            didInitialScroll = true
-        }
-    }
-
     Scaffold(
         topBar = {
             TopGamificationBar(
@@ -182,7 +174,22 @@ fun SkillTreeHomeScreen(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(bottom = 120.dp),
         ) {
-            item(key = "goal") { DailyGoalCard(state) }
+            item(key = "hero") { HeroCard(state, Modifier.padding(top = 12.dp)) }
+            if (state.season != null) {
+                item(key = "season") { SeasonBanner(state, Modifier.padding(top = 14.dp)) }
+            }
+            item(key = "plan") { DailyPlanCard(state, onClaim = viewModel::claimDailyBonus, modifier = Modifier.padding(top = 14.dp)) }
+            val next = state.units.flatMap { u -> u.nodes.map { u to it } }.firstOrNull { it.second.node.id == state.currentLessonId }
+            if (next != null) {
+                item(key = "continue") {
+                    ContinueCard(
+                        node = next.second.node,
+                        unitColor = Color(next.first.unit.colorHex),
+                        onStart = { onStartLesson(next.second.node.id) },
+                        modifier = Modifier.padding(top = 14.dp, bottom = 8.dp),
+                    )
+                }
+            }
             itemsIndexed(rows, key = { _, row -> row.key }) { _, row ->
                 when (row) {
                     is HomeRow.Header -> UnitHeader(row.unit)
@@ -282,60 +289,38 @@ private fun buildRows(units: List<UnitUi>): List<HomeRow> = buildList {
 
 // --------------------------------------------------------------------------- pieces
 
-@Composable
-private fun DailyGoalCard(state: HomeUiState) {
-    val colors = RihlaTheme.colors
-    val stats = state.stats
-    val goalProgress = (stats.dailyXp.toFloat() / stats.dailyGoalXp).coerceIn(0f, 1f)
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .border(2.dp, colors.border, RoundedCornerShape(20.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("🎯", fontSize = 28.sp)
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.daily_goal), style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
-                Text(
-                    "${stats.dailyXp} / ${stats.dailyGoalXp} XP",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.textSecondary,
-                )
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(stringResource(R.string.level_label, stats.level), style = MaterialTheme.typography.titleMedium, color = Blue)
-                Text(stringResource(R.string.words_learned, state.wordsLearned), style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
-            }
-        }
-        LinearProgressIndicator(
-            progress = { goalProgress },
-            modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp)),
-            color = if (goalProgress >= 1f) Orange else Gold,
-            trackColor = colors.border,
-        )
-    }
-}
+/** Each unit is a "destination" on the journey, with its own landmark emoji. */
+private val unitLandmarks = mapOf("u1" to "🔤", "u2" to "👋", "u3" to "🧱", "u4" to "☕", "u5" to "🪤", "u6" to "🌍")
 
 @Composable
 private fun UnitHeader(unit: UnitUi) {
     val color = Color(unit.unit.colorHex)
-    Column(
+    val done = unit.nodes.count { it.state == NodeState.COMPLETED }
+    Row(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(color)
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Brush.linearGradient(listOf(color, lerp(color, Color.Black, 0.35f))))
             .padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(unit.unit.titleAr, style = MaterialTheme.typography.titleLarge, color = Color.White)
-        EnglishText(unit.unit.titleEn, style = EnglishTextStyles.chip, color = Color.White.copy(alpha = 0.9f))
-        Text(unit.unit.descriptionAr, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.92f))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(unit.unit.titleAr, style = MaterialTheme.typography.titleLarge, color = Color.White)
+            EnglishText(unit.unit.titleEn, style = EnglishTextStyles.chip, color = Color.White.copy(alpha = 0.9f))
+            Text(unit.unit.descriptionAr, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.92f))
+            LinearProgressIndicator(
+                progress = { done.toFloat() / unit.nodes.size.coerceAtLeast(1) },
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(8.dp).clip(RoundedCornerShape(4.dp)),
+                color = Gold,
+                trackColor = Color.White.copy(alpha = 0.25f),
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Box(
+            Modifier.size(64.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center,
+        ) { Text(unitLandmarks[unit.unit.id] ?: "📍", fontSize = 32.sp) }
     }
 }
 

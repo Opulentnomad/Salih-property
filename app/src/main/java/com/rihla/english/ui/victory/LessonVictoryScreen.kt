@@ -102,7 +102,14 @@ fun LessonVictoryScreen(summary: VictorySummary, onContinue: () -> Unit) {
                     modifier = Modifier.graphicsLayer { scaleX = trophyScale.value; scaleY = trophyScale.value },
                 )
                 Text(
-                    stringResource(if (summary.isPractice) R.string.victory_practice_title else R.string.victory_title),
+                    stringResource(
+                        when (summary.kind) {
+                            com.rihla.english.core.model.SessionKind.LESSON -> R.string.victory_title
+                            com.rihla.english.core.model.SessionKind.PRACTICE -> R.string.victory_practice_title
+                            com.rihla.english.core.model.SessionKind.PATTERN -> R.string.victory_pattern_title
+                            com.rihla.english.core.model.SessionKind.SOUND -> R.string.victory_sound_title
+                        },
+                    ),
                     style = MaterialTheme.typography.headlineLarge,
                     color = Gold,
                     textAlign = TextAlign.Center,
@@ -129,6 +136,7 @@ fun LessonVictoryScreen(summary: VictorySummary, onContinue: () -> Unit) {
                     TreasureChestReveal(gems = summary.gemsEarned)
                 }
 
+                summary.ramadanCrescents?.let { Highlight(stringResource(R.string.victory_ramadan, it), Purple) }
                 summary.newLevel?.let { Highlight(stringResource(R.string.victory_level_up, it), Purple) }
                 if (summary.dailyGoalReached) Highlight(stringResource(R.string.victory_goal), Orange)
                 if (summary.freezeUsed) Highlight(stringResource(R.string.victory_freeze_used), Blue)
