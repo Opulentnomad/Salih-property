@@ -18,6 +18,18 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // A fixed debug key committed to the repo, so every CI build is signed identically and a new
+    // APK installs over the previous one (keeping the learner's progress). This is a debug-only
+    // key with public passwords: never use it for a Play Store release.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("keystore/rihla-debug.jks")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true

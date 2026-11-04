@@ -66,3 +66,10 @@ artifact** on the run page (Actions → Build APK → Artifacts).
 
 For audio to work offline, the device needs English voice data installed (Settings →
 Accessibility → Text-to-speech).
+
+### Signing
+
+Debug builds are signed with a fixed key committed at `app/keystore/rihla-debug.jks` (debug-only,
+public passwords). Every CI build therefore has the same signature, so a new APK installs over
+the old one and keeps your progress. For a Play Store release, create a separate private release
+key and keep it out of the repository (for example as GitHub Actions secrets).
