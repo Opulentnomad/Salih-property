@@ -1,5 +1,5 @@
 /* دليلك الآمن — Service Worker: يعمل بدون إنترنت بعد أول زيارة */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CORE = `salih-core-${VERSION}`;
 const RUNTIME = `salih-runtime-${VERSION}`;
 const ASSETS = ['./','index.html','styles.css','app.js','data.js','manifest.webmanifest',
