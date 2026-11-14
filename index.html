@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>دليلك الآمن | بطاقات الطوارئ</title>
-<meta name="description" content="36 بطاقة إجراءات للإسعافات الأولية وطوارئ المنزل والطريق والبر، تعمل بدون إنترنت مع أرقام الطوارئ في السعودية ومراجع علمية.">
-<meta name="theme-color" content="#0A2530">
+<meta name="description" content="36 بطاقة إجراءات للإسعافات الأولية وطوارئ المنزل والطريق والبر، خطوة بخطوة وبالصوت، تعمل بدون إنترنت.">
+<meta name="theme-color" content="#16224B">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -14,208 +14,30 @@
 <meta name="apple-mobile-web-app-title" content="دليلك الآمن">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="app" id="app">
+  <section class="welcome" id="welcome" hidden aria-label="مرحباً"></section>
 
-<header class="top">
-  <div class="wrap">
-    <a class="brand" href="#top" id="top" aria-label="دليلك الآمن">
-      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#D1273B"/><circle cx="32" cy="12" r="4" fill="#fff" opacity=".85"/><path d="M26 20h12v12h12v12H38v12H26V44H14V32h12z" fill="#fff"/></svg>
-      دليلك الآمن
-    </a>
-    <span class="sp"></span>
-    <span id="net" class="pill">جارٍ التحقق</span>
-    <button id="install" class="btn sm" hidden>تثبيت التطبيق</button>
+  <div class="shell" id="shell">
+    <header class="hdr" id="hdr"></header>
+    <main class="main" id="main" tabindex="-1"></main>
+    <nav class="nav" id="nav" aria-label="التنقل الرئيسي"></nav>
   </div>
-</header>
 
-<main>
-<section class="hero">
-  <div class="wrap">
-    <h1>في الطوارئ، لا وقت للبحث.</h1>
-    <p class="lead">بطاقات إجراءات جاهزة للإسعافات الأولية وطوارئ المنزل والطريق والبر. اختر ما يحدث الآن، وتصرّف خطوة بخطوة. تعمل بعد التثبيت بدون إنترنت.</p>
+  <div id="sheet" class="scrim" hidden></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+</div>
 
-    <div class="ask">
-      <h2>ماذا يحدث الآن؟</h2>
-      <div class="tiles" id="tiles"></div>
-      <div class="search">
-        <label for="q" class="sr">ابحث في البطاقات</label>
-        <input id="q" type="search" autocomplete="off" placeholder="ابحث: غصة، لدغة، حريق، سكر، إطار…">
-        <button class="x" id="qx" hidden aria-label="مسح البحث">✕</button>
-      </div>
-      <p class="hint" id="qhint"></p>
-    </div>
-
-    <nav class="dial" aria-label="أرقام الطوارئ في المملكة">
-      <a href="tel:911"><b>911</b><span>الطوارئ الموحد</span></a>
-      <a href="tel:997"><b>997</b><span>الهلال الأحمر</span></a>
-      <a href="tel:998"><b>998</b><span>الدفاع المدني</span></a>
-      <a href="tel:937"><b>937</b><span>الصحة والسموم</span></a>
-      <a href="tel:996"><b>996</b><span>أمن الطرق</span></a>
-    </nav>
-  </div>
-</section>
-
-<section class="why" aria-labelledby="why-h">
-  <div class="wrap">
-    <h2 id="why-h">أول من يصل إلى المصاب غالباً ليس المسعف، بل أنت.</h2>
-    <div class="grid">
-      <p>عند توقف القلب تنخفض فرص النجاة بنحو 7 إلى 10% مع كل دقيقة تمر دون إنعاش أو صدمة كهربائية.<sup><a href="#r1">[1]</a></sup></p>
-      <p>النزيف الشديد قد يُنهي الحياة خلال دقائق، وإيقافه بالضغط المباشر أو العاصبة يبدأ بيد أول شخص موجود.<sup><a href="#r4">[4]</a></sup></p>
-      <p>أول أكسيد الكربون لا لون له ولا رائحة، ويصيب الجالسين حول الفحم والمدافئ قبل أن يشعروا به.<sup><a href="#r7">[7]</a></sup></p>
-    </div>
-    <p class="note" style="border:0;padding:0">هذه البطاقات تذكّر بالخطوات الصحيحة. لا تغني عن الاتصال بالإسعاف ولا عن دورة إسعافات معتمدة.</p>
-  </div>
-</section>
-
-<section class="sect" id="library" aria-labelledby="lib-h">
-  <div class="wrap">
-    <h2 id="lib-h">مكتبة البطاقات</h2>
-    <p class="sub">كل بطاقة: القاعدة الأولى، خمس خطوات، وما يجب تجنبه.</p>
-    <div class="tabs" id="tabs" role="group" aria-label="التصنيفات"></div>
-    <p class="count" id="count" aria-live="polite"></p>
-    <div class="lib">
-      <div class="list" id="list" role="list"></div>
-      <div id="viewer">
-        <div class="toolbar">
-          <a class="btn sm red" id="bWA" target="_blank" rel="noopener">إرسال عبر واتساب</a>
-          <button class="btn sm" id="bShare" hidden>مشاركة</button>
-          <button class="btn sm" id="bCopy">نسخ النص</button>
-          <button class="btn sm" id="bPng">حفظ كصورة</button>
-          <button class="btn sm" id="bPrint">طباعة A4</button>
-        </div>
-        <div class="tagwrap" id="tagwrap"><article class="tag" id="tag"></article></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="sect" id="tools" aria-labelledby="tools-h">
-  <div class="wrap">
-    <h2 id="tools-h">أدوات الميدان</h2>
-    <p class="sub">افتحها قبل أن تبدأ الإسعاف. الصوت يحتاج لمسة واحدة على الزر.</p>
-    <div class="tools">
-      <div class="tool">
-        <h3>مؤقت العاصبة والإنعاش</h3>
-        <p>يسجّل وقت البدء الفعلي. أبلغ به المسعفين عند وصولهم.</p>
-        <div class="clock" id="clock">00:00:00</div>
-        <div class="since" id="since"></div>
-        <div class="row">
-          <button class="btn go" id="tGo">بدء</button>
-          <button class="btn" id="tPause">إيقاف مؤقت</button>
-          <button class="btn" id="tReset">تصفير</button>
-        </div>
-      </div>
-      <div class="tool">
-        <h3>إيقاع الضغطات الصدرية</h3>
-        <p>110 ضغطات في الدقيقة، ضمن المعدل الموصى به (100 إلى 120).</p>
-        <div class="beat"><div class="ring" id="ring"></div></div>
-        <div class="bpm num">110 ضغطة / دقيقة</div>
-        <div class="row"><button class="btn go" id="mBtn">تشغيل الإيقاع</button></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="sect" id="plan" aria-labelledby="plan-h">
-  <div class="wrap">
-    <h2 id="plan-h">خطة عائلتك</h2>
-    <p class="sub">تظهر هذه البيانات أسفل كل بطاقة وفي الطباعة والمشاركة. تُحفظ على جهازك فقط.</p>
-    <div class="plan">
-      <label for="f_loc">الموقع / المنزل<input id="f_loc"></label>
-      <label for="f_tel">رقم طوارئ العائلة البديل<input id="f_tel" inputmode="tel"></label>
-      <label for="f_pt">نقطة التجمع الآمنة<input id="f_pt"></label>
-      <label for="f_kit">موقع حقيبة الإسعافات والطفاية<input id="f_kit"></label>
-    </div>
-
-    <details class="ai">
-      <summary>لم تجد حالتك؟ ولّد بطاقة بالذكاء الاصطناعي</summary>
-      <div class="aibox">
-        <label for="aiText" class="sr">وصف الحالة</label>
-        <textarea id="aiText" placeholder="مثال: لدغة نحل لطفل"></textarea>
-        <div class="row" style="margin:0">
-          <button class="btn solid" id="aiGo" style="flex:2">توليد البطاقة</button>
-          <button class="btn" id="keyBtn" style="flex:1">مفتاح Gemini</button>
-        </div>
-        <p class="hint">تحتاج مفتاح Gemini خاصاً بك، يُحفظ على جهازك فقط. راجع أي بطاقة مولّدة قبل الاعتماد عليها.</p>
-      </div>
-    </details>
-  </div>
-</section>
-
-<section class="sect" id="references" aria-labelledby="ref-h">
-  <div class="wrap">
-    <h2 id="ref-h">المراجع</h2>
-    <p class="sub">المصادر التي بُنيت عليها الإرشادات، لتقرأ التفاصيل بنفسك أو تحضر دورة معتمدة. أرقام الأقواس في الصفحة تشير إلى هذه القائمة.</p>
-
-    <div class="refs">
-      <div>
-        <h3>الإنعاش والإسعاف الأولي (دولية)</h3>
-        <ol>
-          <li id="r1"><span><span class="n">[1]</span><a href="https://cpr.heart.org" target="_blank" rel="noopener">الجمعية الأمريكية للقلب (AHA): إرشادات الإنعاش القلبي الرئوي والرعاية القلبية الطارئة</a></span><small>الإنعاش للبالغين والأطفال، الغصة، الجلطة والنوبة القلبية، الغرق.</small><span class="url">cpr.heart.org</span></li>
-          <li id="r2"><span><span class="n">[2]</span><a href="https://www.cprguidelines.eu" target="_blank" rel="noopener">المجلس الأوروبي للإنعاش (ERC): الإرشادات</a></span><small>مرجع مكمّل في الإنعاش وإنقاذ الغرقى والصدمة التحسسية.</small><span class="url">cprguidelines.eu</span></li>
-          <li id="r3"><span><span class="n">[3]</span><a href="https://www.globalfirstaidcentre.org" target="_blank" rel="noopener">الاتحاد الدولي للصليب والهلال الأحمر: الإرشادات الدولية للإسعاف الأولي والإنعاش</a></span><small>الأساس العلمي للحروق والكسور والجروح ولدغات الثعابين وضربة الشمس.</small><span class="url">globalfirstaidcentre.org</span></li>
-          <li id="r4"><span><span class="n">[4]</span><a href="https://www.stopthebleed.org" target="_blank" rel="noopener">برنامج Stop the Bleed (الكلية الأمريكية للجراحين)</a></span><small>الضغط المباشر وحشو الجرح والعاصبة لإيقاف النزيف الشديد.</small><span class="url">stopthebleed.org</span></li>
-        </ol>
-      </div>
-      <div>
-        <h3>حالات محددة</h3>
-        <ol>
-          <li id="r5"><span><span class="n">[5]</span><a href="https://www.stroke.org" target="_blank" rel="noopener">الجمعية الأمريكية للسكتة الدماغية: علامات FAST</a></span><small>التعرف على الجلطة الدماغية وأهمية تسجيل وقت بدء الأعراض.</small><span class="url">stroke.org</span></li>
-          <li id="r6"><span><span class="n">[6]</span><a href="https://www.who.int/news-room/fact-sheets/detail/drowning" target="_blank" rel="noopener">منظمة الصحة العالمية: الغرق</a></span><small>الوقاية والإنقاذ المائي ومراقبة الأطفال قرب المياه.</small><span class="url">who.int</span></li>
-          <li id="r7"><span><span class="n">[7]</span><a href="https://www.cdc.gov/carbon-monoxide/" target="_blank" rel="noopener">مراكز مكافحة الأمراض (CDC): التسمم بأول أكسيد الكربون</a></span><small>الأعراض والوقاية وأجهزة الكشف.</small><span class="url">cdc.gov</span></li>
-          <li id="r8"><span><span class="n">[8]</span><a href="https://www.cdc.gov/heat-health/" target="_blank" rel="noopener">مراكز مكافحة الأمراض (CDC): الأمراض المرتبطة بالحرارة</a></span><small>الإجهاد الحراري وضربة الشمس والتبريد.</small><span class="url">cdc.gov</span></li>
-          <li id="r9"><span><span class="n">[9]</span><a href="https://www.worldallergy.org" target="_blank" rel="noopener">المنظمة العالمية للحساسية (WAO)</a></span><small>الصدمة التحسسية واستخدام الإبينفرين.</small><span class="url">worldallergy.org</span></li>
-          <li id="r10"><span><span class="n">[10]</span><a href="https://www.epilepsy.com" target="_blank" rel="noopener">مؤسسة الصرع (Epilepsy Foundation)</a></span><small>الإسعاف الأولي لنوبات التشنج.</small><span class="url">epilepsy.com</span></li>
-          <li id="r11"><span><span class="n">[11]</span><a href="https://diabetes.org" target="_blank" rel="noopener">الجمعية الأمريكية للسكري (ADA)</a></span><small>هبوط السكر وقاعدة 15-15.</small><span class="url">diabetes.org</span></li>
-          <li id="r12"><span><span class="n">[12]</span><a href="https://www.nhs.uk/conditions/first-aid/" target="_blank" rel="noopener">هيئة الخدمات الصحية البريطانية (NHS): الإسعافات الأولية</a></span><small>الرعاف، إصابات العين، الإغماء، الكسور وإصابات الرأس.</small><span class="url">nhs.uk</span></li>
-          <li id="r13"><span><span class="n">[13]</span><a href="https://www.mayoclinic.org/first-aid" target="_blank" rel="noopener">مايو كلينك: الإسعافات الأولية</a></span><small>بتر الأطراف، التسمم الغذائي والجفاف، ربو.</small><span class="url">mayoclinic.org</span></li>
-        </ol>
-      </div>
-      <div>
-        <h3>المنزل والمركبة</h3>
-        <ol>
-          <li id="r14"><span><span class="n">[14]</span><a href="https://www.nfpa.org" target="_blank" rel="noopener">الرابطة الوطنية للحماية من الحرائق (NFPA)</a></span><small>طفايات الحريق (PASS)، حرائق المطبخ، خطة الإخلاء المنزلي.</small><span class="url">nfpa.org</span></li>
-        </ol>
-      </div>
-      <div>
-        <h3>جهات في المملكة العربية السعودية</h3>
-        <ol>
-          <li id="r15"><span><span class="n">[15]</span><a href="https://www.srca.gov.sa" target="_blank" rel="noopener">هيئة الهلال الأحمر السعودي (997)</a></span><small>الإسعاف والتوعية الإسعافية.</small><span class="url">srca.gov.sa</span></li>
-          <li id="r16"><span><span class="n">[16]</span><a href="https://www.moh.gov.sa" target="_blank" rel="noopener">وزارة الصحة (937)</a></span><small>الاستشارات الصحية واستشارات السموم.</small><span class="url">moh.gov.sa</span></li>
-          <li id="r17"><span><span class="n">[17]</span><a href="https://www.moi.gov.sa" target="_blank" rel="noopener">وزارة الداخلية: الدفاع المدني (998) والمرور وأمن الطرق (996)</a></span><small>الحرائق والسيول وتسرب الغاز والسلامة على الطرق.</small><span class="url">moi.gov.sa</span></li>
-          <li id="r18"><span><span class="n">[18]</span><a href="https://www.najm.sa" target="_blank" rel="noopener">نجم لخدمات التأمين</a></span><small>الإبلاغ عن الحوادث المرورية البسيطة.</small><span class="url">najm.sa</span></li>
-        </ol>
-      </div>
-    </div>
-
-    <p class="disclaimer"><b>تنبيه.</b> المحتوى للتوعية العامة وقد تتحدث الإرشادات مع الوقت. تأكد من الإصدار الأحدث عند المراجع، وخذ دورة إسعافات أولية معتمدة. في الخطر الحقيقي اتصل أولاً بالرقم المناسب.</p>
-  </div>
-</section>
-</main>
-
-<footer class="foot"><div class="wrap">
-  <p>دليلك الآمن. يعمل على الجوال والحاسب، ويُحدَّث تلقائياً عند توفر الإنترنت.</p>
-  <p>للتثبيت على آيفون: زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».</p>
-</div></footer>
-
-<nav class="callbar" aria-label="اتصال سريع">
-  <a class="first" href="tel:997"><b>997</b><span>الإسعاف</span></a>
-  <a href="tel:911"><b>911</b><span>الطوارئ</span></a>
-  <a href="tel:998"><b>998</b><span>الدفاع المدني</span></a>
-  <a href="tel:937"><b>937</b><span>الصحة</span></a>
-</nav>
-
-<div id="toasts" role="status" aria-live="polite"></div>
 <dialog id="keyDlg">
   <form method="dialog">
-    <h3 style="font-family:var(--f-head)">مفتاح Gemini API</h3>
-    <p class="hint">يُحفظ على جهازك فقط ويُرسل إلى Google عند التوليد.</p>
+    <h3 style="margin:0">مفتاح Gemini API</h3>
+    <p class="sub">يُحفظ على جهازك فقط ويُرسل إلى Google عند التوليد.</p>
     <label for="keyInput" class="sr">المفتاح</label>
     <input id="keyInput" type="password" placeholder="AIza…" autocomplete="off">
-    <div class="row"><button class="btn solid" id="keySave" value="save">حفظ</button><button class="btn" value="cancel">إلغاء</button></div>
+    <div style="display:flex;gap:8px"><button class="btn blue" style="flex:1" value="save">حفظ</button><button class="btn ghost" style="flex:1" value="cancel">إلغاء</button></div>
   </form>
 </dialog>
 
