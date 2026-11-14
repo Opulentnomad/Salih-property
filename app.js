@@ -29,6 +29,7 @@ const U = {
   prev:svgU('<path d="M9 5l7 7-7 7"/>'),
   spk:svgU('<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.500 6.500a8 8 0 0 1 0 11"/>'),
   stop:svgU('<rect x="6" y="6" width="12" height="12" rx="2"/>'),
+  palette:svgU('<circle cx="12" cy="12" r="9"/><circle cx="8" cy="11" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16" cy="11" r="1.3"/><path d="M12 21c-1.600 0-1.600-2.200 0-3.200 1.500-1 4.300-.2 4.800-2.800"/>'),
   moon:svgU('<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>')
 };
 const G = { // glyphs for pictograms (filled)
@@ -127,7 +128,7 @@ const searchBox = ph => `<div class="search"><span class="mag">${U.search}</span
 
 function viewHome(){
   $('hdr').className='hdr';
-  $('hdr').innerHTML=`<div class="hrow"><h1>دليلك الآمن</h1>${netPill()}<button class="ib" data-act="theme" aria-label="تبديل المظهر">${U.moon}</button></div>${searchBox('ابحث عن حالة أو إصابة…')}`;
+  $('hdr').innerHTML=`<div class="hrow"><h1>دليلك الآمن</h1>${netPill()}<button class="ib" data-act="skins" aria-label="اختيار التصميم">${U.palette}</button></div>${searchBox('ابحث عن حالة أو إصابة…')}`;
   const rc=recent().map(byId).filter(Boolean);
   const cats=Object.keys(CATUI).map(k=>{const n=LIB.filter(p=>p.cat===k).length,c=CATUI[k];
     return `<button class="cat ${c.g}" data-go="#/lib/${k}">${catIcon(c.ic)}<div class="t"><h3>${c.t}</h3><p>${c.d}</p><span class="badge num">${n} بطاقة</span></div></button>`}).join('');
@@ -291,7 +292,9 @@ function viewMe(){
   <div class="fld"><label for="f_tel">رقم طوارئ العائلة البديل</label><input id="f_tel" data-fam="tel" inputmode="tel" value="${esc(LS.get('fam_tel',''))}" placeholder="${esc(FDEF.tel)}"></div>
   <div class="fld"><label for="f_pt">نقطة التجمع الآمنة</label><input id="f_pt" data-fam="pt" value="${esc(LS.get('fam_pt',''))}" placeholder="${esc(FDEF.pt)}"></div>
   <div class="fld"><label for="f_kit">موقع حقيبة الإسعافات والطفاية</label><input id="f_kit" data-fam="kit" value="${esc(LS.get('fam_kit',''))}" placeholder="${esc(FDEF.kit)}"></div>
-  <h2 class="sec">المظهر</h2>
+  <h2 class="sec">التصميم</h2>
+  <button class="btn blue" data-act="skins" style="width:100%">اختيار التصميم (${SKINS.find(k=>k.id===skinOf()).n})</button>
+  <h2 class="sec">المظهر (للتصميم الزجاجي)</h2>
   <div class="seg" role="group" aria-label="المظهر">${[['auto','تلقائي'],['light','فاتح'],['dark','داكن']].map(([k,l])=>`<button data-act="themeSet" data-v="${k}" aria-pressed="${th===k}">${l}</button>`).join('')}</div>
   <h2 class="sec">حجم الخط</h2>
   <div class="seg" role="group" aria-label="حجم الخط">${[['1','عادي'],['1.12','كبير'],['1.25','كبير جداً']].map(([k,l])=>`<button data-act="scaleSet" data-v="${k}" aria-pressed="${sc===k}">${l}</button>`).join('')}</div>
@@ -342,6 +345,12 @@ function openSOS(){
   sh.innerHTML=`<div class="sheetp" role="dialog" aria-label="أرقام الطوارئ"><div class="grab"></div><h2>اتصل بالطوارئ</h2>
    <div class="nums">${NUMS.map(([n,t,d,c])=>`<a class="numr" href="tel:${n}" style="--c:${c}"><b>${n}</b><span>${t}<small>${d}</small></span></a>`).join('')}</div>
    <div style="display:grid;gap:8px;margin-top:12px"><button class="btn blue" data-act="locate">شارك موقعي عبر واتساب</button><button class="btn ghost" data-act="closeSheet">إغلاق</button></div></div>`;
+}
+function openSkins(){
+  const cur=skinOf(),sh=$('sheet');sh.hidden=false;
+  sh.innerHTML=`<div class="sheetp" role="dialog" aria-label="اختيار التصميم"><div class="grab"></div><h2>اختر التصميم</h2>
+   <div class="skins">${SKINS.map(k=>`<button class="skinopt" data-act="skin" data-v="${k.id}" aria-pressed="${k.id===cur}"><span class="sw" style="background:${k.c[0]}"><i style="background:${k.c[1]}"></i><i style="background:${k.c[2]}"></i></span><span><b>${k.n}</b><small>${k.d}</small></span></button>`).join('')}</div>
+   <button class="btn ghost" data-act="closeSheet" style="width:100%">تم</button></div>`;
 }
 function closeSheet(){$('sheet').hidden=true;$('sheet').innerHTML='';}
 function locate(){
@@ -405,7 +414,18 @@ function stopSpeakIfLeaving(){if(speaking)stopSpeak();}
 let h2c=null;
 function loadH2C(){if(window.html2canvas)return Promise.resolve();
   if(!h2c)h2c=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=res;s.onerror=()=>rej(new Error('offline'));document.head.appendChild(s);});return h2c;}
-function applyTheme(){const t=LS.get('theme','auto');if(t==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t);
+const SKINS=[
+ {id:'glass',n:'زجاجي',d:'شفافية وتضبيب فوق خلفية متحركة ناعمة',c:['#E9EEFF','rgba(255,255,255,.7)','#E5283A'],sc:'auto'},
+ {id:'signs',n:'لوحات الطريق',d:'أخضر وأبيض بحدود سميكة، كلوحات الطرق السعودية',c:['#0A4A33','#0E5A3F','#FFD21E'],sc:'dark'},
+ {id:'soft',n:'ناعم',d:'أسطح بارزة بظلال لينة، هادئ للعين',c:['#E4E9F2','#E4E9F2','#4C63D6'],sc:'light'},
+ {id:'clinic',n:'عيادة',d:'أبيض نظيف وخطوط رفيعة بلون تركوازي',c:['#F3F7F8','#FFFFFF','#0A8F8F'],sc:'light'},
+ {id:'neon',n:'نيون ليلي',d:'أسود عميق وتوهج أحمر وأخضر',c:['#05060B','#0C0F1A','#00F0A0'],sc:'dark'}];
+const skinOf=()=>{const s=LS.get('skin','glass');return SKINS.some(k=>k.id===s)?s:'glass';};
+function applyTheme(){
+  const sk=skinOf(),root=document.documentElement,meta=document.querySelector('meta[name=theme-color]');
+  if(sk!=='glass'){const k=SKINS.find(x=>x.id===sk);root.setAttribute('data-skin',sk);root.setAttribute('data-theme',k.sc);if(meta)meta.content=k.c[0];return;}
+  root.removeAttribute('data-skin');
+  const t=LS.get('theme','auto');if(t==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t);
   const m=document.querySelector('meta[name=theme-color]');if(m)m.content=(t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme:dark)').matches))?'#080C26':'#E9EEFF';}
 function applyScale(){document.documentElement.style.setProperty('--scale',LS.get('scale','1'));}
 
@@ -451,6 +471,8 @@ document.addEventListener('click',async e=>{
     case 'closeSheet':closeSheet();break;
     case 'locate':locate();break;
     case 'back':history.length>1?history.back():(location.hash='#/home');break;
+    case 'skins':openSkins();break;
+    case 'skin':LS.set('skin',a.dataset.v);applyTheme();openSkins();toast('التصميم: '+SKINS.find(k=>k.id===a.dataset.v).n);break;
     case 'theme':{const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');LS.set('theme',cur==='dark'?'light':'dark');applyTheme();break;}
     case 'themeSet':LS.set('theme',a.dataset.v);applyTheme();viewMe();break;
     case 'scaleSet':LS.set('scale',a.dataset.v);applyScale();viewMe();break;
@@ -493,6 +515,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 }
 
 /* ================= start ================= */
+{const sp=new URLSearchParams(location.search).get('skin');if(sp&&SKINS.some(k=>k.id===sp))LS.set('skin',sp);}
 applyTheme();applyScale();
 (function(){const app=$('app');const set=()=>{app.style.setProperty('--hh',$('hdr').offsetHeight+'px');app.style.setProperty('--nh',$('nav').offsetHeight+'px');};
   if('ResizeObserver' in window){const ro=new ResizeObserver(set);ro.observe($('hdr'));ro.observe($('nav'));}window.addEventListener('resize',set);setTimeout(set,0);})();
