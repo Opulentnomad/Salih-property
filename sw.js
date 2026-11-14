@@ -1,7 +1,7 @@
-/* دليلك الآمن — Service Worker: يعمل بدون إنترنت بعد أول زيارة */
-const VERSION = 'v4';
-const CORE = `salih-core-${VERSION}`;
-const RUNTIME = `salih-runtime-${VERSION}`;
+/* ثواني — Service Worker: يعمل بدون إنترنت بعد أول زيارة */
+const VERSION = 'v5';
+const CORE = `thawani-core-${VERSION}`;
+const RUNTIME = `thawani-runtime-${VERSION}`;
 const ASSETS = ['./','index.html','styles.css','app.js','data.js','manifest.webmanifest',
   'icons/icon.svg','icons/icon-192.png','icons/icon-512.png','icons/apple-touch-icon.png'];
 
