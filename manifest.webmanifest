@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "دليلك الآمن | بطاقات الطوارئ",
+  "short_name": "دليلك الآمن",
+  "description": "36 بطاقة إجراءات للإسعافات الأولية وطوارئ المنزل والطريق والبر، تعمل بدون إنترنت.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EAEFF1",
+  "theme_color": "#0A2530",
+  "categories": ["health", "medical", "utilities"],
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+    {"src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ],
+  "shortcuts": [
+    {"name": "الإنعاش القلبي الرئوي", "short_name": "CPR", "url": "./?card=p3", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]},
+    {"name": "الغصة والاختناق", "short_name": "غصة", "url": "./?card=p1", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]},
+    {"name": "إيقاف النزيف", "short_name": "نزيف", "url": "./?card=p2", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]},
+    {"name": "تسرب الغاز", "short_name": "غاز", "url": "./?card=p20", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]}
+  ]
+}
