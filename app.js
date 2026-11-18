@@ -332,10 +332,10 @@ function viewKit(){
   <p class="disc" style="margin-top:6px">الأدوية الشخصية تُحفظ حسب تعليمات الطبيب والملصق. لا تضع أدوية حساسة للحرارة في السيارة، ولا تعطِ دواءً لشخص آخر. في المدرسة تُدار أدوية الطلاب وفق سياسة المدرسة وموافقة ولي الأمر.</p>`;
 }
 const SKINS=[
+ {id:'paper',n:'كودكس (تقريبي)',d:'ورق دافئ وأخضر وبطاقات باستيل، أقرب ما أمكن لنسخة كودكس',c:['#F7F7F3','#FFFFFF','#087E68'],m:'#F7F7F3'},
  {id:'soft',n:'ناعم',d:'أسطح بارزة بظلال لينة (التصميم الحالي)',c:['#E4E9F2','#E4E9F2','#4C63D6'],m:'#E4E9F2'},
- {id:'paper',n:'ورقي أخضر',d:'قريب من أسلوب النسخة الأخرى: ورق دافئ، أخضر، وبطاقات باستيل',c:['#F7F7F3','#FFFFFF','#087E68'],m:'#F7F7F3'},
  {id:'najdi',n:'نجدي',d:'رمل وأخضر عميق وذهبي بزخرفة مثلثات نجدية',c:['#F1E8D6','#FBF6EA','#0B5D4B'],m:'#0B5D4B'}];
-const skinOf=()=>{const s=LS.get('skin','soft');return SKINS.some(k=>k.id===s)?s:'soft';};
+const skinOf=()=>{const s=LS.get('skin','paper');return SKINS.some(k=>k.id===s)?s:'soft';};
 function openSkins(){
   const cur=skinOf(),sh=$('sheet');sh.hidden=false;
   sh.innerHTML=`<div class="sheetp" role="dialog" aria-label="اختيار التصميم"><div class="grab"></div><h2>اختر التصميم</h2>

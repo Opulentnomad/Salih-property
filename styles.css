@@ -512,3 +512,11 @@ dialog input{background:var(--glass-in);border-color:var(--glass-b);color:var(--
 :root[data-skin=najdi] .fact{border-inline-start:5px solid #B8892E}:root[data-skin=najdi] .fact a{color:#9E2A1F}
 :root[data-skin=najdi] .pill{background:rgba(255,255,255,.12);color:#E9F3E3;border-color:rgba(255,255,255,.3)}
 :root[data-skin=najdi] .press{box-shadow:none}
+
+/* ===== كودكس: الشعار والترحيب ===== */
+:root[data-skin=paper] .hrow h1::before{content:"ث";display:inline-grid;place-items:center;width:34px;height:34px;margin-inline-end:8px;border-radius:11px;background:#087E68;color:#fff;font-size:22px;vertical-align:-6px}
+:root[data-skin=paper] .hrow h1::after{content:".";color:#C5483A}
+:root[data-skin=paper] .welcome{background:#F7F7F3;color:#1E2A28}
+:root[data-skin=paper] .go{background:#087E68;border:0;box-shadow:none}
+:root[data-skin=paper] .dots i.on{background:#087E68}
+:root[data-skin=paper] .slide svg{filter:none}
