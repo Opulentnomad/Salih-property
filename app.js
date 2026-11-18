@@ -15,9 +15,16 @@ let LIB=PRESETS.slice();
 function ext(p){const m=META[p.id]||{};p.ctx=m.ctx||CTX_DEF[p.cat]||PLACES;p.refs=m.refs||p.refs||[];p.vids=m.vids||p.vids||[];return p;}
 LIB=LIB.map(ext);
 const byId=id=>LIB.find(p=>p.id===id);
-const S={q:'',cat:'all',place:'all',kit:'home',deferred:null,swReady:false,kidsAll:false};
-const GD={id:null,idx:0,mode:'over',talk:false,opener:null};
+const S={q:'',cat:'all',place:'all',season:'',kit:'home',deferred:null,swReady:false,kidsAll:false};
+const GD={id:null,idx:0,mode:'over',lang:'en',talk:false,opener:null};
 const profile=()=>LS.get('profile','');
+const CFG=window.THAWANI||{},AN=CFG.analytics||{};
+function siteUrl(){const u=(LS.get('siteUrl','')||CFG.site||'').trim();if(u)return u.replace(/\/+$/,'');if(/^https?:$/.test(location.protocol)&&!/^(localhost|127\.|\[::1\])/.test(location.hostname))return location.origin;return '';}
+const shareUrl=id=>{const s=siteUrl();return s?s+'/share/'+id+'.html':'';};
+const cardUrl=id=>{const s=siteUrl();return s?s+'/'+(id?'?card='+id:''):'';};
+const statsOn=()=>LS.get('noStats','')!=='1'&&navigator.doNotTrack!=='1';
+function track(path){if(!statsOn())return;try{if(AN.provider==='goatcounter'&&window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:'/ev/'+path,title:path,event:true});else if(AN.provider==='endpoint'&&AN.endpoint&&navigator.sendBeacon)navigator.sendBeacon(AN.endpoint,JSON.stringify({e:path,t:Date.now()}));}catch(e){}}
+if(AN.provider==='goatcounter'&&AN.code&&statsOn()){const s=document.createElement('script');s.async=true;s.src='https://gc.zgo.at/count.js';s.dataset.goatcounter='https://'+AN.code+'.goatcounter.com/count';s.dataset.goatcounterSettings='{"no_onload":true}';document.head.appendChild(s);}
 const isSimple=()=>document.documentElement.dataset.mode==='simple';
 const SCALES=[1,1.12,1.25,1.4];
 const say=t=>{const l=$('live');l.textContent='';setTimeout(()=>{l.textContent=t},60);};
@@ -64,18 +71,19 @@ const catName=p=>(CATS[p.cat]||{}).name||'';
 
 /* ---------- renderers ---------- */
 function filtered(){const q=norm(S.q);
- return LIB.filter(p=>(S.cat==='all'||p.cat===S.cat)&&(S.place==='all'||(p.ctx||[]).includes(S.place))&&(profile()!=='child'||S.kidsAll||KIDS_IDS.includes(p.id))&&(!q||norm([p.title,p.level,p.golden,catName(p),(p.steps||[]).join(' '),(p.avoid||[]).join(' '),(p.gear||[]).join(' '),(p.ctx||[]).join(' ')].join(' ')).includes(q)));}
+ return LIB.filter(p=>(S.cat==='all'||p.cat===S.cat)&&(S.place==='all'||(p.ctx||[]).includes(S.place))&&(!S.season||(SEASONS.find(s=>s.id===S.season)||{ids:[]}).ids.includes(p.id))&&(profile()!=='child'||S.kidsAll||KIDS_IDS.includes(p.id))&&(!q||norm([p.title,p.level,p.golden,catName(p),(p.steps||[]).join(' '),(p.avoid||[]).join(' '),(p.gear||[]).join(' '),(p.ctx||[]).join(' ')].join(' ')).includes(q)));}
 function renderTiles(){
  $('tiles').innerHTML=QUICK.slice(0,isSimple()?6:8).map(id=>{const p=byId(id);if(!p)return'';
   return `<button class="tile lv-${p.lv}" data-card="${id}" type="button"><span class="top">${icon(p)}<span aria-hidden="true">←</span></span><h3>${esc(QLABEL[id]||p.title)}</h3><p>${esc(p.level)}</p>${p.lv==='c'||p.lv==='d'?'<span class="urgent">حالة عاجلة</span>':''}</button>`}).join('');}
 function renderCats(){
  const tabs=[['all','الكل ('+LIB.length+')']].concat(Object.keys(CATS).map(k=>[k,CATS[k].name+' ('+LIB.filter(p=>p.cat===k).length+')']));
  $('cats').innerHTML=tabs.map(([k,l])=>`<button class="chip" type="button" data-cat="${k}" aria-pressed="${S.cat===k}">${esc(l)}</button>`).join('');
+ $('seasons').innerHTML=SEASONS.map(s=>`<button class="chip" type="button" data-season="${s.id}" aria-pressed="${S.season===s.id}">${esc(s.name)}</button>`).join('');
  $('places').innerHTML=[['all','كل الأماكن']].concat(PLACES.map(x=>[x,x])).map(([k,l])=>`<button class="chip" type="button" data-place="${k}" aria-pressed="${S.place===k}">${esc(l)}</button>`).join('');}
 function renderGrid(){
  const l=filtered();
  $('count').textContent=l.length+' بطاقة';
- $('empty').hidden=l.length>0;
+ $('empty').hidden=l.length>0;if(S.q&&!l.length)track('search/none');
  $('kidsNote').hidden=!(profile()==='child'&&!S.kidsAll);
  $('grid').innerHTML=l.map(p=>`<button class="gcard lv-${p.lv}" type="button" data-card="${p.id}"><span class="top">${icon(p)}<span class="num" aria-label="رقم الطوارئ">${esc(p.phone)}</span></span><span class="cat">${esc(catName(p))}</span><h3>${esc(p.title)}</h3><p>${esc(p.level)}</p><span class="foot"><span>عرض الخطوات ←</span></span></button>`).join('');
  const h=$('qhint');h.innerHTML=S.q?(l.length?`${l.length} بطاقة مطابقة. <a href="#browse" class="all">عرضها ←</a>`:'لا توجد بطاقة مطابقة. جرّب كلمة أخرى.'):'';
@@ -114,7 +122,30 @@ const REFS=[
   ['r17','وزارة الداخلية: الدفاع المدني (998) والمرور وأمن الطرق (996)','https://www.moi.gov.sa','الحرائق والسيول وتسرب الغاز وسلامة الطرق.'],
   ['r18','نجم لخدمات التأمين','https://www.najm.sa','الإبلاغ عن الحوادث المرورية البسيطة.']]]];
 function renderRefs(){$('refs').innerHTML=REFS.map(([g,it])=>`<div><h3>${g}</h3>${it.map(([id,t,u,d])=>`<div class="ref" id="${id}"><span class="n">[${id.slice(1)}]</span><a href="${u}" target="_blank" rel="noopener">${t}</a><small>${d}</small><div class="u">${u.replace(/^https?:\/\/(www\.)?/,'')}</div></div>`).join('')}</div>`).join('');}
-function renderAll(){renderTiles();renderCats();renderGrid();renderKit();}
+function hijriMonth(){try{const f=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{month:'numeric'});return Number(f.formatToParts(new Date()).find(x=>x.type==='month').value);}catch(e){return 0;}}
+function renderSeasonBand(){const m=hijriMonth(),s=m===9?SEASONS.find(x=>x.id==='ramadan'):(m===11||m===12)?SEASONS.find(x=>x.id==='hajj'):null,b=$('seasonBand');
+ if(!s||isSimple()){b.hidden=true;return;}b.hidden=false;b.innerHTML=`<b>موسم ${esc(s.name)}</b><p>${esc(s.d)}</p><button class="btn solid sm" type="button" data-sgo="${s.id}">عرض بطاقات الموسم</button>`;}
+function renderFaq(){const V={myth:'خرافة',true:'صحيح',depends:'يعتمد'};
+ $('faqList').innerHTML=FAQ.map((f,i)=>`<details><summary><span class="vd ${f.v}">${V[f.v]}</span><span>${esc(f.q)}</span></summary><div class="ans"><p>${esc(f.a)}</p><div class="btnrow"><button class="btn solid sm" type="button" data-card="${f.card}">اقرأ البطاقة</button><button class="btn ghostb sm" type="button" data-act="faqshare" data-i="${i}">مشاركة</button></div></div></details>`).join('');}
+const STICKERS=[
+ {id:'k1',place:'المطبخ',card:'p20',t:'رائحة غاز؟',s:'لا تلمس الكهرباء. افتح النوافذ واخرج ثم اتصل.',nums:['998']},
+ {id:'k2',place:'المطبخ',card:'p21',t:'حريق في المطبخ؟',s:'لا تصب الماء على الزيت. غطِّ المقلاة واخرج.',nums:['998']},
+ {id:'f1',place:'الثلاجة',card:'',t:'أرقام الطوارئ وبطاقات الإسعاف',s:'امسح للوصول لكل البطاقات.',nums:['997','911','998','937']},
+ {id:'c1',place:'السيارة',card:'p27',t:'تعطلت على الطريق؟',s:'الفلاشر، ثم الأبواب اليمنى، ثم خلف الحاجز.',nums:['996','911']},
+ {id:'c2',place:'السيارة',card:'p31',t:'حريق في السيارة؟',s:'أوقف المحرك واخرجوا وابتعدوا 30 متراً.',nums:['998']},
+ {id:'d1',place:'باب المنزل',card:'p24',t:'خطة الإخلاء',s:'اخرج أولاً ثم اتصل. نقطة التجمع خارج المبنى.',nums:['998','911']},
+ {id:'m1',place:'خزانة الأدوية',card:'p15',t:'ابتلع طفل دواءً أو منظفاً؟',s:'لا تُجبره على القيء. اتصل واحتفظ بالعبوة.',nums:['937','997']},
+ {id:'w1',place:'المسبح',card:'p17',t:'غرق؟',s:'اطلب النجدة وأخرجه بأمان وابدأ الإنعاش.',nums:['997']}];
+function qrSvg(url){try{const q=qrcode(0,'M');q.addData(url);q.make();return q.createSvgTag({cellSize:4,margin:0,scalable:true});}catch(e){return '';}}
+function renderStickers(){
+ const base=siteUrl(),sel=getJ('stkSel',STICKERS.map(x=>x.id));
+ $('siteInp').value=LS.get('siteUrl','')||base;
+ $('stkPick').innerHTML=STICKERS.map(x=>`<label><input type="checkbox" data-stk="${x.id}" ${sel.includes(x.id)?'checked':''}><span>${esc(x.place)}: ${esc(x.t)}</span></label>`).join('');
+ const n=$('stkNote');
+ if(!base){n.hidden=false;n.textContent='اكتب رابط موقعك أعلاه (مثل https://example.com) ليُبنى عليه رمز QR. وإلا لن يعمل الرمز.';$('stickerSheet').innerHTML='';return;}
+ n.hidden=true;
+ $('stickerSheet').innerHTML=STICKERS.filter(x=>sel.includes(x.id)).map(x=>`<div class="stk"><span class="pl2">${esc(x.place)}</span><h3>${esc(x.t)}</h3><div class="qr" role="img" aria-label="رمز QR لـ ${esc(x.t)}">${qrSvg(cardUrl(x.card))}</div><div class="sub2">${esc(x.s)}</div><div class="nums2">${x.nums.map(n=>`<span>${n}</span>`).join('')}</div><div class="br">امسح للخطوات الكاملة · ثواني</div></div>`).join('');}
+function renderAll(){renderTiles();renderCats();renderGrid();renderKit();renderSeasonBand();}
 
 /* ---------- search / filters ---------- */
 $('q').addEventListener('input',e=>{S.q=e.target.value;S.cat='all';S.place='all';renderCats();renderGrid();});
@@ -141,13 +172,13 @@ function srcHTML(p){let h='';
  if(p.refs&&p.refs.length)h+=`<div class="srcbox"><h3>المصادر</h3>${p.refs.map(r=>`<a class="srclink" href="${esc(r[1])}" target="_blank" rel="noopener">${esc(r[0])} ↗</a>`).join('')}</div>`;
  return h;}
 function buildText(p){p=p||byId(GD.id);const f=family();
- return ['🚨 *'+p.title+'*','📞 رقم الطوارئ: '+p.phone+'  |  '+p.level,'','⭐ *القاعدة الأولى:*',p.golden,'','⚡ *الخطوات:*',...p.steps.map((s,i)=>(i+1)+'. '+s),'','⛔ *تجنب فوراً:*',...p.avoid.map(a=>'• '+a),'','🧰 *التجهيزات وعلامات الخطر:*',...p.gear.map(g=>'• '+g),'','🏠 *بيانات العائلة*','📍 الموقع: '+f.loc,'📞 طوارئ العائلة: '+f.tel,'🏃 نقطة التجمع: '+f.pt,'🩺 الإسعافات/الطفاية: '+f.kit,'','— ثواني'].join('\n');}
+ return ['🚨 *'+p.title+'*','📞 رقم الطوارئ: '+p.phone+'  |  '+p.level,'','⭐ *القاعدة الأولى:*',p.golden,'','⚡ *الخطوات:*',...p.steps.map((s,i)=>(i+1)+'. '+s),'','⛔ *تجنب فوراً:*',...p.avoid.map(a=>'• '+a),'','🧰 *التجهيزات وعلامات الخطر:*',...p.gear.map(g=>'• '+g),'','🏠 *بيانات العائلة*','📍 الموقع: '+f.loc,'📞 طوارئ العائلة: '+f.tel,'🏃 نقطة التجمع: '+f.pt,'🩺 الإسعافات/الطفاية: '+f.kit,'',...(shareUrl(p.id)?['🔗 '+shareUrl(p.id)]:[]),'— ثواني'].join('\n');}
 function overview(p){const f=family();
- return `<div class="xr"><a class="btn solid sm" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(buildText(p))}">واتساب</a><button class="btn ghostb sm" type="button" data-act="copy">نسخ النص</button><button class="btn ghostb sm" type="button" data-act="png">حفظ كصورة</button><button class="btn ghostb sm" type="button" data-act="print">طباعة A4</button>${navigator.share?'<button class="btn ghostb sm" type="button" data-act="share">مشاركة…</button>':''}</div>
+ return `<div class="xr"><a class="btn solid sm" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(buildText(p))}">واتساب</a><button class="btn ghostb sm" type="button" data-act="copy">نسخ النص</button><button class="btn ghostb sm" type="button" data-act="copylink">نسخ رابط البطاقة</button><button class="btn ghostb sm" type="button" data-act="png">حفظ كصورة</button><button class="btn ghostb sm" type="button" data-act="print">طباعة A4</button>${navigator.share?'<button class="btn ghostb sm" type="button" data-act="share">مشاركة…</button>':''}</div>
  <div id="printArea"><article class="card lv-${p.lv}" id="cardEl">
   <div class="ch"><span class="mcat">${esc(catName(p))} • ${esc(LV[p.lv]||'')}</span><h2 style="margin-top:2px">${esc(p.title)}</h2><p>${esc(p.level)}</p><a class="callbig" href="tel:${esc(p.phone)}"><span>اتصل الآن</span><b>${esc(p.phone)}</b></a></div>
   <div class="cb"><div class="golden"><b>القاعدة الأولى</b>${esc(p.golden)}</div>
-   <div><h3>الخطوات</h3><ol class="stepsl">${p.steps.map(s=>`<li><span>${esc(s)}</span></li>`).join('')}</ol></div>
+   <div><h3>الخطوات</h3><ol class="stepsl">${p.steps.map((s,i)=>{const il=illus(p.id,i);return `<li>${il?`<span class="thumb">${il}</span>`:''}<span class="t">${esc(s)}</span></li>`;}).join('')}</ol></div>
    <div class="avoidb"><h3>تجنب فوراً</h3><ul>${p.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
    <div class="gearb"><h3>التجهيزات وعلامات الخطر</h3><div class="gearlist">${p.gear.map(g=>`<label><input type="checkbox"><span>${esc(g)}</span></label>`).join('')}</div></div>
    ${srcHTML(p)}</div>
@@ -160,7 +191,8 @@ function guide(p){const n=p.steps.length,i=GD.idx;
   <div class="btnrow"><a class="btn red" href="tel:${esc(p.phone)}">اتصل بـ ${esc(p.phone)}</a><button class="btn ${profile()==='child'?'solid':'ghostb'}" type="button" data-act="quiz">اختبر نفسك</button><button class="btn ghostb" type="button" data-act="restart">إعادة الخطوات</button><button class="btn ghostb" type="button" data-act="mode" data-m="over">عرض البطاقة كاملة</button></div></div>`;
  const bars=Array.from({length:n+1},(_,k)=>`<i class="${k<=i?'on':''}"></i>`).join('');
  const extra=(p.id==='p3'?'<button class="btn ghostb sm" type="button" data-act="tool" data-t="tools">افتح إيقاع الإنعاش</button>':'')+(p.id==='p2'?'<button class="btn ghostb sm" type="button" data-act="tool" data-t="tools">ابدأ مؤقت العاصبة</button>':'');
- return `<div class="stage lv-${p.lv}" id="stage"><div class="sart">${icon(p)}<div class="wave">${'<i></i>'.repeat(26)}</div><div class="cap">${esc(p.level)}</div></div>
+ const il=i>0?illus(p.id,i-1):'';
+ return `<div class="stage lv-${p.lv}" id="stage"><div class="sart${il?' ill':''}">${il||icon(p)}<div class="wave">${'<i></i>'.repeat(26)}</div>${il?'':`<div class="cap">${esc(p.level)}</div>`}</div>
   <div class="stepno">${i===0?'قبل أن تبدأ':'الخطوة '+i+' من '+n}</div><div class="steptx ${i===0?'g':''}">${esc(i===0?p.golden:p.steps[i-1])}</div>
   <div class="pbar" aria-hidden="true">${bars}</div>
   <div class="ctl"><button class="btn ghostb" type="button" data-act="prev" aria-label="السابق" ${i===0?'disabled':''}>→</button><button class="btn solid" type="button" data-act="speak">${speaking?'⏹ إيقاف الصوت':'🔊 تشغيل الصوت'}</button><button class="btn solid" type="button" data-act="next">${i===n?'إنهاء':'التالي'} ←</button></div>
@@ -169,14 +201,14 @@ function guide(p){const n=p.steps.length,i=GD.idx;
 function drawModal(){
  const p=byId(GD.id);if(!p)return;
  $('mBody').innerHTML=`<div class="lv-${p.lv}">${GD.mode!=='over'?`<span class="mcat">${esc(catName(p))}${p.lv==='c'||p.lv==='d'?' · حالة عاجلة':''}</span><h2 id="mTitle">${esc(p.title)}</h2>`:'<span class="sr" id="mTitle">'+esc(p.title)+'</span>'}
-  <div class="tabs" role="tablist"><button type="button" role="tab" data-act="mode" data-m="over" aria-selected="${GD.mode==='over'}">البطاقة كاملة</button><button type="button" role="tab" data-act="mode" data-m="guide" aria-selected="${GD.mode==='guide'||GD.mode==='quiz'}">خطوة بخطوة وبالصوت</button>${EN[p.id]?`<button type="button" role="tab" data-act="mode" data-m="en" aria-selected="${GD.mode==='en'}" lang="en" dir="ltr">English</button>`:''}</div>
-  ${GD.mode==='over'?overview(p):GD.mode==='en'?enView(p):GD.mode==='quiz'?quizView(p):guide(p)}</div>`;
+  <div class="tabs" role="tablist"><button type="button" role="tab" data-act="mode" data-m="over" aria-selected="${GD.mode==='over'}">البطاقة كاملة</button><button type="button" role="tab" data-act="mode" data-m="guide" aria-selected="${GD.mode==='guide'||GD.mode==='quiz'}">خطوة بخطوة وبالصوت</button>${langsFor(p).map(l=>`<button type="button" role="tab" data-act="mode" data-m="lang" data-l="${l.id}" aria-selected="${GD.mode==='lang'&&GD.lang===l.id}" lang="${l.id}" dir="${l.dir}">${esc(l.name)}</button>`).join('')}</div>
+  ${GD.mode==='over'?overview(p):GD.mode==='lang'?langView(p,GD.lang):GD.mode==='quiz'?quizView(p):guide(p)}</div>`;
  const st=$('stage');if(st){let x0=null;st.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});st.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx<-55)go(1);else if(dx>55)go(-1);});}
 }
-function go(d){const p=byId(GD.id),n=p.steps.length,ni=Math.max(0,Math.min(n+1,GD.idx+d));if(ni===GD.idx)return;GD.idx=ni;drawModal();say(ni===0?p.golden:ni<=n?'الخطوة '+ni+' من '+n+'. '+p.steps[ni-1]:'انتهت الخطوات');
+function go(d){const p=byId(GD.id),n=p.steps.length,ni=Math.max(0,Math.min(n+1,GD.idx+d));if(ni===GD.idx)return;GD.idx=ni;drawModal();track((ni>n?'done/':'step/')+p.id+(ni>n?'':'/'+ni));say(ni===0?p.golden:ni<=n?'الخطوة '+ni+' من '+n+'. '+p.steps[ni-1]:'انتهت الخطوات');
  if(GD.talk&&ni<=n)speak(guideText(p,ni));else if(ni>n)stopSpeak();}
 function openCard(id,mode){
- const p=byId(id);if(!p)return;GD.id=id;GD.idx=0;GD.mode=mode||'over';GD.talk=false;GD.opener=document.activeElement;stopSpeak();
+ const p=byId(id);if(!p)return;GD.id=id;GD.idx=0;GD.mode=mode||'over';GD.talk=false;GD.opener=document.activeElement;stopSpeak();track('card/'+id);
  drawModal();showModal();
  try{history.replaceState(null,'','?card='+id)}catch(e){}}
 function closeModal(){if($('modal').hidden)return;$('modal').hidden=true;document.body.style.overflow='';setBg(false);stopSpeak();GD.id=null;
@@ -186,7 +218,8 @@ function openAbout(){GD.id=null;GD.opener=document.activeElement;
  $('mBody').innerHTML=`<span class="mcat">عن الدليل</span><h2 id="mTitle">ثواني</h2><p class="mut" style="margin-bottom:14px">دليل توعوي مبسّط للتصرف في مواقف الطوارئ في المملكة. يعرض خطوات عامة إلى حين وصول المساعدة، ولا يستبدل الاتصال بالطوارئ ولا التدريب المعتمد. بعد تثبيته يعمل بدون إنترنت، وبياناتك (خطة العائلة وقوائم التجهيز) تُحفظ على جهازك فقط.</p>
  <div class="nums">${NUMS.map(([n,t,d,c])=>`<a class="numc" href="tel:${n}" style="--c:${c}"><b>${n}</b><span>${t}<small>${d}</small></span></a>`).join('')}</div>
  <div class="btnrow"><a class="btn ghostb" href="#plan" data-close>خطة عائلتك</a><a class="btn ghostb" href="#references" data-close>المراجع</a><button class="btn ghostb" type="button" data-act="sharesite">مشاركة ثواني</button></div>
- <p class="note">للتعلم العملي راجع برامج التدريب الرسمية في الهلال الأحمر السعودي. ثواني مبادرة توعوية غير رسمية.</p>`;
+ <p class="note">للتعلم العملي راجع برامج التدريب الرسمية في الهلال الأحمر السعودي. ثواني مبادرة توعوية غير رسمية.</p>
+ <p class="mut" style="margin-top:10px"><b>الخصوصية:</b> لا نجمع اسماً ولا رقماً ولا موقعاً ولا نص بحثك. إن فُعّلت الإحصاءات فهي أعداد مجهولة فقط (أي بطاقة فُتحت وإلى أي خطوة وصل القارئ) بلا كوكيز، ويمكنك إيقافها من «خطة عائلتك».</p>`;
  showModal();}
 $('closeModal').onclick=closeModal;
 $('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
@@ -194,13 +227,17 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();
  if(GD.id&&GD.mode==='guide'&&!$('modal').hidden&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')){if(e.key==='ArrowLeft')go(1);if(e.key==='ArrowRight')go(-1);}});
 
 /* ---------- English / quiz / emergency / script ---------- */
-function enView(p){const e=EN[p.id];
- return `<div class="en" dir="ltr" lang="en"><div class="note" style="margin-top:0">Draft translation for visitors who do not read Arabic. The Arabic card is the reference. Always call the emergency number first.</div>
- <a class="callbig" href="tel:${esc(p.phone)}"><span>Call now</span><b>${esc(p.phone)}</b></a>
+const TR={en:EN};
+const LANGS=[{id:'en',name:'English',dir:'ltr',ui:{call:'Call now',first:'First rule',steps:'Steps',avoid:'Avoid immediately',note:'Draft translation for visitors who do not read Arabic. The Arabic card is the reference. Always call the emergency number first.'}},{id:'ur',name:'اردو',dir:'rtl'},{id:'fil',name:'Filipino',dir:'ltr'},{id:'bn',name:'বাংলা',dir:'ltr'}];
+async function loadLangs(){for(const l of LANGS){if(l.id==='en')continue;try{const r=await fetch('i18n/'+l.id+'.json',{cache:'no-cache'});if(!r.ok)continue;const j=await r.json();if(j&&j.reviewed===true&&j.cards&&j.ui){TR[l.id]=j.cards;l.ui=j.ui;}}catch(e){}}}
+const langsFor=p=>LANGS.filter(l=>TR[l.id]&&TR[l.id][p.id]&&l.ui);
+function langView(p,lang){const l=LANGS.find(x=>x.id===lang),e=TR[lang][p.id],u=l.ui;
+ return `<div class="en" dir="${l.dir}" lang="${l.id}" style="text-align:${l.dir==='rtl'?'right':'left'}"><div class="note" style="margin-top:0">${esc(u.note)}</div>
+ <a class="callbig" href="tel:${esc(p.phone)}"><span>${esc(u.call)}</span><b>${esc(p.phone)}</b></a>
  <h3 class="enh">${esc(e.title)}</h3><p class="mut">${esc(e.level)}</p>
- <div class="golden" style="margin-top:10px"><b>First rule</b>${esc(e.golden)}</div>
- <h3 class="enh" style="font-size:20px">Steps</h3><ol class="stepsl">${e.steps.map(s=>`<li><span>${esc(s)}</span></li>`).join('')}</ol>
- <div class="avoidb" style="margin-top:12px"><h3>Avoid immediately</h3><ul>${e.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div></div>`;}
+ <div class="golden" style="margin-top:10px"><b>${esc(u.first)}</b>${esc(e.golden)}</div>
+ <h3 class="enh" style="font-size:20px">${esc(u.steps)}</h3><ol class="stepsl">${e.steps.map(s=>`<li><span class="t">${esc(s)}</span></li>`).join('')}</ol>
+ <div class="avoidb" style="margin-top:12px"><h3>${esc(u.avoid)}</h3><ul>${e.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div></div>`;}
 const QZ={qs:[],i:0,s:0,sel:null};
 const shuffle=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 function buildQuiz(p){const nums=['997','911','998','937','993','996'],qs=[];
@@ -219,7 +256,7 @@ function quizView(p){
  ${done?`<div class="btnrow"><button class="btn solid" type="button" data-act="qnext">${QZ.i+1>=QZ.qs.length?'النتيجة':'السؤال التالي'}</button></div>`:''}</div>`;}
 function scriptHTML(){const f=LS.get('fam_loc','').trim();
  return `<div class="script"><h3>ماذا أقول عند الاتصال؟</h3><ol><li>«السلام عليكم، أحتاج إسعافاً.»</li><li>العنوان: ${f?esc(f):'اذكر المدينة والحي واسم الشارع وأقرب معلم'}.</li><li>ماذا حدث؟ مثال: «شخص لا يتنفس» أو «نزيف شديد» أو «حريق في المطبخ».</li><li>كم عدد المصابين وكم عمرهم تقريباً؟</li><li>هل المصاب واعٍ؟ هل يتنفس؟</li><li>اسمي … ورقم جوالي … وابقَ على الخط ولا تغلقه حتى يطلب منك.</li></ol><div class="btnrow"><button class="btn ghostb sm" type="button" data-act="copyscript">نسخ النص</button></div></div>`;}
-function openEmergency(){GD.id=null;GD.opener=document.activeElement;
+function openEmergency(){track('emergency');GD.id=null;GD.opener=document.activeElement;
  const items=[['p3','لا يتنفس أو لا يستجيب'],['p2','ينزف بشدة'],['p1','يختنق'],['p4','حساسية شديدة'],['p20','رائحة غاز'],['p21','حريق']];
  $('mBody').innerHTML=`<span class="mcat">وضع الطوارئ</span><h2 id="mTitle">ماذا يحدث الآن؟</h2>
  <a class="callhuge" href="tel:997"><span>اتصل بالإسعاف</span><b>997</b></a>
@@ -287,11 +324,14 @@ lv: c حرج، d حرج جداً، w تحذير، t إجراء تقني، p وق
 
 /* ---------- global clicks ---------- */
 document.addEventListener('click',async e=>{
+ const tl=e.target.closest('a[href^="tel:"]');if(tl)track('call/'+tl.getAttribute('href').slice(4));
  const cd=e.target.closest('[data-card]');if(cd){openCard(cd.dataset.card);return;}
  const ct=e.target.closest('[data-cat]');if(ct){S.cat=ct.dataset.cat;renderCats();renderGrid();return;}
  const pl=e.target.closest('[data-place]');if(pl){S.place=pl.dataset.place;renderCats();renderGrid();return;}
  const kt=e.target.closest('[data-kit]');if(kt){S.kit=kt.dataset.kit;renderKit();return;}
  if(e.target.closest('#kitReset')){LS.set('thawani-kit-'+S.kit,'[]');renderKit();return;}
+ const sn=e.target.closest('[data-season]');if(sn){S.season=S.season===sn.dataset.season?'':sn.dataset.season;S.cat='all';S.place='all';S.q='';$('q').value='';renderCats();renderGrid();return;}
+ const sg=e.target.closest('[data-sgo]');if(sg){S.season=sg.dataset.sgo;S.cat='all';S.place='all';renderCats();renderGrid();$('browse').scrollIntoView({behavior:'smooth'});return;}
  const pfb=e.target.closest('[data-profile]');if(pfb){applyProfile(pfb.dataset.profile);if($('profDlg').open)$('profDlg').close();return;}
  const rt=e.target.closest('[data-rate]');if(rt){LS.set('rate',rt.dataset.rate);toast('تم ضبط سرعة القراءة');return;}
  const fs=e.target.closest('[data-fs]');if(fs){const cur=SCALES.indexOf(Number(LS.get('scale','1')));const ni=Math.max(0,Math.min(SCALES.length-1,(cur<0?0:cur)+Number(fs.dataset.fs)));LS.set('scale',String(SCALES[ni]));applyScale();return;}
@@ -299,7 +339,7 @@ document.addEventListener('click',async e=>{
  if(e.target.closest('[data-close]')){closeModal();return;}
  const a=e.target.closest('[data-act]');if(!a)return;const act=a.dataset.act,p=GD.id?byId(GD.id):null;
  switch(act){
-  case 'mode':GD.mode=a.dataset.m;if(GD.mode==='over'||GD.mode==='en'){GD.talk=false;stopSpeak();}drawModal();if(GD.mode==='guide'&&LS.get('autoread','')==='1'){GD.talk=true;speak(guideText(p,Math.min(GD.idx,p.steps.length)));}break;
+  case 'mode':GD.mode=a.dataset.m;if(GD.mode==='lang'){GD.lang=a.dataset.l;track('lang/'+GD.lang+'/'+p.id);}if(GD.mode==='over'||GD.mode==='lang'){GD.talk=false;stopSpeak();}drawModal();if(GD.mode==='guide'&&LS.get('autoread','')==='1'){GD.talk=true;speak(guideText(p,Math.min(GD.idx,p.steps.length)));}break;
   case 'quiz':QZ.qs=buildQuiz(p);QZ.i=0;QZ.s=0;QZ.sel=null;GD.mode='quiz';stopSpeak();drawModal();break;
   case 'qans':{const q=QZ.qs[QZ.i];QZ.sel=Number(a.dataset.k);if(q.opts[QZ.sel]===q.ok)QZ.s++;drawModal();say(q.opts[QZ.sel]===q.ok?'إجابة صحيحة':q.why);break;}
   case 'qnext':QZ.i++;QZ.sel=null;if(QZ.i>=QZ.qs.length){LS.set('stars',String((Number(LS.get('stars','0'))||0)+QZ.s));updateStars();}drawModal();break;
@@ -315,11 +355,18 @@ document.addEventListener('click',async e=>{
   case 'print':window.print();break;
   case 'png':try{toast('جارٍ إنشاء الصورة…');await loadH2C();const c=await html2canvas($('cardEl'),{scale:2,useCORS:true,backgroundColor:getComputedStyle(document.body).backgroundColor});const l=document.createElement('a');l.download=p.title.replace(/[\\/:*?"<>|()]/g,'').trim()+'.png';l.href=c.toDataURL('image/png');l.click();toast('تم حفظ الصورة');}catch(_){h2c=null;toast('حفظ الصورة يحتاج اتصالاً بالإنترنت مرة واحدة');}break;
   case 'sharesite':shareSite();break;
+  case 'copylink':{const u=shareUrl(p.id)||cardUrl(p.id);if(!u){toast('انشر الموقع أولاً، أو اكتب رابطه في قسم ملصقات QR');break;}try{await navigator.clipboard.writeText(u);toast('تم نسخ رابط البطاقة');}catch(_){toast(u);}break;}
+  case 'faqshare':{const f=FAQ[Number(a.dataset.i)],V={myth:'خرافة',true:'صحيح',depends:'يعتمد'},u=shareUrl(f.card),t='❓ '+f.q+'\n'+V[f.v]+': '+f.a+(u?'\n🔗 '+u:'')+'\n— ثواني';if(navigator.share){navigator.share({title:'ثواني',text:t}).catch(()=>{});}else window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank','noopener');track('faqshare/'+f.card);break;}
+  case 'stats':LS.set('noStats',statsOn()?'1':'');updateStatsBtn();toast(statsOn()?'تم تشغيل الإحصاءات المجهولة':'تم إيقاف الإحصاءات المجهولة');break;
  }});
-document.addEventListener('change',e=>{const c=e.target.closest('[data-kitem]');if(!c)return;const ids=$$('[data-kitem]:checked').map(x=>Number(x.dataset.kitem));LS.set('thawani-kit-'+S.kit,JSON.stringify(ids));
+$('siteInp').addEventListener('change',e=>{LS.set('siteUrl',e.target.value.trim());renderStickers();});
+document.addEventListener('change',e=>{const sk=e.target.closest('[data-stk]');if(sk){const ids=$$('[data-stk]:checked').map(x=>x.dataset.stk);LS.set('stkSel',JSON.stringify(ids));renderStickers();return;}const c=e.target.closest('[data-kitem]');if(!c)return;const ids=$$('[data-kitem]:checked').map(x=>Number(x.dataset.kitem));LS.set('thawani-kit-'+S.kit,JSON.stringify(ids));
  const k=CHECKLISTS.find(x=>x.id===S.kit),pc=Math.round(ids.length/k.items.length*100);$('kp').textContent=pc+'%';$('kb').style.width=pc+'%';});
 $$('[data-fam]').forEach(i=>{i.value=LS.get('fam_'+i.dataset.fam,'');i.placeholder=FDEF[i.dataset.fam];i.addEventListener('input',()=>{LS.set('fam_'+i.dataset.fam,i.value);if(!$('modal').hidden&&GD.id&&GD.mode==='over')drawModal();});});
 
+function updateStatsBtn(){const b=$('statsBtn');if(b)b.textContent=statsOn()?'إيقاف الإحصاءات المجهولة':'تشغيل الإحصاءات المجهولة';}
+$('stkPrint').onclick=()=>{if(!$('stickerSheet').children.length){toast('اكتب رابط موقعك أولاً لتظهر الملصقات');return;}document.body.classList.add('ps');window.print();};
+window.addEventListener('afterprint',()=>document.body.classList.remove('ps'));
 /* ---------- profile / font size / emergency ---------- */
 function applyMode(){document.documentElement.dataset.mode=LS.get('mode','full');}
 function updateStars(){const n=Number(LS.get('stars','0'))||0;const e=$('starsLine');if(e)e.textContent=n?'نجومك من الاختبارات: '+n+' ★':'';}
@@ -344,7 +391,8 @@ if('IntersectionObserver' in window){const ids=['home','browse','checklists'],io
 if('speechSynthesis' in window)try{speechSynthesis.getVoices();}catch(e){}
 
 /* ---------- start ---------- */
-document.documentElement.dataset.pf=profile();applyMode();applyTheme();applyScale();updateStars();renderNums();renderRefs();renderAll();updateNet();tShow();cprDraw();
+document.documentElement.dataset.pf=profile();applyMode();applyTheme();applyScale();updateStars();updateStatsBtn();renderNums();renderRefs();renderFaq();renderStickers();renderAll();updateNet();tShow();cprDraw();
+loadLangs();
 const want=new URLSearchParams(location.search).get('card');if(want&&byId(want))openCard(want);
 else if(!profile()&&$('profDlg').showModal)setTimeout(()=>{try{$('profDlg').showModal();}catch(e){}},600);
 })();

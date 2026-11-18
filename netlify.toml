@@ -1,0 +1,4 @@
+[build]
+  command = "node tools/build.js"
+  publish = "dist"
+# اضبط SITE_URL من Site configuration > Environment variables (مثال: https://thawani.app)

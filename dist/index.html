@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ثواني | دليل الطوارئ</title>
-<meta name="description" content="ثواني: 43 بطاقة إجراءات للإسعافات الأولية وطوارئ المنزل والطريق والبر، خطوة بخطوة وبالصوت، مع قوائم تجهيز ومصادر سعودية، وتعمل بدون إنترنت.">
+<meta name="description" content="ثواني: 47 بطاقة إجراءات للإسعافات الأولية وطوارئ المنزل والطريق والبر، خطوة بخطوة وبالصوت، مع قوائم تجهيز ومصادر سعودية، وتعمل بدون إنترنت.">
 <meta name="theme-color" content="#F7F7F3">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_SA">
+<meta property="og:site_name" content="ثواني">
+<meta property="og:url" content="https://thawani.app/">
+<meta property="og:title" content="ثواني | دليل الطوارئ">
+<meta property="og:description" content="47 بطاقة إجراءات للإسعافات الأولية وطوارئ المنزل والطريق والبر، خطوة بخطوة وبالصوت، وتعمل دون إنترنت.">
+<meta property="og:image" content="https://thawani.app/share/img/default.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -74,16 +82,23 @@
     <div class="sec-head"><div><small>ابدأ من هنا</small><h2 id="quick-h">ماذا يحدث الآن؟</h2></div><div class="links"><button class="all" id="scriptBtn" type="button">ماذا أقول عند الاتصال؟</button><a class="all" href="#browse">كل الحالات ←</a></div></div>
     <div class="searchbox"><span aria-hidden="true">⌕</span><label class="sr" for="q">ابحث في الحالات</label><input id="q" type="search" autocomplete="off" placeholder="ابحث عن حالة، مثل: نزيف أو حريق"><button type="button" class="mic" id="micBtn" hidden aria-label="بحث صوتي">🎙</button><kbd>⌘ K</kbd></div>
     <p class="qhint" id="qhint" aria-live="polite"></p>
+    <div class="seasonband" id="seasonBand" hidden></div>
     <div class="tiles" id="tiles"></div>
   </section>
 
   <section class="wrap sec" id="browse" aria-labelledby="browse-h">
     <div class="sec-head"><div><small>مرتّب حسب الموقف</small><h2 id="browse-h">دليل الحالات</h2></div><span class="count" id="count" aria-live="polite"></span></div>
+    <div class="chips seasons" id="seasons" role="group" aria-label="المواسم"></div>
     <div class="chips" id="cats" role="group" aria-label="التصنيف"></div>
     <div class="chips places" id="places" role="group" aria-label="المكان"></div>
     <p class="note" id="kidsNote" hidden>تعرض لك بطاقات مناسبة لعمرك. اطلب من شخص كبير مساعدتك في الباقي. <button class="all" id="kidsAll" type="button">عرض كل البطاقات</button></p>
     <div class="grid" id="grid"></div>
     <div class="empty" id="empty" hidden>لا توجد حالة بهذا الاسم. جرّب كلمة أخرى.</div>
+  </section>
+
+  <section class="wrap sec" id="faq" aria-labelledby="faq-h">
+    <div class="sec-head"><div><small>صحيح أم خرافة؟</small><h2 id="faq-h">أسئلة وخرافات شائعة</h2></div></div>
+    <div class="faq" id="faqList"></div>
   </section>
 
   <section class="wrap sec" id="tools" aria-labelledby="tools-h">
@@ -121,6 +136,14 @@
     <button class="btn solid" id="locBtn" type="button" style="margin-top:14px">شارك موقعي عبر واتساب</button>
   </section>
 
+  <section class="wrap sec" id="stickers" aria-labelledby="stk-h">
+    <div class="sec-head"><div><small>علّقها حيث تحتاجها</small><h2 id="stk-h">ملصقات QR للطباعة</h2></div><button class="btn solid" id="stkPrint" type="button">طباعة الملصقات</button></div>
+    <p class="mut">ألصق ملصق الغاز على باب المطبخ، وملصق السيارة على لوحة القيادة، وأرقام الطوارئ على الثلاجة. يفتح الـ QR البطاقة مباشرة، حتى دون إنترنت بعد تثبيت التطبيق.</p>
+    <div class="stickctl"><label for="siteInp" class="mut">رابط موقعك بعد النشر (يدخل في الـ QR)</label><input id="siteInp" type="url" inputmode="url" placeholder="https://example.com"><div class="stickpick" id="stkPick" role="group" aria-label="اختر الملصقات"></div></div>
+    <p class="note" id="stkNote" hidden></p>
+    <div class="stickers" id="stickerSheet"></div>
+  </section>
+
   <section class="wrap sec" id="plan" aria-labelledby="plan-h">
     <div class="sec-head"><div><small>تُحفظ على جهازك فقط</small><h2 id="plan-h">خطة عائلتك</h2></div></div>
     <p class="mut">تظهر هذه البيانات أسفل كل بطاقة وفي الطباعة والمشاركة.</p>
@@ -137,6 +160,7 @@
       <label>موقع حقيبة الإسعافات والطفاية<input id="f_kit" data-fam="kit"></label>
     </div>
     <div class="btnrow" style="margin-top:12px"><span class="mut" style="align-self:center">حجم الخط:</span><button class="btn ghostb" data-scale="1" type="button">عادي</button><button class="btn ghostb" data-scale="1.12" type="button">كبير</button><button class="btn ghostb" data-scale="1.25" type="button">كبير جداً</button><button class="btn ghostb" data-scale="1.4" type="button">الأكبر</button></div>
+    <div class="btnrow" style="margin-top:12px"><button class="btn ghostb" id="statsBtn" type="button" data-act="stats">إيقاف الإحصاءات المجهولة</button></div>
     <details class="ai">
       <summary>لم تجد حالتك؟ ولّد بطاقة بالذكاء الاصطناعي</summary>
       <div class="aibox">
@@ -171,6 +195,9 @@
   <button class="btn ghostb" type="button" id="profSkip" style="width:100%;margin-top:10px">تخطي</button></dialog>
 <dialog id="keyDlg"><form method="dialog"><h3 style="margin:0">مفتاح Gemini API</h3><p class="mut">يُحفظ على جهازك فقط ويُرسل إلى Google عند التوليد.</p><label for="keyInput" class="sr">المفتاح</label><input id="keyInput" type="password" placeholder="AIza…" autocomplete="off"><div class="btnrow"><button class="btn solid" value="save">حفظ</button><button class="btn ghostb" value="cancel">إلغاء</button></div></form></dialog>
 
+<script src="config.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="illus.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>

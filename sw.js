@@ -1,8 +1,8 @@
 /* ثواني — Service Worker: يعمل بدون إنترنت بعد أول زيارة */
-const VERSION = 'v10';
+const VERSION = 'v11';
 const CORE = `thawani-core-${VERSION}`;
 const RUNTIME = `thawani-runtime-${VERSION}`;
-const ASSETS = ['./','index.html','styles.css','app.js','data.js','manifest.webmanifest',
+const ASSETS = ['./','index.html','styles.css','app.js','data.js','illus.js','config.js','vendor/qrcode.js','manifest.webmanifest',
   'icons/icon.svg','icons/icon-192.png','icons/icon-512.png','icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
