@@ -21,15 +21,15 @@ before(async () => {
 });
 
 test('health and destinations list', async () => {
-  assert.equal((await call('GET', '/api/health')).json.destinations, 10);
-  const { json } = await call('GET', '/api/destinations');
-  assert.equal(json.total, 10);
+  assert.ok((await call('GET', '/api/health')).json.destinations >= 190);
+  const { json } = await call('GET', '/api/destinations?limit=300');
+  assert.ok(json.total >= 190 && json.items.length === json.total);
   assert.ok(json.items[0].req.visa && json.items[0].iata);
 });
 
 test('filters: visa, season, search, validation', async () => {
   const free = (await call('GET', '/api/destinations?visa=free')).json;
-  assert.ok(free.items.length >= 3 && free.items.every((d) => d.req.visa === 'free'));
+  assert.ok(free.items.length >= 20 && free.items.every((d) => d.req.visa === 'free'));
   assert.ok((await call('GET', '/api/destinations?q=IST')).json.items.some((d) => d.id === 'tr'));
   assert.ok((await call('GET', '/api/destinations?q=إسطنبول')).json.items.some((d) => d.id === 'tr'));
   assert.equal((await call('GET', '/api/destinations?q=%25')).json.total, 0); // لا يُفسَّر % كشرط عام
@@ -135,4 +135,46 @@ test('unknown api route returns JSON 404; security headers present', async () =>
   const r = await call('GET', '/api/nope');
   assert.equal(r.status, 404); assert.equal(r.json.error, 'not_found');
   assert.equal(r.res.headers['x-content-type-options'], 'nosniff');
+});
+
+import { importPassportIndex, mapRequirement } from '../src/import-passport-index.js';
+
+test('open-data import: ~198 destinations, correct mapping, flagged as unreviewed', async () => {
+  const bh = (await call('GET', '/api/entry-requirements?destination=bh')).json;
+  assert.equal(bh.visa, 'gcc'); assert.equal(bh.reviewed, false); assert.match(bh.source, /Passport Index/);
+  assert.equal(bh.stale, true); // مجموعة البيانات بتاريخ 2026-02-17
+  assert.equal((await call('GET', '/api/entry-requirements?destination=us')).json.visa, 'required');
+  assert.equal((await call('GET', '/api/entry-requirements?destination=jp')).json.visa, 'evisa');
+  assert.equal((await call('GET', '/api/entry-requirements?destination=sa')).status, 404); // لا وجهة للجواز نفسه
+  assert.equal((await call('GET', '/api/entry-requirements?destination=BHR')).json.destination, 'bh'); // بالرمز الثلاثي
+  const eg = (await call('GET', '/api/entry-requirements?destination=eg')).json;
+  assert.equal(eg.visa, 'free'); assert.equal(eg.stay, 180); // صُحّح من القيمة التجريبية السابقة
+  const d = (await call('GET', '/api/destinations/us')).json;
+  assert.equal(d.ar, 'الولايات المتحدة'); assert.equal(d.iata, 'USA'); assert.equal(d.region, 'americas');
+  assert.equal((await call('GET', '/api/destinations?q=%D8%A7%D9%84%D8%A8%D8%AD%D8%B1%D9%8A%D9%86')).json.items[0].id, 'bh');
+});
+
+test('import is idempotent and never overwrites human-reviewed data', async () => {
+  const again = importPassportIndex(db);
+  assert.equal(again.created + again.updated, 0);
+  // محرر يراجع وينشر بيانات الكويت، ثم يعاد الاستيراد
+  const dr = await call('PUT', '/api/admin/requirements/kw', { token: admin.token, body: { stay: 21, docs: ['الهوية الوطنية'] } });
+  await call('POST', `/api/admin/requirements/${dr.json.id}/publish`, { token: admin.token });
+  const kw = (await call('GET', '/api/entry-requirements?destination=kw')).json;
+  assert.equal(kw.reviewed, true); assert.equal(kw.stay, 21);
+  db.prepare("UPDATE entry_requirements SET visa='required' WHERE destination_id='kw' AND status='published'").run();
+  const r = importPassportIndex(db);
+  assert.ok(r.skippedReviewed >= 1);
+  assert.equal((await call('GET', '/api/entry-requirements?destination=kw')).json.visa, 'required'); // لم يُستبدل
+});
+
+test('mapRequirement covers every dataset value', () => {
+  assert.deepEqual(mapRequirement('90', 'TR'), { visa: 'free', stay: 90 });
+  assert.deepEqual(mapRequirement('visa free', 'BH'), { visa: 'gcc', stay: null });
+  assert.deepEqual(mapRequirement('visa on arrival', 'MV'), { visa: 'voa', stay: null });
+  assert.deepEqual(mapRequirement('e-visa', 'JP'), { visa: 'evisa', stay: null });
+  assert.deepEqual(mapRequirement('eta', 'GB'), { visa: 'eta', stay: null });
+  assert.deepEqual(mapRequirement('visa required', 'US'), { visa: 'required', stay: null });
+  assert.equal(mapRequirement('-1', 'SA'), null);
+  assert.equal(mapRequirement('no admission', 'XX'), null);
 });

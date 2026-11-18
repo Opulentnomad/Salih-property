@@ -6,7 +6,7 @@ window.SAFARNA_DATA = {
     voa:{ar:'تأشيرة عند الوصول',en:'Visa on arrival',c:'warn'}, evisa:{ar:'تأشيرة إلكترونية',en:'e-Visa',c:'warn'},
     eta:{ar:'تصريح سفر إلكتروني (ETA)',en:'Electronic Travel Auth.',c:'warn'}, required:{ar:'تأشيرة مسبقة من السفارة',en:'Visa required',c:'bad'}
   },
-  regions:{gulf:'الخليج',asia:'آسيا',europe:'أوروبا',africa:'أفريقيا والمغرب العربي',caucasus:'القوقاز'},
+  regions:{gulf:'الخليج',asia:'آسيا',europe:'أوروبا',africa:'أفريقيا والمغرب العربي',caucasus:'القوقاز',americas:'الأمريكتان',oceania:'أوقيانوسيا'},
   destinations:[
    {id:'tr',iata:'IST',ar:'تركيا',en:'Türkiye',city:'إسطنبول',emoji:'🕌',g:['#0B6B4F','#C9A24B'],region:'europe',budget:2,seasons:['spring','autumn','summer'],tags:['تاريخ','تسوق','عائلي'],flight:'3س 30د',cur:'TRY',rating:4.6,
     about:'مدينة تجمع التاريخ العثماني والأسواق والمطاعم والمناظر البحرية، مناسبة للعائلات.',

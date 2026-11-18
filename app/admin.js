@@ -36,9 +36,16 @@ function shell() {
 }
 const fail = (e) => { if (e.status === 401) { sessionStorage.clear(); token = null; return login('انتهت الجلسة. سجّل الدخول من جديد.'); } toast(e.message); };
 
+let flt = { q: '', unrev: false };
 async function listDest() {
-  const j = await api('/destinations?limit=100');
-  $('#body').innerHTML = j.items.map((d) => `<article class="pass"><div class="main"><div class="eyebrow">${esc(VL[d.req.visa])} · إصدار ${d.req.version}${d.req.stale ? ' · ⚠️ قديم' : ''}</div><div class="code big" style="font-size:40px">${esc(d.iata)}</div><div class="dest">${esc(d.ar)}</div></div><div class="stub"><button class="btn sm" data-e="${esc(d.id)}">تحرير</button></div></article>`).join('');
+  const j = await api('/destinations?limit=300');
+  const items = j.items.filter((d) => (!flt.unrev || !d.req.reviewed) && (!flt.q || (d.ar + d.en + d.iata).toLowerCase().includes(flt.q.toLowerCase())));
+  const left = j.items.filter((d) => !d.req.reviewed).length;
+  $('#body').innerHTML = `<div class="search"><input id="fq" type="search" placeholder="ابحث عن دولة" value="${esc(flt.q)}" aria-label="بحث"></div>
+  <div class="seg" role="group"><button data-u="0" aria-pressed="${!flt.unrev}">الكل (${j.total})</button><button data-u="1" aria-pressed="${flt.unrev}">بانتظار المراجعة (${left})</button></div>` +
+    items.map((d) => `<article class="pass"><div class="main"><div class="eyebrow">${esc(VL[d.req.visa])} · إصدار ${d.req.version} · ${d.req.reviewed ? '✓ مراجَع' : 'غير مراجَع'}${d.req.stale ? ' · ⚠️ قديم' : ''}</div><div class="code big" style="font-size:40px">${esc(d.iata)}</div><div class="dest">${esc(d.ar)}</div></div><div class="stub"><button class="btn sm" data-e="${esc(d.id)}">تحرير</button></div></article>`).join('');
+  $('#fq').oninput = (e) => { flt.q = e.target.value; clearTimeout(listDest._t); listDest._t = setTimeout(() => listDest().then(() => { const q = $('#fq'); q.focus(); q.setSelectionRange(99, 99); }).catch(fail), 250); };
+  m.querySelectorAll('[data-u]').forEach((b) => b.onclick = () => { flt.unrev = b.dataset.u === '1'; listDest().catch(fail); });
   m.querySelectorAll('[data-e]').forEach((b) => b.onclick = () => edit(b.dataset.e).catch(fail));
 }
 

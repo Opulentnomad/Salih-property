@@ -55,7 +55,7 @@ export default async function adminRoutes(app, { db }) {
     const now = new Date().toISOString();
     tx(db, () => {
       if (prev) db.prepare(`UPDATE entry_requirements SET status='archived' WHERE id=?`).run(prev.id);
-      db.prepare(`UPDATE entry_requirements SET status='published', verified_at=? WHERE id=?`).run(now, draft.id);
+      db.prepare(`UPDATE entry_requirements SET status='published', verified_at=?, reviewed=1 WHERE id=?`).run(now, draft.id);
       db.prepare('INSERT INTO requirement_changes(requirement_id,diff,changed_by) VALUES(?,?,?)').run(draft.id, JSON.stringify(diff), uid(req));
       audit(db, uid(req), 'requirement.publish', 'entry_requirement', draft.id, { destId: draft.destination_id, version: draft.version });
     });

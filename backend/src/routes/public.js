@@ -9,12 +9,12 @@ export default async function publicRoutes(app, { db }) {
     schema: { querystring: { type: 'object', additionalProperties: false, properties: {
       q: { type: 'string', maxLength: 60 }, region: { type: 'string', maxLength: 20 },
       visa: { type: 'string', enum: VISAS }, budget: { type: 'integer', minimum: 1, maximum: 3 },
-      season: { type: 'string', enum: SEASONS }, limit: { type: 'integer', minimum: 1, maximum: 100, default: 50 },
+      season: { type: 'string', enum: SEASONS }, limit: { type: 'integer', minimum: 1, maximum: 300, default: 50 },
       offset: { type: 'integer', minimum: 0, default: 0 } } } },
   }, async (req) => {
     const { q, region, visa, budget, season, limit, offset } = req.query;
     const where = []; const args = [];
-    if (q) { where.push(`(name_ar LIKE ? ESCAPE '\\' OR name_en LIKE ? ESCAPE '\\' OR city LIKE ? ESCAPE '\\' OR iata LIKE ? ESCAPE '\\')`); args.push(like(q), like(q), like(q), like(q)); }
+    if (q) { where.push(`(name_ar LIKE ? ESCAPE '\\' OR name_en LIKE ? ESCAPE '\\' OR city LIKE ? ESCAPE '\\' OR iata LIKE ? ESCAPE '\\' OR cca3 LIKE ? ESCAPE '\\')`); args.push(like(q), like(q), like(q), like(q), like(q)); }
     if (region) { where.push('region=?'); args.push(region); }
     if (budget) { where.push('budget=?'); args.push(budget); }
     if (season) { where.push('seasons LIKE ?'); args.push(`%"${season}"%`); }
@@ -37,7 +37,7 @@ export default async function publicRoutes(app, { db }) {
     schema: { querystring: { type: 'object', required: ['destination'], properties: {
       destination: { type: 'string', maxLength: 10 }, passport: { type: 'string', pattern: '^[A-Za-z]{2}$', default: 'SA' } } } },
   }, async (req, reply) => {
-    const dest = db.prepare('SELECT id,iata,name_ar FROM destinations WHERE id=? OR iata=?').get(req.query.destination.toLowerCase(), req.query.destination.toUpperCase());
+    const dest = db.prepare('SELECT id,iata,name_ar FROM destinations WHERE id=? OR iata=? OR cca3=?').get(req.query.destination.toLowerCase(), req.query.destination.toUpperCase(), req.query.destination.toUpperCase());
     if (!dest) return reply.code(404).send({ error: 'not_found', message: 'الوجهة غير موجودة' });
     const r = latestPublished(db, dest.id, req.query.passport.toUpperCase());
     if (!r) return reply.code(404).send({ error: 'no_data', message: 'لا توجد بيانات منشورة لهذا الجواز بعد' });
@@ -55,7 +55,7 @@ export default async function publicRoutes(app, { db }) {
     const interests = (req.query.interests || '').split(',').map((s) => s.trim()).filter(Boolean);
     const scored = db.prepare('SELECT * FROM destinations').all().map((d) => {
       const r = latestPublished(db, d.id);
-      let s = d.rating;
+      let s = d.rating ?? 0;
       s += parse(d.tags, []).filter((t) => interests.includes(t)).length * 2;
       if (req.query.budget && d.budget <= req.query.budget) s += 1.5;
       if (r && ['free', 'gcc'].includes(r.visa)) s += 1;

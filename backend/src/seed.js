@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { openDb, tx } from './db.js';
 import { hashPassword } from './auth.js';
+import { importPassportIndex } from './import-passport-index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -14,7 +15,7 @@ export function loadClientData() {
   return ctx.window.SAFARNA_DATA;
 }
 
-export async function seed(db, { adminEmail, adminPassword } = {}) {
+export async function seed(db, { adminEmail, adminPassword, importOpen = true } = {}) {
   const D = loadClientData();
   const adminHash = adminEmail && adminPassword ? await hashPassword(adminPassword) : null;
   tx(db, () => {
@@ -38,6 +39,7 @@ export async function seed(db, { adminEmail, adminPassword } = {}) {
     }
     if (adminHash) db.prepare(`INSERT INTO users(email,password_hash,name,role) VALUES(?,?,?,'admin')`).run(adminEmail, adminHash, 'Admin');
   });
+  if (importOpen) return importPassportIndex(db);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

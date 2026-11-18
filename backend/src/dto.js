@@ -7,7 +7,7 @@ export function reqDto(r) {
   const ageDays = (Date.now() - new Date(r.verified_at).getTime()) / 86400000;
   return {
     id: r.id, version: r.version, status: r.status, passportCountry: r.passport_country,
-    visa: r.visa, stay: r.stay_days, passport: r.passport_validity,
+    visa: r.visa, stay: r.stay_days, reviewed: !!r.reviewed, passport: r.passport_validity,
     docs: parse(r.docs, []), vaccines: r.vaccines, quarantine: r.quarantine,
     embassy: parse(r.embassy, {}), source: r.source, sourceUrl: r.source_url,
     verified: r.verified_at, stale: ageDays > STALE_DAYS, disclaimer: DISCLAIMER,
@@ -17,7 +17,7 @@ export function reqDto(r) {
 /** الشكل المتوافق مع بيانات الواجهة (app/data.js). */
 export function destDto(d, req) {
   return {
-    id: d.id, iata: d.iata, ar: d.name_ar, en: d.name_en, city: d.city, emoji: d.emoji,
+    id: d.id, iata: d.iata || d.cca3, ar: d.name_ar, en: d.name_en, city: d.city, emoji: d.emoji,
     g: [d.g1, d.g2], region: d.region, budget: d.budget, seasons: parse(d.seasons, []),
     tags: parse(d.tags, []), flight: d.flight, cur: d.currency, rating: d.rating, about: d.about_ar,
     req: reqDto(req),

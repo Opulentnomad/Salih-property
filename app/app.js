@@ -22,12 +22,12 @@ const bud=n=>'💰'.repeat(n);
 function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';$('#langBtn').textContent=lang==='ar'?'EN':'عربي';$('#brandName').textContent=lang==='ar'?'سفرنا':'Safarna'}
 function theme(t){document.documentElement.dataset.theme=t;store.set('theme',t);$('#themeBtn').textContent=t==='dark'?'☀️':'🌙'}
 const heart=d=>{const on=favs().includes(d.id);return `<button class="heart" data-fav="${d.id}" aria-pressed="${on}" aria-label="${on?'إزالة':'حفظ'} ${esc(d.ar)} ${on?'من':'في'} المفضلة">${on?'♥':'♡'}</button>`};
-const passCard=d=>`<article class="pass"><a class="main" href="#/d/${d.id}"><div class="eyebrow">من الرياض · ✈️ ${ar(d.flight)}</div><div class="code big">${d.iata}</div><div class="dest">${nm(d)} · ${d.city}</div></a><div class="stub">${tag(d)}${heart(d)}</div></article>`;
-const verifyNote=d=>`<p class="note">⚠️ آخر تحقق ${d.req.verified} · المصدر: ${esc(d.req.source)} · بيانات تجريبية، تأكد من الجهة الرسمية قبل السفر.</p>`;
+const passCard=d=>`<article class="pass"><a class="main" href="#/d/${d.id}"><div class="eyebrow">من الرياض${d.flight?' · ✈️ '+ar(d.flight):''}</div><div class="code big">${d.iata}</div><div class="dest">${nm(d)}${d.city?' · '+d.city:''}</div></a><div class="stub">${tag(d)}${heart(d)}</div></article>`;
+const verifyNote=d=>{const r=d.req,dt=String(r.verified).slice(0,10);return r.reviewed?`<p class="note">✓ راجعها محرر · تاريخ النشر ${dt} · المصدر: ${esc(r.source)}${r.stale?' · ⚠️ مضى أكثر من 30 يومًا، تحقق من الجهة الرسمية':''}</p>`:`<p class="note">⚠️ غير موثّقة رسميًا. نوع الدخول مأخوذ من ${esc(r.source)} بتاريخ ${dt}${r.stale?' (مضى عليه أكثر من 30 يومًا)':''}. تأكد من سفارة الدولة أو شركة الطيران قبل الحجز.</p>`};
 const bigPass=d=>{const r=d.req;return `<div class="pass vpass"><div class="main"><div class="eyebrow">بطاقة صعود · جواز سعودي</div>
  <div class="route"><span class="code big">RUH</span><span class="line"></span><span class="code big">${d.iata}</span></div>
- <div class="cities"><span>الرياض</span><span>${d.city}</span></div>
- <div class="facts"><div><b>${ar(r.stay)} يومًا</b><span>مدة الإقامة</span></div><div><b>${ar(esc(r.passport))}</b><span>صلاحية الجواز</span></div><div><b>${r.vaccines.startsWith('لا')?'لا يوجد':'يوجد'}</b><span>تطعيم</span></div></div>
+ <div class="cities"><span>الرياض</span><span>${d.city||nm(d)}</span></div>
+ <div class="facts"><div><b>${r.stay?ar(r.stay)+' يومًا':'غير محددة'}</b><span>مدة الإقامة</span></div><div><b>${r.passport?ar(esc(r.passport)):'تحقق من المصدر'}</b><span>صلاحية الجواز</span></div><div><b>${r.vaccines?(r.vaccines.startsWith('لا')?'لا يوجد':'يوجد'):'غير محدد'}</b><span>تطعيم</span></div></div>
  <div class="seal ${sealC(d)}"><span>${sealC(d)==='ok'?'✓':sealC(d)==='warn'?'!':'✕'}</span>${SEAL[r.visa]}</div><div class="bars" aria-hidden="true"></div></div></div>`};
 const recommend=()=>{const p=store.get('prefs',{});return [...dests].map(d=>{let s=d.rating;if(p.interests)s+=d.tags.filter(t=>p.interests.includes(t)).length*2;if(p.budget&&d.budget<=p.budget)s+=1.5;if(['free','gcc'].includes(d.req.visa))s+=1;return{d,s}}).sort((a,b)=>b.s-a.s).map(x=>x.d)};
 
@@ -47,12 +47,12 @@ const views={
    store.set('prefs',{interests:[...document.querySelectorAll('#int [aria-pressed=true]')].map(b=>b.textContent),budget:+$('#bud').value});store.set('onboarded',true);location.hash='#/'}},
  home(){
   const order={free:0,gcc:0,voa:1,evisa:1,eta:1,required:2};
-  const rows=q=>{const f=dests.filter(d=>!q||(d.ar+d.en+d.city+d.iata).toLowerCase().includes(q.trim().toLowerCase())).sort((a,b)=>order[a.req.visa]-order[b.req.visa]||b.rating-a.rating);
-   return f.map(d=>`<a class="crow" href="#/d/${d.id}"><span class="code">${d.iata}</span><span class="cn"><b>${nm(d)}</b><small>${d.city}</small></span>${tag(d)}<span class="chev" aria-hidden="true">‹</span></a>`).join('')||'<div class="hint">ما لقينا هذي الوجهة. جرّب اسمًا ثانيًا أو افتح «استكشف».</div>'};
+  const rows=q=>{const f=dests.filter(d=>!q||(d.ar+d.en+d.city+d.iata).toLowerCase().includes(q.trim().toLowerCase())).sort((a,b)=>order[a.req.visa]-order[b.req.visa]||(b.rating||0)-(a.rating||0)||a.ar.localeCompare(b.ar,'ar'));
+   return f.map(d=>`<a class="crow" href="#/d/${d.id}"><span class="code">${d.iata}</span><span class="cn"><b>${nm(d)}</b>${d.city?`<small>${d.city}</small>`:''}</span>${tag(d)}<span class="chev" aria-hidden="true">‹</span></a>`).join('')||'<div class="hint">ما لقينا هذي الوجهة. جرّب اسمًا ثانيًا أو افتح «استكشف».</div>'};
   main.innerHTML=`<h1>وين رايح؟</h1><p class="mu">اكتب اسم الدولة وشوف إذا تحتاج تأشيرة بجواز سفرك السعودي.</p>
   <div class="search"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="مثال: تركيا، دبي، IST" autocomplete="off" aria-label="ابحث عن وجهة"></div>
   <div id="list">${rows('')}</div>
-  <p class="note">⚠️ بيانات تجريبية. تأكد من الجهة الرسمية أو شركة الطيران قبل السفر.</p>`;
+  <p class="note">⚠️ نوع الدخول مأخوذ من مصدر مفتوح (Passport Index) ولم تراجعه جهة رسمية. تأكد من سفارة الدولة أو شركة الطيران قبل الحجز.</p>`;
   $('#q').oninput=e=>{$('#list').innerHTML=rows(e.target.value)};
   $('#q').onkeydown=e=>{if(e.key==='Enter'){const a=$('#list .crow');if(a)location.hash=a.getAttribute('href')}}},
  explore(){
@@ -72,7 +72,7 @@ const views={
   const sel=state.chk||'tr';
   main.innerHTML=`<h1>تحقق من التأشيرة</h1>
   <div class="field"><label for="pp">جواز السفر</label><select id="pp"><option>🇸🇦 المملكة العربية السعودية</option></select></div>
-  <div class="two"><div class="field"><label for="dd">الوجهة</label><select id="dd">${dests.map(d=>`<option value="${d.id}" ${d.id===sel?'selected':''}>${d.ar}</option>`).join('')}</select></div>
+  <div class="two"><div class="field"><label for="dd">الوجهة</label><select id="dd">${[...dests].sort((a,b)=>a.ar.localeCompare(b.ar,'ar')).map(d=>`<option value="${d.id}" ${d.id===sel?'selected':''}>${d.ar}</option>`).join('')}</select></div>
   <div class="field"><label for="dt">تاريخ السفر</label><input id="dt" type="date"></div></div>
   <button class="btn" id="go">تحقق</button><div id="res" aria-live="polite" style="margin-top:16px"></div>`;
   const show=()=>{const d=byId($('#dd').value);state.chk=d.id;const r=d.req;
@@ -86,16 +86,16 @@ const views={
   const T3={req:'شروط الدخول',ov:'نظرة عامة',rev:`المراجعات (${rv.length})`};
   let body='';
   if(tab==='req')body=`${bigPass(d)}<div class="panel"><h2 style="margin-top:0">المستندات المطلوبة</h2><ul class="list">${r.docs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
-   <div class="panel"><div class="kv"><b>التطعيمات</b><span>${esc(r.vaccines)}</span><b>الحجر الصحي</b><span>${esc(r.quarantine)}</span></div>
-   <h2>السفارة / القنصلية</h2><div class="kv"><b>الجهة</b><span>${esc(r.embassy.name)}</span><b>الهاتف</b><a href="tel:${r.embassy.phone.replace(/\s/g,'')}">${r.embassy.phone}</a><b>العنوان</b><span>${esc(r.embassy.addr)}</span></div></div>${verifyNote(d)}`;
-  if(tab==='ov')body=`<div class="panel"><p>${esc(d.about)}</p><div class="kv" style="margin-top:10px"><b>مدة الطيران</b><span>${d.flight} من الرياض</span><b>الميزانية</b><span>${bud(d.budget)}</span><b>أفضل المواسم</b><span>${d.seasons.map(s=>({winter:'شتاء',spring:'ربيع',summer:'صيف',autumn:'خريف'}[s])).join('، ')}</span><b>الاهتمامات</b><span>${d.tags.join('، ')}</span></div>
+   <div class="panel"><div class="kv"><b>التطعيمات</b><span>${esc(r.vaccines||'غير محدد، تحقق من المصدر')}</span><b>الحجر الصحي</b><span>${esc(r.quarantine||'غير محدد، تحقق من المصدر')}</span></div>
+   ${r.embassy?.name?`<h2>السفارة / القنصلية</h2><div class="kv"><b>الجهة</b><span>${esc(r.embassy.name)}</span><b>الهاتف</b><a href="tel:${esc((r.embassy.phone||'').replace(/\s/g,''))}">${esc(r.embassy.phone||'')}</a><b>العنوان</b><span>${esc(r.embassy.addr||'')}</span></div>`:''}</div>${verifyNote(d)}`;
+  if(tab==='ov')body=`<div class="panel"><p>${esc(d.about||'لا توجد نبذة عن هذه الوجهة بعد.')}</p><div class="kv" style="margin-top:10px">${d.flight?`<b>مدة الطيران</b><span>${ar(d.flight)} من الرياض</span>`:''}${d.budget?`<b>الميزانية</b><span>${bud(d.budget)}</span>`:''}${d.seasons?.length?`<b>أفضل المواسم</b><span>${d.seasons.map(s=>({winter:'شتاء',spring:'ربيع',summer:'صيف',autumn:'خريف'}[s])).join('، ')}</span>`:''}${d.tags?.length?`<b>الاهتمامات</b><span>${d.tags.join('، ')}</span>`:''}</div>
    <h2>احجز</h2><div class="actions"><a class="btn ghost" rel="sponsored noopener" target="_blank" href="https://www.example.com/flights?to=${d.id}">✈️ رحلات</a><a class="btn ghost" rel="sponsored noopener" target="_blank" href="https://www.example.com/hotels?c=${d.id}">🏨 فنادق</a></div>
    <p class="mu">روابط تجريبية — تُستبدل بروابط الشركاء. قد نحصل على عمولة.</p></div>`;
   if(tab==='rev'){const avg=(rv.reduce((a,x)=>a+x.s,0)/(rv.length||1)).toFixed(1);
    body=`<div class="pass vpass"><div class="main"><div class="sum"><div><div class="code big" style="font-size:72px">${rv.length?avg:'—'}</div><div class="stars" aria-hidden="true">★★★★★</div><div class="eyebrow">${rv.length} مراجعة</div></div></div></div></div>
    ${rv.map(x=>`<article class="slip"><div class="who"><span>المسافر: ${esc(x.n)}</span></div><div class="stars" aria-label="${x.s} من 5">${'★'.repeat(x.s)}${'☆'.repeat(5-x.s)}</div><p>${esc(x.t)}</p></article>`).join('')||'<div class="hint">كن أول من يكتب مراجعة.</div>'}
    <form id="rf" class="panel"><label for="rt">مراجعتك</label><textarea id="rt" rows="3" required maxlength="300"></textarea><label for="rs">التقييم</label><select id="rs"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select><button class="btn" style="margin-top:12px">اكتب مراجعتك</button></form>`}
-  main.innerHTML=`<div class="row" style="display:flex;justify-content:space-between;align-items:center"><div><h1>${nm(d)}</h1><div class="mu">${d.city} · ✈️ ${ar(d.flight)} · ★ ${ar(d.rating)}</div></div>${heart(d)}</div>
+  main.innerHTML=`<div class="row" style="display:flex;justify-content:space-between;align-items:center"><div><h1>${nm(d)}</h1><div class="mu">${[d.city,d.flight?'✈️ '+ar(d.flight):'',d.rating?'★ '+ar(d.rating):''].filter(Boolean).join(' · ')}</div></div>${heart(d)}</div>
   <div class="tabs" role="tablist">${Object.entries(T3).map(([k,v])=>`<button role="tab" class="tab" data-tab="${k}" aria-selected="${k===tab}">${v}</button>`).join('')}</div>${body}
   <div class="actions"><button class="btn" id="addtrip">＋ أضف إلى رحلتي</button><button class="btn ghost" id="alert">🔔 نبّهني</button></div>`;
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>views.detail(id,b.dataset.tab));
@@ -152,7 +152,7 @@ const off=()=>$('#offline').hidden=navigator.onLine;addEventListener('online',of
 theme(store.get('theme',matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));applyLang();
 addEventListener('hashchange',route);route();
 let lastFetch=0;
-const refresh=()=>{if(!location.protocol.startsWith('http'))return;lastFetch=Date.now();api('/destinations?limit=100').then(j=>{if(!j?.items?.length)return;const changed=!apiOn||JSON.stringify(j.items)!==JSON.stringify(dests);dests=j.items;apiOn=true;if(changed&&!document.activeElement?.matches('input,textarea,select'))route()}).catch(()=>{})};
+const refresh=()=>{if(!location.protocol.startsWith('http'))return;lastFetch=Date.now();api('/destinations?limit=300').then(j=>{if(!j?.items?.length)return;const changed=!apiOn||JSON.stringify(j.items)!==JSON.stringify(dests);dests=j.items;apiOn=true;if(changed&&!document.activeElement?.matches('input,textarea,select'))route()}).catch(()=>{})};
 refresh();document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastFetch>30000)refresh()});
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 })();
