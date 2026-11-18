@@ -45,14 +45,16 @@ const views={
   $('#skip').onclick=()=>{store.set('onboarded',true);location.hash='#/'};
   $('#next').onclick=()=>{if(step<2)return views.onboarding(step+1);
    store.set('prefs',{interests:[...document.querySelectorAll('#int [aria-pressed=true]')].map(b=>b.textContent),budget:+$('#bud').value});store.set('onboarded',true);location.hash='#/'}},
- home(){const rec=recommend().slice(0,3);
-  main.innerHTML=`<h1>إلى أين وجهتك القادمة؟</h1><p class="mu">اعرف شروط الدخول بجواز سفرك السعودي قبل الحجز.</p>
-  <form class="search" id="sf" role="search"><span aria-hidden="true">🔍</span><input id="q" placeholder="ابحث عن دولة أو مدينة…" autocomplete="off" aria-label="ابحث عن وجهة"><button class="btn sm">بحث</button></form>
-  <a class="pass" href="#/check" style="padding:14px 18px;align-items:center;gap:12px"><div style="flex:1"><div class="eyebrow">تحقق سريع</div><div class="dest">هل أحتاج تأشيرة؟</div></div><span class="code" style="font-size:30px">RUH → ?</span></a>
-  <h2>بدون تأشيرة مسبقة</h2>${dests.filter(d=>['free','gcc'].includes(d.req.visa)).slice(0,3).map(passCard).join('')}
-  <h2>مقترحة لك</h2>${rec.map(passCard).join('')}
-  <p class="note">⚠️ البيانات في هذه النسخة تجريبية. تحقّق دائمًا من الجهة الرسمية أو شركة الطيران قبل السفر.</p>`;
-  $('#sf').onsubmit=e=>{e.preventDefault();state.q=$('#q').value;location.hash='#/explore'}},
+ home(){
+  const order={free:0,gcc:0,voa:1,evisa:1,eta:1,required:2};
+  const rows=q=>{const f=dests.filter(d=>!q||(d.ar+d.en+d.city+d.iata).toLowerCase().includes(q.trim().toLowerCase())).sort((a,b)=>order[a.req.visa]-order[b.req.visa]||b.rating-a.rating);
+   return f.map(d=>`<a class="crow" href="#/d/${d.id}"><span class="code">${d.iata}</span><span class="cn"><b>${nm(d)}</b><small>${d.city}</small></span>${tag(d)}<span class="chev" aria-hidden="true">‹</span></a>`).join('')||'<div class="hint">ما لقينا هذي الوجهة. جرّب اسمًا ثانيًا أو افتح «استكشف».</div>'};
+  main.innerHTML=`<h1>وين رايح؟</h1><p class="mu">اكتب اسم الدولة وشوف إذا تحتاج تأشيرة بجواز سفرك السعودي.</p>
+  <div class="search"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="مثال: تركيا، دبي، IST" autocomplete="off" aria-label="ابحث عن وجهة"></div>
+  <div id="list">${rows('')}</div>
+  <p class="note">⚠️ بيانات تجريبية. تأكد من الجهة الرسمية أو شركة الطيران قبل السفر.</p>`;
+  $('#q').oninput=e=>{$('#list').innerHTML=rows(e.target.value)};
+  $('#q').onkeydown=e=>{if(e.key==='Enter'){const a=$('#list .crow');if(a)location.hash=a.getAttribute('href')}}},
  explore(){
   const f=dests.filter(d=>(!state.q||(d.ar+d.en+d.city+d.iata).toLowerCase().includes(state.q.toLowerCase()))&&(!state.region||d.region===state.region)&&(!state.visa||d.req.visa===state.visa)&&(!state.budget||d.budget==state.budget)&&(!state.season||d.seasons.includes(state.season)));
   const opt=(o,sel)=>Object.entries(o).map(([k,v])=>`<option value="${k}" ${sel===k?'selected':''}>${v}</option>`).join('');
@@ -94,8 +96,8 @@ const views={
    ${rv.map(x=>`<article class="slip"><div class="who"><span>المسافر: ${esc(x.n)}</span></div><div class="stars" aria-label="${x.s} من 5">${'★'.repeat(x.s)}${'☆'.repeat(5-x.s)}</div><p>${esc(x.t)}</p></article>`).join('')||'<div class="hint">كن أول من يكتب مراجعة.</div>'}
    <form id="rf" class="panel"><label for="rt">مراجعتك</label><textarea id="rt" rows="3" required maxlength="300"></textarea><label for="rs">التقييم</label><select id="rs"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select><button class="btn" style="margin-top:12px">اكتب مراجعتك</button></form>`}
   main.innerHTML=`<div class="row" style="display:flex;justify-content:space-between;align-items:center"><div><h1>${nm(d)}</h1><div class="mu">${d.city} · ✈️ ${ar(d.flight)} · ★ ${ar(d.rating)}</div></div>${heart(d)}</div>
-  <div class="actions"><button class="btn" id="addtrip">＋ أضف إلى رحلتي</button><button class="btn ghost" id="alert">🔔 نبّهني</button></div>
-  <div class="tabs" role="tablist">${Object.entries(T3).map(([k,v])=>`<button role="tab" class="tab" data-tab="${k}" aria-selected="${k===tab}">${v}</button>`).join('')}</div>${body}`;
+  <div class="tabs" role="tablist">${Object.entries(T3).map(([k,v])=>`<button role="tab" class="tab" data-tab="${k}" aria-selected="${k===tab}">${v}</button>`).join('')}</div>${body}
+  <div class="actions"><button class="btn" id="addtrip">＋ أضف إلى رحلتي</button><button class="btn ghost" id="alert">🔔 نبّهني</button></div>`;
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>views.detail(id,b.dataset.tab));
   $('#addtrip').onclick=()=>{const t=store.get('trips',[]);t.push({id:Date.now(),d:id,start:'',days:5,plan:[]});store.set('trips',t);toast('أُضيفت إلى رحلاتي')};
   $('#alert').onclick=async()=>{const a=store.get('alerts',[]);if(!a.includes(id))a.push(id);store.set('alerts',a);if('Notification'in window&&Notification.permission==='default')await Notification.requestPermission();toast('سننبهك عند تغيّر شروط '+d.ar)};
@@ -138,8 +140,7 @@ const views={
   $('#logout')&&($('#logout').onclick=()=>{store.set('token',null);toast('تم تسجيل الخروج');views.tools()})}
 };
 function route(){if(apiOn&&Date.now()-lastFetch>60000)refresh();const h=location.hash.replace(/^#\/?/,'').split('/'),r=h[0]||'home';
- if(!store.get('onboarded',false)&&r!=='welcome'){location.hash='#/welcome';return}
- document.querySelectorAll('.tabbar a').forEach(a=>a.classList.toggle('on',a.dataset.r===(r==='d'?'explore':r)));
+  document.querySelectorAll('.tabbar a').forEach(a=>a.classList.toggle('on',a.dataset.r===(r==='d'?'explore':r)));
  document.querySelector('.tabbar').hidden=r==='welcome';
  if(r==='welcome')views.onboarding();else if(r==='d')views.detail(h[1]);else (views[r]||views.home)();
  window.scrollTo(0,0);main.focus({preventScroll:true})}
