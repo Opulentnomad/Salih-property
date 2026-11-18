@@ -1,0 +1,21 @@
+{
+  "name": "safarna-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "seed": "node --disable-warning=ExperimentalWarning src/seed.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/api.test.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.4.3",
+    "@fastify/jwt": "^10.2.8",
+    "@fastify/rate-limit": "^11.2.2",
+    "@fastify/static": "^10.1.11",
+    "fastify": "^5.12.8"
+  }
+}

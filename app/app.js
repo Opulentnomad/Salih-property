@@ -4,7 +4,9 @@ const store={get(k,d){try{return JSON.parse(localStorage.getItem('sf_'+k))??d}ca
 let lang=store.get('lang','ar'),state={q:'',region:'',visa:'',budget:'',season:'',fav:'all'};
 /* تعديلات لوحة الإدارة (CMS تجريبي) */
 const ov=store.get('admin_overrides',{});
-const dests=D.destinations.map(d=>ov[d.id]?{...d,req:{...d.req,...ov[d.id]}}:d);
+let dests=D.destinations.map(d=>ov[d.id]?{...d,req:{...d.req,...ov[d.id]}}:d);
+let apiOn=false;const apiRev={};
+const api=async(path,o={})=>{const t=store.get('token');const r=await fetch('/api'+path,{method:o.method||'GET',headers:{...(o.body?{'content-type':'application/json'}:{}),...(t?{authorization:'Bearer '+t}:{})},body:o.body?JSON.stringify(o.body):undefined});const txt=await r.text();let j=null;try{j=JSON.parse(txt)}catch{}if(!r.ok)throw Object.assign(new Error(j?.message||'error'),{status:r.status});return j};
 const byId=id=>dests.find(d=>d.id===id);
 const nm=d=>lang==='en'?d.en:d.ar;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -77,7 +79,8 @@ const views={
    $('#addt').onclick=()=>{const t=store.get('trips',[]);t.push({id:Date.now(),d:d.id,start:$('#dt').value,days:5,plan:[]});store.set('trips',t);toast('أُضيفت إلى رحلاتي')}};
   $('#go').onclick=show;$('#dd').onchange=show;show()},
  detail(id,tab='req'){const d=byId(id);if(!d)return views.home();const r=d.req;
-  const rv=store.get('reviews',[]).filter(x=>x.d===id).concat(D.reviews.filter(x=>x.d===id));
+  const rv=store.get('reviews',[]).filter(x=>x.d===id).concat(apiOn?(apiRev[id]||[]):D.reviews.filter(x=>x.d===id));
+  if(apiOn&&!apiRev[id]){apiRev[id]=[];api('/destinations/'+id+'/reviews').then(j=>{apiRev[id]=j.items.map(x=>({d:id,n:x.author,s:x.rating,t:x.body}));if(location.hash==='#/d/'+id)views.detail(id,tab)}).catch(()=>{delete apiRev[id]})}
   const T3={req:'شروط الدخول',ov:'نظرة عامة',rev:`المراجعات (${rv.length})`};
   let body='';
   if(tab==='req')body=`${bigPass(d)}<div class="panel"><h2 style="margin-top:0">المستندات المطلوبة</h2><ul class="list">${r.docs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
@@ -96,7 +99,9 @@ const views={
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>views.detail(id,b.dataset.tab));
   $('#addtrip').onclick=()=>{const t=store.get('trips',[]);t.push({id:Date.now(),d:id,start:'',days:5,plan:[]});store.set('trips',t);toast('أُضيفت إلى رحلاتي')};
   $('#alert').onclick=async()=>{const a=store.get('alerts',[]);if(!a.includes(id))a.push(id);store.set('alerts',a);if('Notification'in window&&Notification.permission==='default')await Notification.requestPermission();toast('سننبهك عند تغيّر شروط '+d.ar)};
-  $('#rf')?.addEventListener('submit',e=>{e.preventDefault();const l=store.get('reviews',[]);l.unshift({d:id,n:'أنت',s:+$('#rs').value,t:$('#rt').value.trim()});store.set('reviews',l);toast('نُشرت مراجعتك');views.detail(id,'rev')})},
+  $('#rf')?.addEventListener('submit',async e=>{e.preventDefault();const body=$('#rt').value.trim(),rating=+$('#rs').value;
+   if(apiOn&&store.get('token')){try{await api('/destinations/'+id+'/reviews',{method:'POST',body:{rating,body}});toast('استلمنا مراجعتك وستظهر بعد المراجعة');$('#rt').value='';return}catch(err){toast(err.status===401?'سجّل الدخول من «الأدوات» أولًا':'تعذّر الإرسال: '+err.message);return}}
+   const l=store.get('reviews',[]);l.unshift({d:id,n:'أنت',s:rating,t:body});store.set('reviews',l);toast('نُشرت مراجعتك');views.detail(id,'rev')})},
  saved(){const all=favs().map(byId).filter(Boolean);
   const l=all.filter(d=>state.fav==='all'||(state.fav==='free'?['free','gcc'].includes(d.req.visa):!['free','gcc'].includes(d.req.visa)));
   main.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:end"><h1>المفضلة</h1><span class="mu">${all.length} وجهات</span></div>
@@ -120,26 +125,33 @@ const views={
   <div class="panel"><h2 style="margin-top:0">🔔 التنبيهات</h2><p class="mu">تنبيهات عند تغيّر شروط الدخول للوجهات المتابَعة.</p>
   <p>الوجهات المتابَعة: ${store.get('alerts',[]).map(i=>byId(i)?.ar).join('، ')||'لا شيء'}</p>
   <label for="em">البريد للتنبيهات</label><input id="em" type="email" placeholder="name@example.com" value="${esc(store.get('email',''))}"><button class="btn" id="pushbtn" style="margin-top:10px">تفعيل التنبيهات</button></div>
-  <div class="panel"><h2 style="margin-top:0">⚙️ الإعدادات</h2><div class="actions"><button class="btn ghost" id="reset">إعادة الإعداد الأولي</button><a class="btn ghost" href="admin.html">لوحة الإدارة</a></div></div>`;
+  ${apiOn?`<div class="panel" id="acct"><h2 style="margin-top:0">👤 الحساب</h2>${store.get('token')?`<p>أنت مسجّل الدخول بـ <b>${esc(store.get('email','')) }</b>. تُزامَن مفضلتك مع حسابك.</p><button class="btn ghost" id="logout">تسجيل الخروج</button>`:`<p class="mu">سجّل لتحفظ المفضلة وتكتب المراجعات.</p><label for="ae">البريد</label><input id="ae" type="email" autocomplete="email"><label for="ap">كلمة المرور (٨ أحرف على الأقل)</label><input id="ap" type="password" autocomplete="current-password" minlength="8"><div class="actions"><button class="btn" id="login">دخول</button><button class="btn ghost" id="signup">حساب جديد</button></div><p class="mu" id="aerr" role="alert"></p>`}</div>`:''}<div class="panel"><h2 style="margin-top:0">⚙️ الإعدادات</h2><div class="actions"><button class="btn ghost" id="reset">إعادة الإعداد الأولي</button><a class="btn ghost" href="admin.html">لوحة الإدارة</a></div></div>`;
   let rates={...D.ratesPerSAR};
   const calc=()=>{const a=+$('#amt').value||0,f=$('#from').value,t=$('#to').value;$('#res').textContent=(a/rates[f]*rates[t]).toLocaleString('en',{maximumFractionDigits:2})+' '+t};
   ['amt','from','to'].forEach(i=>$('#'+i).oninput=calc);calc();$('#src').textContent='أسعار تقريبية (دون اتصال)';
   fetch('https://open.er-api.com/v6/latest/SAR').then(r=>r.json()).then(j=>{if(j.rates){cur.forEach(c=>{if(j.rates[c])rates[c]=j.rates[c]});store.set('rates',rates);calc();$('#src').textContent='أسعار مباشرة · '+new Date().toLocaleDateString('ar-SA')}}).catch(()=>{const c=store.get('rates');if(c){rates=c;calc();$('#src').textContent='آخر أسعار محفوظة'}});
   $('#pushbtn').onclick=async()=>{store.set('email',$('#em').value);if('Notification'in window){const p=await Notification.requestPermission();toast(p==='granted'?'تم تفعيل التنبيهات':'لم يُمنح الإذن')}else toast('المتصفح لا يدعم التنبيهات')};
-  $('#reset').onclick=()=>{store.set('onboarded',false);location.hash='#/welcome'}}
+  $('#reset').onclick=()=>{store.set('onboarded',false);location.hash='#/welcome'};
+  const auth=async path=>{const email=$('#ae').value.trim(),password=$('#ap').value;try{const j=await api(path,{method:'POST',body:{email,password}});store.set('token',j.token);store.set('email',j.user.email);
+    const server=(await api('/me/favorites')).items.map(x=>x.id),local=favs(),all=[...new Set([...server,...local])];for(const id of local.filter(x=>!server.includes(x)))await api('/me/favorites/'+id,{method:'PUT'}).catch(()=>{});store.set('favs',all);toast('تم تسجيل الدخول');views.tools()}catch(err){$('#aerr').textContent=err.status===401?'البريد أو كلمة المرور غير صحيحة.':err.status===409?'هذا البريد مسجّل مسبقًا. اضغط «دخول».':err.status===400?'تحقق من البريد وأن كلمة المرور ٨ أحرف على الأقل.':'تعذّر الاتصال. حاول مرة أخرى.'}};
+  $('#login')&&($('#login').onclick=()=>auth('/auth/login'));$('#signup')&&($('#signup').onclick=()=>auth('/auth/register'));
+  $('#logout')&&($('#logout').onclick=()=>{store.set('token',null);toast('تم تسجيل الخروج');views.tools()})}
 };
-function route(){const h=location.hash.replace(/^#\/?/,'').split('/'),r=h[0]||'home';
+function route(){if(apiOn&&Date.now()-lastFetch>60000)refresh();const h=location.hash.replace(/^#\/?/,'').split('/'),r=h[0]||'home';
  if(!store.get('onboarded',false)&&r!=='welcome'){location.hash='#/welcome';return}
  document.querySelectorAll('.tabbar a').forEach(a=>a.classList.toggle('on',a.dataset.r===(r==='d'?'explore':r)));
  document.querySelector('.tabbar').hidden=r==='welcome';
  if(r==='welcome')views.onboarding();else if(r==='d')views.detail(h[1]);else (views[r]||views.home)();
  window.scrollTo(0,0);main.focus({preventScroll:true})}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-fav]');if(!b)return;e.preventDefault();
- let f=favs();const id=b.dataset.fav;f=f.includes(id)?f.filter(x=>x!==id):[...f,id];store.set('favs',f);toast(f.includes(id)?'أُضيفت إلى المفضلة':'أُزيلت من المفضلة');const y=scrollY;route();scrollTo(0,y)});
+ let f=favs();const id=b.dataset.fav;f=f.includes(id)?f.filter(x=>x!==id):[...f,id];store.set('favs',f);if(apiOn&&store.get('token'))api('/me/favorites/'+id,{method:f.includes(id)?'PUT':'DELETE'}).catch(()=>{});toast(f.includes(id)?'أُضيفت إلى المفضلة':'أُزيلت من المفضلة');const y=scrollY;route();scrollTo(0,y)});
 $('#langBtn').onclick=()=>{lang=lang==='ar'?'en':'ar';store.set('lang',lang);applyLang();route()};
 $('#themeBtn').onclick=()=>theme(document.documentElement.dataset.theme==='dark'?'light':'dark');
 const off=()=>$('#offline').hidden=navigator.onLine;addEventListener('online',off);addEventListener('offline',off);off();
 theme(store.get('theme',matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));applyLang();
 addEventListener('hashchange',route);route();
+let lastFetch=0;
+const refresh=()=>{if(!location.protocol.startsWith('http'))return;lastFetch=Date.now();api('/destinations?limit=100').then(j=>{if(!j?.items?.length)return;const changed=!apiOn||JSON.stringify(j.items)!==JSON.stringify(dests);dests=j.items;apiOn=true;if(changed&&!document.activeElement?.matches('input,textarea,select'))route()}).catch(()=>{})};
+refresh();document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastFetch>30000)refresh()});
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 })();
