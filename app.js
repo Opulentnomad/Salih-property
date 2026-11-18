@@ -12,7 +12,10 @@ const pad = n => String(n).padStart(2,'0');
 
 let LIB = PRESETS.slice();
 try{const ai=JSON.parse(LS.get('ai_cards','[]'));if(Array.isArray(ai))LIB=LIB.concat(ai);}catch(e){}
+function ext(p){const m=(typeof META!=='undefined'&&META[p.id])||{};p.ctx=m.ctx||CTX_DEF[p.cat]||PLACES;p.refs=m.refs||[];p.vids=m.vids||[];return p;}
+LIB=LIB.map(ext);
 const byId = id => LIB.find(p=>p.id===id);
+const getJ=(k,d)=>{try{const v=JSON.parse(LS.get(k,''));return v==null?d:v}catch(e){return d}};
 
 /* ================= icons ================= */
 const svgU = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -29,6 +32,8 @@ const U = {
   prev:svgU('<path d="M9 5l7 7-7 7"/>'),
   spk:svgU('<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.500 6.500a8 8 0 0 1 0 11"/>'),
   stop:svgU('<rect x="6" y="6" width="12" height="12" rx="2"/>'),
+  palette:svgU('<circle cx="12" cy="12" r="9"/><circle cx="8" cy="11" r="1.300"/><circle cx="12" cy="7.500" r="1.300"/><circle cx="16" cy="11" r="1.300"/><path d="M12 21c-1.600 0-1.600-2.200 0-3.200 1.500-1 4.300-.2 4.800-2.800"/>'),
+  check:svgU('<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7.500 12.500l3 3 6-7"/>'),
   moon:svgU('<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>')
 };
 const G = { // glyphs for pictograms (filled)
@@ -105,14 +110,14 @@ function speak(text){
 }
 
 /* ================= state ================= */
-const S={q:'',cat:'all',focus:false,scrollTo:null,swReady:false,deferred:null};
+const S={q:'',cat:'all',place:'all',kit:'home',focus:false,scrollTo:null,swReady:false,deferred:null};
 const GD={id:null,idx:0,mode:'steps',talk:false};
 const hasVoiceIn = !!(window.SpeechRecognition||window.webkitSpeechRecognition);
 const recent=()=>{try{return JSON.parse(LS.get('recent','[]'))}catch(e){return[]}};
 function pushRecent(id){const r=recent().filter(x=>x!==id);r.unshift(id);LS.set('recent',JSON.stringify(r.slice(0,4)));}
 
 /* ================= views ================= */
-const NAV=[['home','الرئيسية',U.home],['lib','البطاقات',U.grid],['cpr','إنعاش',U.pulse],['me','خطتي',U.user],['refs','المراجع',U.book]];
+const NAV=[['home','الرئيسية',U.home],['lib','البطاقات',U.grid],['cpr','إنعاش',U.pulse],['kit','التجهيز',U.check],['me','خطتي',U.user]];
 function renderNav(cur){
   $('nav').innerHTML=NAV.map(([k,l,i])=>`<button data-go="#/${k}" class="${k==='cpr'?'mid':''}" ${k===cur?'aria-current="page"':''} aria-label="${l}">${i}${k==='cpr'?'':'<span>'+l+'</span>'}</button>`).join('');
 }
@@ -127,7 +132,7 @@ const searchBox = ph => `<div class="search"><span class="mag">${U.search}</span
 
 function viewHome(){
   $('hdr').className='hdr';
-  $('hdr').innerHTML=`<div class="hrow"><h1>ثواني</h1>${netPill()}</div>${searchBox('ابحث عن حالة أو إصابة…')}`;
+  $('hdr').innerHTML=`<div class="hrow"><h1>ثواني</h1>${netPill()}<button class="ib" data-act="skins" aria-label="اختيار التصميم">${U.palette}</button></div>${searchBox('ابحث عن حالة أو إصابة…')}`;
   const rc=recent().map(byId).filter(Boolean);
   const cats=Object.keys(CATUI).map(k=>{const n=LIB.filter(p=>p.cat===k).length,c=CATUI[k];
     return `<button class="cat ${c.g}" data-go="#/lib/${k}">${catIcon(c.ic)}<div class="t"><h3>${c.t}</h3><p>${c.d}</p><span class="badge num">${n} بطاقة</span></div></button>`}).join('');
@@ -136,6 +141,7 @@ function viewHome(){
   <h2 class="sec">ماذا يحدث الآن؟</h2>
   <div class="quick">${QUICK.map(id=>{const p=byId(id);return p?`<button class="qk lv-${p.lv}" data-go="#/card/${id}">${pic(p)}<span>${esc(QLABEL[id]||p.title)}</span></button>`:''}).join('')}</div>
   ${rc.length?`<h2 class="sec">شاهدتها مؤخراً</h2><div class="rows">${rc.map(rowHTML).join('')}</div>`:''}
+  <h2 class="sec">أين أنت؟</h2><div class="chips">${PLACES.map(pl=>`<button class="chip" data-act="placego" data-v="${pl}">${pl}</button>`).join('')}</div>
   <h2 class="sec">الوصول السريع</h2><div class="cats">${cats}</div>
   <h2 class="sec">لماذا هذا مهم؟</h2>
   <p class="fact">عند توقف القلب تنخفض فرص النجاة بنحو 7 إلى 10% مع كل دقيقة تمر دون إنعاش أو صدمة كهربائية. <a href="#/refs" data-ref="r1">[1]</a></p>
@@ -146,7 +152,7 @@ function viewHome(){
 }
 function rowHTML(p){return `<button class="row lv-${p.lv}" data-go="#/card/${p.id}">${pic(p)}<span class="tx">${esc(p.title)}<small>${esc(p.level)}</small></span><span class="ph num">${esc(p.phone)}</span></button>`;}
 
-function filtered(){const q=norm(S.q);return LIB.filter(p=>(S.cat==='all'||p.cat===S.cat)&&(!q||norm([p.title,p.level,p.golden,(p.steps||[]).join(' '),(p.avoid||[]).join(' '),(p.gear||[]).join(' ')].join(' ')).includes(q)));}
+function filtered(){const q=norm(S.q);return LIB.filter(p=>(S.cat==='all'||p.cat===S.cat)&&(S.place==='all'||(p.ctx||[]).includes(S.place))&&(!q||norm([p.title,p.level,p.golden,(p.steps||[]).join(' '),(p.avoid||[]).join(' '),(p.gear||[]).join(' ')].join(' ')).includes(q)));}
 function listHTML(){
   const l=filtered();
   return l.length?`<div class="rows">${l.map(rowHTML).join('')}</div>`:`<div class="empty">لا توجد بطاقة مطابقة لـ «${esc(S.q)}». جرّب كلمة أخرى، أو ولّد بطاقة من صفحة «خطتي».</div>`;
@@ -156,11 +162,12 @@ function viewLib(cat){
   $('hdr').className='hdr';
   $('hdr').innerHTML=`<div class="hrow"><button class="ib" data-go="#/home" aria-label="رجوع">${U.back}</button><h2>${S.cat==='all'?'كل البطاقات':CATUI[S.cat]?CATUI[S.cat].t:''}</h2>${netPill()}</div>${searchBox('ابحث: غصة، لدغة، حريق…')}`;
   const chips=[['all','الكل ('+LIB.length+')']].concat(Object.keys(CATUI).map(k=>[k,CATUI[k].t+' ('+LIB.filter(p=>p.cat===k).length+')']));
-  $('main').innerHTML=`<div class="chips" id="chips">${chips.map(([k,l])=>`<button class="chip" data-chip="${k}" aria-pressed="${S.cat===k}">${l}</button>`).join('')}</div><p class="sub" id="cnt" style="margin:4px 2px 10px"></p><div id="lst"></div>`;
-  const fill=()=>{$('lst').innerHTML=listHTML();$('cnt').textContent=filtered().length+' بطاقة';document.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',c.dataset.chip===S.cat));};
+  $('main').innerHTML=`<div class="chips" id="chips">${chips.map(([k,l])=>`<button class="chip" data-chip="${k}" aria-pressed="${S.cat===k}">${l}</button>`).join('')}</div><div class="chips" id="plc" aria-label="تصفية حسب المكان">${[['all','كل الأماكن']].concat(PLACES.map(x=>[x,x])).map(([k,l])=>`<button class="chip sm" data-place="${k}" aria-pressed="${S.place===k}">${l}</button>`).join('')}</div><p class="sub" id="cnt" style="margin:4px 2px 10px"></p><div id="lst"></div>`;
+  const fill=()=>{$('lst').innerHTML=listHTML();$('cnt').textContent=filtered().length+' بطاقة';document.querySelectorAll('[data-chip]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.chip===S.cat));document.querySelectorAll('[data-place]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.place===S.place));};
   fill();
   $('q').addEventListener('input',e=>{S.q=e.target.value;fill();});
   $('chips').addEventListener('click',e=>{const c=e.target.closest('[data-chip]');if(c){S.cat=c.dataset.chip;fill();}});
+  $('plc').addEventListener('click',e=>{const c=e.target.closest('[data-place]');if(c){S.place=c.dataset.place;fill();}});
   if(S.focus){S.focus=false;$('q').focus();}
 }
 
@@ -193,7 +200,7 @@ function drawGuide(){
   } else {
     body=`<div class="stage lv-${p.lv} done"><div class="art">${pic(p)}</div>
       <h3>أحسنت. هل اتصلت بـ ${esc(p.phone)}؟</h3><p class="sub">تابع حالة المصاب حتى وصول المسعفين.</p>
-      <div class="avoid"><h3>تجنب فوراً</h3><ul>${p.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
+      <div class="avoid"><h3>تجنب فوراً</h3><ul>${p.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>${srcHTML(p)}
       <div class="act"><a class="btn red" href="tel:${esc(p.phone)}">اتصل بـ ${esc(p.phone)}</a><button class="btn ghost" data-act="restart">إعادة الخطوات</button><button class="btn ghost" data-act="mode" data-m="full">عرض البطاقة كاملة</button></div></div>`;
   }
   main.innerHTML=modes+body;
@@ -206,6 +213,12 @@ function go(d){
   const ni=Math.max(0,Math.min(n+1,GD.idx+d));if(ni===GD.idx)return;
   GD.idx=ni;drawGuide();
   if(GD.talk&&ni>=0&&ni<=n)speak(guideText(p,ni));else if(ni>n)stopSpeak();
+}
+function srcHTML(p){
+  let h='';
+  if(p.vids&&p.vids.length)h+=`<div class="srcbox"><h3 class="h">فيديو توضيحي</h3>${p.vids.map(v=>`<a class="srclink" href="${esc(v[1])}" target="_blank" rel="noopener">▶ ${esc(v[0])}</a>`).join('')}<small>المشاهدة تحتاج اتصالاً بالإنترنت.</small></div>`;
+  if(p.refs&&p.refs.length)h+=`<div class="srcbox"><h3 class="h">المصادر</h3>${p.refs.map(r=>`<a class="srclink" href="${esc(r[1])}" target="_blank" rel="noopener">${esc(r[0])} ↗</a>`).join('')}</div>`;
+  return h;
 }
 function buildText(p){
   p=p||byId(GD.id)||LIB[0];const f=family();
@@ -221,7 +234,7 @@ function fullCard(p){
     <div class="tb"><div class="gold"><h3>القاعدة الأولى</h3>${esc(p.golden)}</div>
       <div><h3 class="h">الخطوات</h3><ol class="stp">${p.steps.map(s=>`<li><span>${esc(s)}</span></li>`).join('')}</ol></div>
       <div class="avoid" style="margin:0"><h3>تجنب فوراً</h3><ul>${p.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
-      <div class="gear"><h3>التجهيزات وعلامات الخطر</h3>${p.gear.map(g=>`<label><input type="checkbox"><span>${esc(g)}</span></label>`).join('')}</div></div>
+      <div class="gear"><h3>التجهيزات وعلامات الخطر</h3>${p.gear.map(g=>`<label><input type="checkbox"><span>${esc(g)}</span></label>`).join('')}</div>${srcHTML(p)}</div>
     <div class="tf"><div><em>الموقع:</em> <b>${esc(f.loc)}</b></div><div><em>طوارئ العائلة:</em> <b>${esc(f.tel)}</b></div><div><em>نقطة التجمع:</em> <b>${esc(f.pt)}</b></div><div><em>الإسعافات والطفاية:</em> <b>${esc(f.kit)}</b></div></div>
   </article></div>`;
 }
@@ -291,6 +304,10 @@ function viewMe(){
   <div class="fld"><label for="f_tel">رقم طوارئ العائلة البديل</label><input id="f_tel" data-fam="tel" inputmode="tel" value="${esc(LS.get('fam_tel',''))}" placeholder="${esc(FDEF.tel)}"></div>
   <div class="fld"><label for="f_pt">نقطة التجمع الآمنة</label><input id="f_pt" data-fam="pt" value="${esc(LS.get('fam_pt',''))}" placeholder="${esc(FDEF.pt)}"></div>
   <div class="fld"><label for="f_kit">موقع حقيبة الإسعافات والطفاية</label><input id="f_kit" data-fam="kit" value="${esc(LS.get('fam_kit',''))}" placeholder="${esc(FDEF.kit)}"></div>
+  <h2 class="sec">التصميم</h2>
+  <button class="btn blue" data-act="skins" style="width:100%">اختيار التصميم (${SKINS.find(k=>k.id===skinOf()).n})</button>
+  <h2 class="sec">مراجع وأدوات</h2>
+  <div style="display:grid;gap:8px"><button class="btn ghost" data-go="#/refs">المراجع العلمية</button><button class="btn ghost" data-act="sharesite">مشاركة ثواني مع الأهل</button></div>
   <h2 class="sec">حجم الخط</h2>
   <div class="seg" role="group" aria-label="حجم الخط">${[['1','عادي'],['1.12','كبير'],['1.25','كبير جداً']].map(([k,l])=>`<button data-act="scaleSet" data-v="${k}" aria-pressed="${sc===k}">${l}</button>`).join('')}</div>
   ${S.deferred?'<button class="btn blue" data-act="install" style="width:100%;margin-top:16px">تثبيت التطبيق على الشاشة الرئيسية</button>':'<p class="sub" style="margin-top:14px">للتثبيت على آيفون: زر المشاركة ثم «إضافة إلى الشاشة الرئيسية». على أندرويد: قائمة المتصفح ثم «تثبيت التطبيق».</p>'}
@@ -299,6 +316,31 @@ function viewMe(){
    <div style="display:flex;gap:8px"><button class="btn blue" style="flex:2" data-act="ai" id="aiGo">توليد البطاقة</button><button class="btn ghost" style="flex:1" data-act="key">المفتاح</button></div>
    <p class="sub" style="margin-top:8px">يحتاج مفتاح Gemini خاصاً بك. راجع أي بطاقة مولّدة قبل الاعتماد عليها.</p></div>`;
   document.querySelectorAll('[data-fam]').forEach(i=>i.addEventListener('input',()=>LS.set('fam_'+i.dataset.fam,i.value)));
+}
+function viewKit(){
+  $('hdr').className='hdr slim';
+  $('hdr').innerHTML=`<div class="hrow"><button class="ib" data-go="#/home" aria-label="رجوع">${U.back}</button><h2>قوائم التجهيز</h2>${netPill()}</div>`;
+  const k=CHECKLISTS.find(x=>x.id===S.kit)||CHECKLISTS[0];S.kit=k.id;
+  const saved=getJ('thawani-kit-'+k.id,[]),done=saved.length,pct=Math.round(done/k.items.length*100);
+  $('main').innerHTML=`<p class="sub" style="margin-bottom:10px">استعد قبل الحاجة. علّم ما جهّزته، وراجع المحتويات دورياً. علاماتك تُحفظ على جهازك فقط.</p>
+  <div class="chips" id="kt">${CHECKLISTS.map(x=>`<button class="chip" data-act="kitTab" data-v="${x.id}" aria-pressed="${x.id===k.id}">${esc(x.title)}</button>`).join('')}</div>
+  <div class="box" style="margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><h3 style="font-size:20px;font-weight:800">قائمة ${esc(k.title)}</h3><p class="sub">${esc(k.note)}</p></div><div style="text-align:center"><b class="num" style="font-size:26px" id="kp">${pct}%</b><div class="sub">مكتمل</div></div></div>
+  <div class="kbar" aria-hidden="true"><i id="kb" style="width:${pct}%"></i></div>
+  <div class="kitems">${k.items.map((t,i)=>`<label><input type="checkbox" data-kitem="${i}" ${saved.includes(i)?'checked':''}><span>${esc(t)}</span></label>`).join('')}</div>
+  <a class="srclink" href="${esc(k.refUrl)}" target="_blank" rel="noopener">${esc(k.refTitle)} ↗</a>
+  <button class="btn ghost sm" data-act="kitReset" style="margin-top:10px">إعادة ضبط هذه القائمة</button></div>
+  <p class="disc" style="margin-top:6px">الأدوية الشخصية تُحفظ حسب تعليمات الطبيب والملصق. لا تضع أدوية حساسة للحرارة في السيارة، ولا تعطِ دواءً لشخص آخر. في المدرسة تُدار أدوية الطلاب وفق سياسة المدرسة وموافقة ولي الأمر.</p>`;
+}
+const SKINS=[
+ {id:'soft',n:'ناعم',d:'أسطح بارزة بظلال لينة (التصميم الحالي)',c:['#E4E9F2','#E4E9F2','#4C63D6'],m:'#E4E9F2'},
+ {id:'paper',n:'ورقي أخضر',d:'قريب من أسلوب النسخة الأخرى: ورق دافئ، أخضر، وبطاقات باستيل',c:['#F7F7F3','#FFFFFF','#087E68'],m:'#F7F7F3'},
+ {id:'najdi',n:'نجدي',d:'رمل وأخضر عميق وذهبي بزخرفة مثلثات نجدية',c:['#F1E8D6','#FBF6EA','#0B5D4B'],m:'#0B5D4B'}];
+const skinOf=()=>{const s=LS.get('skin','soft');return SKINS.some(k=>k.id===s)?s:'soft';};
+function openSkins(){
+  const cur=skinOf(),sh=$('sheet');sh.hidden=false;
+  sh.innerHTML=`<div class="sheetp" role="dialog" aria-label="اختيار التصميم"><div class="grab"></div><h2>اختر التصميم</h2>
+   <div class="skins">${SKINS.map(k=>`<button class="skinopt" data-act="skin" data-v="${k.id}" aria-pressed="${k.id===cur}"><span class="sw" style="background:${k.c[0]}"><i style="background:${k.c[1]}"></i><i style="background:${k.c[2]}"></i></span><span><b>${k.n}</b><small>${k.d}</small></span></button>`).join('')}</div>
+   <button class="btn ghost" data-act="closeSheet" style="width:100%">تم</button></div>`;
 }
 const REFS=[
  ['الإنعاش والإسعاف الأولي (دولية)',[
@@ -334,7 +376,7 @@ function viewRefs(){
 }
 
 /* ================= SOS sheet ================= */
-const NUMS=[['997','الهلال الأحمر (الإسعاف)','حالات طبية وإصابات','var(--red)'],['911','الطوارئ الموحد','الشرطة والإسعاف والإطفاء','#B3182B'],['998','الدفاع المدني','حريق، غاز، سيول، احتجاز','#E98A00'],['937','وزارة الصحة والسموم','استشارات وتسمم','var(--green)'],['996','أمن الطرق','تعطل أو حادث على الطريق','var(--blue)']];
+const NUMS=[['997','الهلال الأحمر (الإسعاف)','حالات طبية وإصابات','var(--red)'],['911','الطوارئ الموحد','الشرطة والإسعاف والإطفاء','#B3182B'],['998','الدفاع المدني','حريق، غاز، سيول، احتجاز','#E98A00'],['993','المرور','حوادث السير','var(--blue)'],['937','وزارة الصحة والسموم','استشارات وتسمم','var(--green)'],['996','أمن الطرق','تعطل أو حادث على الطريق','var(--blue)']];
 function openSOS(){
   const sh=$('sheet');sh.hidden=false;
   sh.innerHTML=`<div class="sheetp" role="dialog" aria-label="أرقام الطوارئ"><div class="grab"></div><h2>اتصل بالطوارئ</h2>
@@ -390,6 +432,7 @@ function route(){
   if(a==='card'){renderNav('lib');viewCard(b);}
   else if(a==='lib'){renderNav('lib');viewLib(b);}
   else if(a==='cpr'){renderNav('cpr');viewCpr();}
+  else if(a==='kit'){renderNav('kit');viewKit();}
   else if(a==='me'){renderNav('me');viewMe();}
   else if(a==='refs'){renderNav('refs');viewRefs();}
   else{renderNav('home');viewHome();}
@@ -403,7 +446,7 @@ function stopSpeakIfLeaving(){if(speaking)stopSpeak();}
 let h2c=null;
 function loadH2C(){if(window.html2canvas)return Promise.resolve();
   if(!h2c)h2c=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=res;s.onerror=()=>rej(new Error('offline'));document.head.appendChild(s);});return h2c;}
-function applyTheme(){const m=document.querySelector('meta[name=theme-color]');if(m)m.content='#E4E9F2';}
+function applyTheme(){const sk=skinOf(),k=SKINS.find(x=>x.id===sk),r=document.documentElement,m=document.querySelector('meta[name=theme-color]');if(sk==='soft')r.removeAttribute('data-skin');else r.setAttribute('data-skin',sk);if(m)m.content=k.m;}
 function applyScale(){document.documentElement.style.setProperty('--scale',LS.get('scale','1'));}
 
 async function aiGen(){
@@ -461,6 +504,12 @@ document.addEventListener('click',async e=>{
       const l=document.createElement('a');l.download=p.title.replace(/[\\/:*?"<>|()]/g,'').trim()+'.png';l.href=c.toDataURL('image/png');l.click();toast('تم حفظ الصورة');}catch(_){h2c=null;toast('حفظ الصورة يحتاج اتصالاً بالإنترنت مرة واحدة',true);}break;
     case 'cprToggle':cprToggle();break;
     case 'cprReset':cprReset();break;
+    case 'skins':openSkins();break;
+    case 'skin':LS.set('skin',a.dataset.v);applyTheme();openSkins();toast('التصميم: '+SKINS.find(k=>k.id===a.dataset.v).n);break;
+    case 'placego':S.place=a.dataset.v;S.cat='all';S.q='';location.hash='#/lib';break;
+    case 'kitTab':S.kit=a.dataset.v;viewKit();break;
+    case 'kitReset':LS.set('thawani-kit-'+S.kit,'[]');viewKit();break;
+    case 'sharesite':try{if(navigator.share){await navigator.share({title:'ثواني',text:'بطاقات طوارئ بالعربية خطوة بخطوة وبالصوت.',url:location.href.split('#')[0].split('?')[0]});}else{await navigator.clipboard.writeText(location.href.split('#')[0].split('?')[0]);toast('تم نسخ رابط ثواني');}}catch(_){}break;
     case 'tGo':if(T.run)break;if(!T.acc)T.since='وقت التركيب: '+new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});T.run=true;T.t0=Date.now();T.int=setInterval(tShow,250);$('tSince').textContent=T.since;a.textContent='استئناف';break;
     case 'tPause':if(!T.run)break;T.acc+=Date.now()-T.t0;T.run=false;clearInterval(T.int);tShow();break;
     case 'tReset':T.run=false;clearInterval(T.int);T.acc=0;T.since='';$('tSince').textContent='';tShow();document.querySelector('[data-act=tGo]').textContent='بدء';break;
@@ -472,6 +521,7 @@ document.addEventListener('click',async e=>{
     case 'wnext':if(wi<SLIDES.length-1){wi++;paintW();}else endWelcome();break;
   }
 });
+document.addEventListener('change',e=>{const c=e.target.closest('[data-kitem]');if(!c)return;const ids=[...document.querySelectorAll('[data-kitem]:checked')].map(x=>Number(x.dataset.kitem));LS.set('thawani-kit-'+S.kit,JSON.stringify(ids));const k=CHECKLISTS.find(x=>x.id===S.kit),p=Math.round(ids.length/k.items.length*100);$('kp').textContent=p+'%';$('kb').style.width=p+'%';});
 $('sheet').addEventListener('click',e=>{if(e.target===$('sheet'))closeSheet();});
 $('keyDlg').addEventListener('close',()=>{if($('keyDlg').returnValue==='save'){LS.set('gemini_key',$('keyInput').value.trim());toast('تم حفظ المفتاح');}});
 document.addEventListener('keydown',e=>{
