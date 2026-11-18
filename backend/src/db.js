@@ -7,7 +7,7 @@ PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
 CREATE TABLE IF NOT EXISTS users(
   id INTEGER PRIMARY KEY, email TEXT UNIQUE NOT NULL COLLATE NOCASE, password_hash TEXT NOT NULL,
   name TEXT, role TEXT NOT NULL DEFAULT 'user' CHECK(role IN('user','editor','reviewer','admin')),
-  prefs TEXT NOT NULL DEFAULT '{}', created_at TEXT NOT NULL DEFAULT (datetime('now')));
+  prefs TEXT NOT NULL DEFAULT '{}', created_at TEXT NOT NULL DEFAULT (datetime('now')), consent_at TEXT, consent_version TEXT);
 CREATE TABLE IF NOT EXISTS destinations(
   id TEXT PRIMARY KEY, iata TEXT NOT NULL, name_ar TEXT NOT NULL, name_en TEXT, city TEXT, emoji TEXT,
   g1 TEXT, g2 TEXT, region TEXT, budget INTEGER CHECK(budget BETWEEN 1 AND 3), seasons TEXT NOT NULL DEFAULT '[]',
@@ -65,6 +65,8 @@ export function openDb(file = ':memory:') {
   db.exec(SCHEMA);
   // ترحيل قواعد أُنشئت قبل إضافة هذه الأعمدة
   const has = (t, c) => db.prepare(`PRAGMA table_info(${t})`).all().some((r) => r.name === c);
+  if (!has('users', 'consent_at')) db.exec('ALTER TABLE users ADD COLUMN consent_at TEXT');
+  if (!has('users', 'consent_version')) db.exec('ALTER TABLE users ADD COLUMN consent_version TEXT');
   if (!has('destinations', 'cca3')) db.exec('ALTER TABLE destinations ADD COLUMN cca3 TEXT');
   if (!has('destinations', 'best_months')) db.exec('ALTER TABLE destinations ADD COLUMN best_months TEXT');
   if (!has('destinations', 'months_note')) db.exec('ALTER TABLE destinations ADD COLUMN months_note TEXT');

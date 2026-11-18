@@ -10,13 +10,13 @@ const call = async (method, url, { token, body } = {}) => {
   let json; try { json = res.json(); } catch { json = null; }
   return { status: res.statusCode, json, res };
 };
-const register = async (email, name = 'مستخدم') => (await call('POST', '/api/auth/register', { body: { email, password: 'password123', name } })).json;
+const register = async (email, name = 'مستخدم') => (await call('POST', '/api/auth/register', { body: { email, password: 'password123', name, acceptTerms: true } })).json;
 let admin;
 
 before(async () => {
   db = openDb(':memory:');
   await seed(db, { adminEmail: 'admin@example.com', adminPassword: 'adminpass123' });
-  app = await buildApp({ db, jwtSecret: 'x'.repeat(40), authMax: 1000 });
+  app = await buildApp({ db, jwtSecret: 'x'.repeat(40), authMax: 1000, fxLive: false });
   admin = (await call('POST', '/api/auth/login', { body: { email: 'admin@example.com', password: 'adminpass123' } })).json;
 });
 
@@ -51,8 +51,8 @@ test('entry requirements: by id or IATA, 404s, freshness fields', async () => {
 test('auth: register, duplicate, login, bad password, protected routes', async () => {
   const a = await register('a@example.com');
   assert.ok(a.token && a.user.role === 'user');
-  assert.equal((await call('POST', '/api/auth/register', { body: { email: 'A@example.com', password: 'password123' } })).status, 409);
-  assert.equal((await call('POST', '/api/auth/register', { body: { email: 'x@example.com', password: 'short' } })).status, 400);
+  assert.equal((await call('POST', '/api/auth/register', { body: { email: 'A@example.com', password: 'password123', acceptTerms: true } })).status, 409);
+  assert.equal((await call('POST', '/api/auth/register', { body: { email: 'x@example.com', password: 'short', acceptTerms: true } })).status, 400);
   assert.equal((await call('POST', '/api/auth/login', { body: { email: 'a@example.com', password: 'wrongpass1' } })).status, 401);
   assert.equal((await call('POST', '/api/auth/login', { body: { email: 'nobody@example.com', password: 'wrongpass1' } })).status, 401);
   assert.equal((await call('GET', '/api/me')).status, 401);
@@ -241,4 +241,31 @@ test('calendar API: range filter, admin add/edit/confirm/delete, validation', as
   await call('PUT', `/api/admin/calendar/${ram.id}`, { token: admin.token, body: { start: '2027-02-09', confirmed: true } });
   (await import('../src/calendar.js')).seedCalendar(db, [2027]);
   assert.equal((await call('GET', '/api/calendar?from=2027-02-09&to=2027-02-09')).json.items.find((e) => e.name === 'شهر رمضان').start, '2027-02-09');
+});
+
+test('privacy: consent required, no email leak in reviews, export and account deletion', async () => {
+  assert.equal((await call('POST', '/api/auth/register', { body: { email: 'noconsent@example.com', password: 'password123' } })).status, 400);
+  assert.equal((await call('POST', '/api/auth/register', { body: { email: 'noconsent@example.com', password: 'password123', acceptTerms: false } })).status, 400);
+  const u = (await call('POST', '/api/auth/register', { body: { email: 'private.person@example.com', password: 'password123', acceptTerms: true } })).json; // بلا اسم
+  const row = db.prepare('SELECT consent_at, consent_version FROM users WHERE email=?').get('private.person@example.com');
+  assert.ok(row.consent_at && row.consent_version);
+  await call('PUT', '/api/me/favorites/tr', { token: u.token });
+  await call('POST', '/api/trips', { token: u.token, body: { destinationId: 'tr', days: 3 } });
+  const r = await call('POST', '/api/destinations/tr/reviews', { token: u.token, body: { rating: 4, body: 'مراجعة للحذف' } });
+  await call('POST', `/api/admin/reviews/${r.json.id}/moderate`, { token: admin.token, body: { status: 'published' } });
+  const pub = (await call('GET', '/api/destinations/tr/reviews')).json.items.find((x) => x.body === 'مراجعة للحذف');
+  assert.equal(pub.author, 'مسافر');
+  assert.ok(!JSON.stringify((await call('GET', '/api/destinations/tr/reviews')).json).includes('private.person'));
+  const ex = await call('GET', '/api/me/export', { token: u.token });
+  assert.equal(ex.status, 200);
+  assert.equal(ex.json.account.email, 'private.person@example.com');
+  assert.equal(ex.json.favorites.length, 1); assert.equal(ex.json.trips.length, 1); assert.equal(ex.json.reviews.length, 1);
+  assert.ok(!JSON.stringify(ex.json).includes('scrypt'));
+  assert.equal((await call('GET', '/api/me/export')).status, 401);
+  assert.equal((await call('DELETE', '/api/me', { token: u.token, body: { password: 'wrong-password' } })).status, 401);
+  assert.equal((await call('DELETE', '/api/me', { token: u.token, body: { password: 'password123' } })).status, 204);
+  assert.equal((await call('GET', '/api/me', { token: u.token })).status, 401);
+  assert.equal(db.prepare('SELECT COUNT(*) c FROM favorites WHERE user_id NOT IN (SELECT id FROM users)').get().c, 0);
+  assert.equal((await call('GET', '/api/destinations/tr/reviews')).json.items.some((x) => x.body === 'مراجعة للحذف'), false);
+  assert.equal((await call('DELETE', '/api/me', { token: admin.token, body: { password: 'adminpass123' } })).status, 409); // آخر مدير
 });

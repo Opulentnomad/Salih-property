@@ -89,3 +89,6 @@ a.chip{display:flex;align-items:center;gap:4px}
 .cmp .cc{background:var(--paper);border-radius:12px;padding:10px 12px;font-size:15px;min-width:0;overflow-wrap:anywhere}
 .mini{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}.mini span{font-size:10px;text-align:center;padding:3px 0;border-radius:5px;background:var(--chip);color:var(--mu)}.mini span.on{background:var(--green);color:#fff;font-weight:700}
 .actions .btn{font-size:14px;padding:0 10px}
+.legal{background:var(--paper);border-radius:var(--r);padding:16px 18px;margin-bottom:14px}.legal h1{font-size:26px}.legal h2{font-size:18px;margin:18px 0 6px}.legal ul{padding-inline-start:20px;margin:6px 0}.legal li{margin:4px 0}
+.legal .ph,mark.ph{background:#FFE9A8;color:#5a4300;border-radius:4px;padding:0 3px}
+.panel .btn.ghost{background:var(--chip)}

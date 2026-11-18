@@ -11,6 +11,7 @@
     "seed": "node --disable-warning=ExperimentalWarning src/seed.js",
     "set-role": "node --disable-warning=ExperimentalWarning scripts/set-role.js",
     "backup": "node --disable-warning=ExperimentalWarning scripts/backup.js",
+    "legal": "node scripts/build-legal.js",
     "preview": "node --disable-warning=ExperimentalWarning scripts/build-preview.js",
     "review-list": "node --disable-warning=ExperimentalWarning scripts/review-list.js",
     "import": "node --disable-warning=ExperimentalWarning src/import-passport-index.js",

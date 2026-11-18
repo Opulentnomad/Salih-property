@@ -1,5 +1,8 @@
 import { hashPassword, verifyPassword } from '../auth.js';
 import { parse } from '../dto.js';
+import { audit } from '../db.js';
+
+export const POLICY_VERSION = '0.1-draft';
 
 const userDto = (u) => ({ id: u.id, email: u.email, name: u.name, role: u.role, prefs: parse(u.prefs, {}) });
 const noStore = (reply) => reply.header('Cache-Control', 'no-store');
@@ -8,12 +11,13 @@ export default async function accountRoutes(app, { db }) {
   const authRate = { config: { rateLimit: { max: app.authMax, timeWindow: '1 minute' } } };
   const sign = (u) => app.jwt.sign({ sub: String(u.id), role: u.role }, { expiresIn: '7d' });
   const bodyCred = { type: 'object', required: ['email', 'password'], additionalProperties: false, properties: {
+    acceptTerms: { type: 'boolean' },
     email: { type: 'string', format: 'email', maxLength: 254 }, password: { type: 'string', minLength: 8, maxLength: 128 }, name: { type: 'string', maxLength: 60 } } };
 
-  app.post('/auth/register', { ...authRate, schema: { body: bodyCred } }, async (req, reply) => {
+  app.post('/auth/register', { ...authRate, schema: { body: { ...bodyCred, required: ['email', 'password', 'acceptTerms'], properties: { ...bodyCred.properties, acceptTerms: { const: true } } } } }, async (req, reply) => {
     const { email, password, name } = req.body;
     try {
-      const r = db.prepare('INSERT INTO users(email,password_hash,name) VALUES(?,?,?)').run(email, await hashPassword(password), name ?? null);
+      const r = db.prepare(`INSERT INTO users(email,password_hash,name,consent_at,consent_version) VALUES(?,?,?,datetime('now'),?)`).run(email, await hashPassword(password), name ?? null, POLICY_VERSION);
       const u = db.prepare('SELECT * FROM users WHERE id=?').get(r.lastInsertRowid);
       noStore(reply);
       return reply.code(201).send({ token: sign(u), user: userDto(u) });
@@ -40,6 +44,39 @@ export default async function accountRoutes(app, { db }) {
       const u = db.prepare('SELECT * FROM users WHERE id=?').get(uid(req));
       if (!u) return reply.code(401).send({ error: 'unauthorized' });
       return userDto(u);
+    });
+    // حقوق صاحب البيانات: نسخة من بياناتي
+    priv.get('/me/export', async (req, reply) => {
+      const id = uid(req);
+      const u = db.prepare('SELECT email,name,role,prefs,created_at,consent_at,consent_version FROM users WHERE id=?').get(id);
+      const data = {
+        exportedAt: new Date().toISOString(),
+        account: { email: u.email, name: u.name, role: u.role, prefs: parse(u.prefs, {}), createdAt: u.created_at, consentAt: u.consent_at, consentVersion: u.consent_version },
+        favorites: db.prepare('SELECT destination_id AS destinationId, created_at AS createdAt FROM favorites WHERE user_id=?').all(id),
+        trips: db.prepare('SELECT * FROM trips WHERE user_id=?').all(id).map((t) => ({ destinationId: t.destination_id, startDate: t.start_date, days: t.days, plan: parse(t.plan, []) })),
+        reviews: db.prepare('SELECT destination_id AS destinationId, rating, body, status, created_at AS createdAt FROM reviews WHERE user_id=?').all(id),
+        alerts: db.prepare('SELECT destination_id AS destinationId, channels FROM alert_subscriptions WHERE user_id=?').all(id).map((a) => ({ destinationId: a.destinationId, channels: parse(a.channels, []) })),
+      };
+      reply.header('Content-Disposition', 'attachment; filename="safarna-my-data.json"').header('Cache-Control', 'no-store');
+      return data;
+    });
+    // حقوق صاحب البيانات: حذف حسابي نهائيًا (يتطلب كلمة المرور)
+    priv.delete('/me', { schema: { body: { type: 'object', required: ['password'], additionalProperties: false, properties: { password: { type: 'string', maxLength: 128 } } } } }, async (req, reply) => {
+      const id = uid(req);
+      const u = db.prepare('SELECT * FROM users WHERE id=?').get(id);
+      if (!(await verifyPassword(req.body.password, u.password_hash))) return reply.code(401).send({ error: 'invalid_credentials', message: 'كلمة المرور غير صحيحة.' });
+      if (u.role === 'admin' && db.prepare(`SELECT COUNT(*) c FROM users WHERE role='admin'`).get().c <= 1) return reply.code(409).send({ error: 'last_admin', message: 'لا يمكن حذف آخر مدير. عيّن مديرًا آخر أولًا.' });
+      db.exec('BEGIN');
+      try {
+        db.prepare('DELETE FROM reviews WHERE user_id=?').run(id);          // مراجعاته تُحذف لا تُجهَّل
+        db.prepare('UPDATE audit_log SET actor=NULL WHERE actor=?').run(id);
+        db.prepare('UPDATE entry_requirements SET created_by=NULL WHERE created_by=?').run(id);
+        db.prepare('UPDATE requirement_changes SET changed_by=NULL WHERE changed_by=?').run(id);
+        db.prepare('DELETE FROM users WHERE id=?').run(id);                  // المفضلة والرحلات والتنبيهات تُحذف بالتتالي
+        db.exec('COMMIT');
+      } catch (e) { db.exec('ROLLBACK'); throw e; }
+      audit(db, null, 'account.delete', 'user', 'removed', {});
+      return reply.code(204).send();
     });
     priv.put('/me/prefs', { schema: { body: { type: 'object', additionalProperties: false, properties: {
       interests: { type: 'array', maxItems: 12, items: { type: 'string', maxLength: 30 } }, budget: { type: 'integer', minimum: 1, maximum: 3 } } } } }, async (req) => {
@@ -82,7 +119,7 @@ export default async function accountRoutes(app, { db }) {
       rating: { type: 'integer', minimum: 1, maximum: 5 }, body: { type: 'string', minLength: 3, maxLength: 1000 } } } } }, async (req, reply) => {
       if (!db.prepare('SELECT 1 FROM destinations WHERE id=?').get(req.params.id)) return reply.code(404).send({ error: 'not_found' });
       const u = db.prepare('SELECT name,email FROM users WHERE id=?').get(uid(req));
-      const author = u.name || u.email.split('@')[0];
+      const author = u.name || 'مسافر'; // لا يُنشر أي جزء من البريد الإلكتروني
       const r = db.prepare(`INSERT INTO reviews(user_id,destination_id,author,rating,body) VALUES(?,?,?,?,?)`).run(uid(req), req.params.id, author, req.body.rating, req.body.body.trim());
       return reply.code(202).send({ id: r.lastInsertRowid, status: 'pending', message: 'استلمنا مراجعتك وستظهر بعد المراجعة.' });
     });

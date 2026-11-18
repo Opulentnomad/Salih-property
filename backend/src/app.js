@@ -10,12 +10,12 @@ import accountRoutes from './routes/account.js';
 import adminRoutes from './routes/admin.js';
 
 const CSP = [
-  "default-src 'self'", "script-src 'self'", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src https://fonts.gstatic.com", "img-src 'self' data:", "connect-src 'self' https://open.er-api.com",
+  "default-src 'self'", "script-src 'self'", "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'", "img-src 'self' data:", "connect-src 'self'",
   "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'",
 ].join('; ');
 
-export async function buildApp({ db, jwtSecret, staticDir, corsOrigin, logger = false, authMax = 10 } = {}) {
+export async function buildApp({ db, jwtSecret, staticDir, corsOrigin, logger = false, authMax = 10, fxLive = process.env.FX_LIVE !== '0' && process.env.NODE_ENV !== 'test' } = {}) {
   const prod = process.env.NODE_ENV === 'production';
   let secret = jwtSecret || process.env.JWT_SECRET;
   if (!secret) {
@@ -29,6 +29,7 @@ export async function buildApp({ db, jwtSecret, staticDir, corsOrigin, logger = 
   await app.register(rateLimit, { global: true, max: 300, timeWindow: '1 minute' });
   await app.register(jwt, { secret, sign: { algorithm: 'HS256' }, verify: { algorithms: ['HS256'] } });
 
+  app.decorate('fxLive', fxLive); // تحديث أسعار الصرف من الخادم (لا يتصل المتصفح بأي طرف ثالث)
   app.decorate('authMax', authMax); // حدّ طلبات الدخول/التسجيل في الدقيقة
   app.decorate('authenticate', async (req, reply) => {
     try { await req.jwtVerify(); } catch { return reply.code(401).send({ error: 'unauthorized', message: 'سجّل الدخول للمتابعة.' }); }

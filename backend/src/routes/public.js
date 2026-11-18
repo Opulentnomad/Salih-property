@@ -78,9 +78,25 @@ export default async function publicRoutes(app, { db }) {
     return { items, disclaimer: 'تواريخ الأعياد محسوبة من تقويم أم القرى وقد تختلف يومًا أو أكثر عن الإعلان الرسمي. إجازات المدارس تُدخلها الإدارة بعد إعلان وزارة التعليم.' };
   });
 
+  let fxBusy = false;
+  async function refreshFx() {
+    if (fxBusy) return; fxBusy = true;
+    try {
+      const r = await fetch('https://open.er-api.com/v6/latest/SAR', { signal: AbortSignal.timeout(5000) });
+      const j = await r.json();
+      if (j?.rates) {
+        const now = new Date().toISOString();
+        const upd = db.prepare(`UPDATE fx_rates SET rate=?, fetched_at=? WHERE base='SAR' AND quote=?`);
+        for (const q of db.prepare(`SELECT quote FROM fx_rates WHERE base='SAR'`).all()) if (j.rates[q.quote] > 0) upd.run(j.rates[q.quote], now, q.quote);
+      }
+    } catch { /* نُبقي آخر أسعار محفوظة */ } finally { fxBusy = false; }
+  }
   app.get('/fx', async (req) => {
-    const rows = db.prepare('SELECT quote, rate, fetched_at FROM fx_rates WHERE base=?').all((req.query.base || 'SAR').toUpperCase());
-    return { base: (req.query.base || 'SAR').toUpperCase(), rates: Object.fromEntries(rows.map((r) => [r.quote, r.rate])), fetchedAt: rows[0]?.fetched_at ?? null };
+    const base = (req.query.base || 'SAR').toUpperCase();
+    const rows = db.prepare('SELECT quote, rate, fetched_at FROM fx_rates WHERE base=?').all(base);
+    const fetchedAt = rows[0]?.fetched_at ?? null;
+    if (app.fxLive && base === 'SAR' && (!fetchedAt || Date.now() - new Date(fetchedAt).getTime() > 86400000)) refreshFx(); // في الخلفية، مرة يوميًا
+    return { base, rates: Object.fromEntries(rows.map((r) => [r.quote, r.rate])), fetchedAt };
   });
 
   app.get('/affiliate/:id/click', async (req, reply) => {

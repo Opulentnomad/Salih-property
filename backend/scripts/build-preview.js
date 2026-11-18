@@ -17,12 +17,14 @@ const data = { ...base, regions: { ...base.regions }, destinations, calendar };
 const json = JSON.stringify(data).replace(/</g, '\\u003c');
 
 let html = readFileSync(join(app, 'index.html'), 'utf8');
-const css = readFileSync(join(app, 'styles.css'), 'utf8');
+let fontsCss = readFileSync(join(app, 'fonts.css'), 'utf8').replace(/url\(fonts\/([^)]+)\)/g, (_, f) => `url(data:font/woff2;base64,${readFileSync(join(app, 'fonts', f)).toString('base64')})`);
+const css = fontsCss + readFileSync(join(app, 'styles.css'), 'utf8');
 const js = readFileSync(join(app, 'app.js'), 'utf8').replace(/<\/script/gi, '<\\/script');
 html = html
   .replace('<link rel="stylesheet" href="styles.css">', `<style>${css}</style>`)
   .replace('<link rel="manifest" href="manifest.webmanifest">\n', '')
   .replace('<script src="data.js"></script>', `<script>window.SAFARNA_DATA=${json};</script>`)
+  .replace('<script src="legal.js"></script>', () => `<script>${readFileSync(join(app, 'legal.js'), 'utf8').replace(/<\/script/gi, '<\\/script')}</script>`)
   .replace('<script src="app.js"></script>', `<script>${js}</script>`);
 const icon = 'data:image/svg+xml;base64,' + Buffer.from(readFileSync(join(app, 'icon.svg'))).toString('base64');
 html = html.replaceAll('icon.svg', icon);

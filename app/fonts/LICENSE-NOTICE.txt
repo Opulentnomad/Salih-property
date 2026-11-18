@@ -1,0 +1,3 @@
+IBM Plex Sans Arabic (IBM Corp.) و Barlow Condensed (The Barlow Project Authors)
+مرخّصان بموجب SIL Open Font License 1.1 — النص الكامل: https://openfontlicense.org
+تُستضاف الملفات محليًا حتى لا يتصل متصفح الزائر بخوادم Google.
