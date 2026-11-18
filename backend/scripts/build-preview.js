@@ -23,5 +23,7 @@ html = html
   .replace('<link rel="manifest" href="manifest.webmanifest">\n', '')
   .replace('<script src="data.js"></script>', `<script>window.SAFARNA_DATA=${json};</script>`)
   .replace('<script src="app.js"></script>', `<script>${js}</script>`);
+const icon = 'data:image/svg+xml;base64,' + Buffer.from(readFileSync(join(app, 'icon.svg'))).toString('base64');
+html = html.replaceAll('icon.svg', icon);
 writeFileSync(join(here, '../../preview.html'), html);
 console.log('preview.html', Math.round(html.length / 1024) + 'KB', destinations.length, 'destinations');

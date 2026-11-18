@@ -6,7 +6,7 @@
 <title>سفرنا — دليل المسافر السعودي</title>
 <meta name="description" content="اعرف شروط الدخول والتأشيرة لأي وجهة بجواز سعودي، واحفظ وجهاتك وخطط رحلتك.">
 <meta name="theme-color" content="#D5DDE5">
-<link rel="icon" href="icon.svg">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMCIgZmlsbD0iIzBCNkI0RiIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTUwIiBmaWxsPSJub25lIiBzdHJva2U9IiNDOUEyNEIiIHN0cm9rZS13aWR0aD0iMTgiLz48cGF0aCBkPSJNMjU2IDEzMGw0NCAxMTIgMTEyIDE0LTg0IDc0IDI0IDExMi05Ni02MC05NiA2MCAyNC0xMTItODQtNzQgMTEyLTE0eiIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjk1IiB0cmFuc2Zvcm09InNjYWxlKC42MikgdHJhbnNsYXRlKDE1OCAxMzApIi8+PC9zdmc+Cg==">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>:root{--desk:#D5DDE5;--paper:#FFFFFF;--ink:#14213D;--mu:#5E6B80;--green:#0A7B5C;--amber:#FFB400;--red:#C23B2E;--line:#C3CCD6;--chip:#EEF1F5;--seg:#C3CDD8;--ok-bg:#D6F0E7;--ok-tx:#075C45;--wa-bg:#FFEBB8;--wa-tx:#6B4A00;--no-bg:#F8D9D5;--no-tx:#8C241A;--r:16px}
@@ -89,12 +89,17 @@ label{display:block;margin:10px 0 4px;font-weight:600;font-size:14px}
 .mstrip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
 .mstrip span{text-align:center;padding:6px 2px;border-radius:8px;background:var(--chip);color:var(--mu);font-size:13px}
 .mstrip span.on{background:var(--green);color:#fff;font-weight:700}
+a.chip{display:flex;align-items:center;gap:4px}
+.doc{display:flex;gap:12px;align-items:center;min-height:44px;padding:2px 0;cursor:pointer;margin:0;font-weight:400;font-size:16px}
+.doc input{width:22px;height:22px;min-height:0;padding:0;flex:none;accent-color:var(--green);background:none}
+.doc.done span{color:var(--mu);text-decoration:line-through}
+.prog{height:6px;background:var(--chip);border-radius:3px;overflow:hidden;margin:4px 0 8px}.prog i{display:block;height:100%;width:var(--w);background:var(--green);border-radius:3px;margin-inline-start:0;transition:width .25s}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">تخطَّ إلى المحتوى</a>
 <header class="top" role="banner">
-  <div class="brand"><img src="icon.svg" alt="" width="28" height="28"><b id="brandName">سفرنا</b></div>
+  <div class="brand"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMCIgZmlsbD0iIzBCNkI0RiIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTUwIiBmaWxsPSJub25lIiBzdHJva2U9IiNDOUEyNEIiIHN0cm9rZS13aWR0aD0iMTgiLz48cGF0aCBkPSJNMjU2IDEzMGw0NCAxMTIgMTEyIDE0LTg0IDc0IDI0IDExMi05Ni02MC05NiA2MCAyNC0xMTItODQtNzQgMTEyLTE0eiIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjk1IiB0cmFuc2Zvcm09InNjYWxlKC42MikgdHJhbnNsYXRlKDE1OCAxMzApIi8+PC9zdmc+Cg==" alt="" width="28" height="28"><b id="brandName">سفرنا</b></div>
   <div class="top-actions">
     <span id="offline" class="pill warn" hidden>بدون اتصال</span>
     <a class="icon-btn" href="#/tools" data-r="tools" aria-label="الأدوات" style="display:grid;place-items:center">🧰</a>
@@ -132,6 +137,9 @@ const tag=d=>{const v=D.visaLabels[d.req.visa];return `<span class="tag t-${v.c}
 const SEAL={free:'مسموح بالدخول بدون تأشيرة',gcc:'مسموح بالدخول بالهوية الوطنية',voa:'تأشيرة عند الوصول',evisa:'تحتاج تأشيرة إلكترونية قبل السفر',eta:'تحتاج تصريح سفر إلكتروني (ETA)',required:'تحتاج تأشيرة من السفارة قبل السفر'};
 const sealC=d=>D.visaLabels[d.req.visa].c;
 const ar=x=>String(x).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const norm=x=>String(x||'').toLowerCase().replace(/[\u064B-\u065F\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/ؤ/g,'و').replace(/ئ/g,'ي').replace(/\s+/g,' ').trim();
+const ALIAS={us:'امريكا usa نيويورك لوس انجلوس new york los angeles miami',gb:'انجلترا بريطانيا لندن uk المملكه المتحده london england',ae:'دبي ابوظبي الشارقه الامارات dubai abu dhabi',tr:'اسطنبول استانبول istanbul istanbul antalya',fr:'باريس نيس paris nice',it:'روما ميلانو فينيسيا rome milan venice',es:'مدريد برشلونه اسبانيا madrid barcelona',de:'برلين ميونخ المانيا berlin munich',jp:'طوكيو اوساكا tokyo osaka kyoto',eg:'القاهره شرم الشيخ الغردقه الاقصر cairo sharm el sheikh hurghada luxor',th:'بانكوك بوكيت bangkok phuket',my:'كوالالمبور لنكاوي kuala lumpur langkawi',id:'بالي جاكرتا bali jakarta',mv:'ماليه male maldives',ge:'تبليسي باتومي tbilisi batumi',az:'باكو baku',ma:'مراكش الدار البيضاء marrakech casablanca',jo:'البتراء العقبه petra amman aqaba',lb:'بيروت beirut',ch:'زيورخ جنيف zurich geneva',gr:'اثينا سانتوريني athens santorini',nl:'امستردام هولندا amsterdam',at:'فيينا vienna',pt:'لشبونه lisbon',cn:'بكين شنغهاي beijing shanghai',kr:'سيول seoul',in:'دلهي مومباي delhi mumbai',sg:'سنغافوره singapore',ru:'موسكو moscow',ca:'تورنتو فانكوفر toronto vancouver',au:'سيدني ملبورن sydney melbourne',za:'كيب تاون cape town',qa:'الدوحه doha',kw:'الكويت',bh:'المنامه',om:'مسقط صلاله muscat salalah',sa:'',cz:'براغ',hu:'بودابست',pl:'وارسو',ie:'دبلن',se:'ستوكهولم',no:'اوسلو',dk:'كوبنهاجن',fi:'هلسنكي',be:'بروكسل',ba:'سراييفو',al:'تيرانا',am:'يريفان',uz:'طشقند سمرقند',kz:'الماتي استانا',lk:'كولومبو',ph:'مانيلا',vn:'هانوي',kh:'بنوم بنه',mx:'مكسيكو كانكون',br:'ريو ساو باولو',ar:'بوينس ايرس',cy:'قبرص',mt:'مالطا',tn:'تونس',dz:'الجزائر',ke:'نيروبي',tz:'زنجبار',mu:'موريشيوس',sc:'سيشل'};
+const match=(d,q)=>{const h=norm([d.ar,d.en,d.city,d.iata,ALIAS[d.id]||''].join(' '));return norm(q).split(' ').filter(Boolean).every(t=>h.includes(t))};
 const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const SEAS={winter:[12,1,2],spring:[3,4,5],summer:[6,7,8],autumn:[9,10,11]};
 const monthsOf=d=>d.months?.length?d.months:[...new Set((d.seasons||[]).flatMap(s=>SEAS[s]||[]))];
@@ -164,19 +172,24 @@ const views={
   $('#next').onclick=()=>{if(step<2)return views.onboarding(step+1);
    store.set('prefs',{interests:[...document.querySelectorAll('#int [aria-pressed=true]')].map(b=>b.textContent),budget:+$('#bud').value});store.set('onboarded',true);location.hash='#/'}},
  home(){
-  const order={free:0,gcc:0,voa:1,evisa:1,eta:1,required:2};
-  const rows=q=>{const f=dests.filter(d=>!q||(d.ar+d.en+d.city+d.iata).toLowerCase().includes(q.trim().toLowerCase())).sort((a,b)=>order[a.req.visa]-order[b.req.visa]||(b.rating||0)-(a.rating||0)||a.ar.localeCompare(b.ar,'ar'));
-   return f.map(d=>`<a class="crow" href="#/d/${d.id}"><span class="code">${d.iata}</span><span class="cn"><b>${nm(d)}</b>${d.city?`<small>${d.city}</small>`:''}</span>${tag(d)}<span class="chev" aria-hidden="true">‹</span></a>`).join('')||'<div class="hint">ما لقينا هذي الوجهة. جرّب اسمًا ثانيًا أو افتح «استكشف».</div>'};
-  main.innerHTML=`<h1>وين رايح؟</h1><p class="mu">اكتب اسم الدولة وشوف إذا تحتاج تأشيرة بجواز سفرك السعودي.</p>
-  <div class="search"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="مثال: تركيا، دبي، IST" autocomplete="off" aria-label="ابحث عن وجهة"></div>
+  const GROUPS={all:['الكل',()=>true],free:['بدون تأشيرة',d=>['free','gcc'].includes(d.req.visa)],easy:['إلكترونية أو عند الوصول',d=>['voa','evisa','eta'].includes(d.req.visa)],need:['تأشيرة مسبقة',d=>d.req.visa==='required']};
+  const cnt=k=>dests.filter(GROUPS[k][1]).length;
+  const rows=q=>{const f=dests.filter(d=>GROUPS[state.hf||'all'][1](d)&&(!q||match(d,q))).sort((a,b)=>ORDER[a.req.visa]-ORDER[b.req.visa]||(b.rating||0)-(a.rating||0)||a.ar.localeCompare(b.ar,'ar'));
+   return f.map(d=>`<a class="crow" href="#/d/${d.id}"><span class="code">${d.iata}</span><span class="cn"><b>${d.emoji||''} ${nm(d)}</b>${d.city?`<small>${d.city}</small>`:''}</span>${tag(d)}<span class="chev" aria-hidden="true">‹</span></a>`).join('')||'<div class="hint">ما لقينا هذي الوجهة. جرّب اسمًا ثانيًا، أو اسم مدينة، أو افتح «استكشف».</div>'};
+  const recent=store.get('recent',[]).map(byId).filter(Boolean);
+  main.innerHTML=`<h1>وين رايح؟</h1><p class="mu">اكتب اسم الدولة أو المدينة وشوف إذا تحتاج تأشيرة بجواز سفرك السعودي.</p>
+  <div class="search"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="مثال: تركيا، لندن، امريكا، IST" autocomplete="off" aria-label="ابحث عن وجهة"></div>
+  ${recent.length?`<p class="mu" style="margin:2px 0">شاهدتها مؤخرًا</p><div class="chips" id="recent">${recent.map(d=>`<a class="chip" href="#/d/${d.id}">${d.emoji||''} ${nm(d)}</a>`).join('')}</div>`:''}
+  <div class="chips" id="hf" role="group" aria-label="تصفية حسب التأشيرة">${Object.keys(GROUPS).map(k=>`<button class="chip" data-g="${k}" aria-pressed="${(state.hf||'all')===k}">${GROUPS[k][0]} (${cnt(k)})</button>`).join('')}</div>
   <button class="crow" id="mnow" style="width:100%;text-align:right;border:0;color:inherit"><span style="font-size:24px;width:58px;text-align:center" aria-hidden="true">🗓️</span><span class="cn"><b>وين أروح في ${MONTHS[new Date().getMonth()]}؟</b><small>وجهات مناسبة لهذا الشهر · أو اختر شهرًا آخر</small></span><span class="chev" aria-hidden="true">‹</span></button>
   <div id="list">${rows('')}</div>
   <p class="note">⚠️ نوع الدخول مأخوذ من مصدر مفتوح (Passport Index) ولم تراجعه جهة رسمية. تأكد من سفارة الدولة أو شركة الطيران قبل الحجز.</p>`;
   $('#mnow').onclick=()=>{state.month=new Date().getMonth()+1;location.hash='#/explore'};
   $('#q').oninput=e=>{$('#list').innerHTML=rows(e.target.value)};
+  $('#hf').onclick=e=>{const b=e.target.closest('[data-g]');if(!b)return;state.hf=b.dataset.g;document.querySelectorAll('#hf .chip').forEach(c=>c.setAttribute('aria-pressed',c===b));$('#list').innerHTML=rows($('#q').value)};
   $('#q').onkeydown=e=>{if(e.key==='Enter'){const a=$('#list .crow');if(a)location.hash=a.getAttribute('href')}}},
  explore(){
-  const f=dests.filter(d=>(!state.q||(d.ar+d.en+d.city+d.iata).toLowerCase().includes(state.q.toLowerCase()))&&(!state.region||d.region===state.region)&&(!state.visa||d.req.visa===state.visa)&&(!state.budget||d.budget==state.budget)&&(!state.season||d.seasons.includes(state.season))&&(!state.month||monthsOf(d).includes(state.month)));
+  const f=dests.filter(d=>(!state.q||match(d,state.q))&&(!state.region||d.region===state.region)&&(!state.visa||d.req.visa===state.visa)&&(!state.budget||d.budget==state.budget)&&(!state.season||d.seasons.includes(state.season))&&(!state.month||monthsOf(d).includes(state.month)));
   if(state.month)f.sort((a,b)=>ORDER[a.req.visa]-ORDER[b.req.visa]||(b.rating||0)-(a.rating||0)||a.ar.localeCompare(b.ar,'ar'));
   const known=dests.filter(d=>monthsOf(d).length).length;
   const opt=(o,sel)=>Object.entries(o).map(([k,v])=>`<option value="${k}" ${sel===k?'selected':''}>${v}</option>`).join('');
@@ -207,11 +220,12 @@ const views={
    $('#addt').onclick=()=>{const t=store.get('trips',[]);t.push({id:Date.now(),d:d.id,start:$('#dt').value,days:5,plan:[]});store.set('trips',t);toast('أُضيفت إلى رحلاتي')}};
   $('#go').onclick=show;$('#dd').onchange=show;show()},
  detail(id,tab='req'){const d=byId(id);if(!d)return views.home();const r=d.req;
+  store.set('recent',[id,...store.get('recent',[]).filter(x=>x!==id)].slice(0,6));document.title=nm(d)+' — سفرنا';
   const rv=store.get('reviews',[]).filter(x=>x.d===id).concat(apiOn?(apiRev[id]||[]):D.reviews.filter(x=>x.d===id));
   if(apiOn&&!apiRev[id]){apiRev[id]=[];api('/destinations/'+id+'/reviews').then(j=>{apiRev[id]=j.items.map(x=>({d:id,n:x.author,s:x.rating,t:x.body}));if(location.hash==='#/d/'+id)views.detail(id,tab)}).catch(()=>{delete apiRev[id]})}
   const T3={req:'شروط الدخول',ov:'نظرة عامة',rev:`المراجعات (${rv.length})`};
   let body='';
-  if(tab==='req')body=`${bigPass(d)}<div class="panel"><h2 style="margin-top:0">المستندات المطلوبة</h2><ul class="list">${r.docs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+  if(tab==='req')body=`${bigPass(d)}<div class="panel"><h2 style="margin-top:0">المستندات المطلوبة</h2>${(()=>{const done=store.get('docs_'+id,[]);return `<p class="mu" id="dprog">جهّزت ${ar(done.length)} من ${ar(r.docs.length)}</p><div class="prog" aria-hidden="true"><i id="dbar" style="--w:${Math.round(done.length/Math.max(1,r.docs.length)*100)}%"></i></div>`+r.docs.map((x,i)=>`<label class="doc ${done.includes(i)?'done':''}"><input type="checkbox" data-doc="${i}" ${done.includes(i)?'checked':''}><span>${esc(x)}</span></label>`).join('')})()}</div>
    <div class="panel"><div class="kv"><b>التطعيمات</b><span>${esc(r.vaccines||'غير محدد، تحقق من المصدر')}</span><b>الحجر الصحي</b><span>${esc(r.quarantine||'غير محدد، تحقق من المصدر')}</span></div>
    ${r.embassy?.name?`<h2>السفارة / القنصلية</h2><div class="kv"><b>الجهة</b><span>${esc(r.embassy.name)}</span><b>الهاتف</b><a href="tel:${esc((r.embassy.phone||'').replace(/\s/g,''))}">${esc(r.embassy.phone||'')}</a><b>العنوان</b><span>${esc(r.embassy.addr||'')}</span></div>`:''}</div>${verifyNote(d)}`;
   if(tab==='ov')body=`<div class="panel"><p>${esc(d.about||'لا توجد نبذة عن هذه الوجهة بعد.')}</p>${(()=>{const ms=monthsOf(d);return ms.length?`<h2>أفضل وقت للزيارة</h2><div class="mstrip" role="img" aria-label="أفضل الأشهر: ${ms.map(m=>MONTHS[m-1]).join('، ')}">${MONTHS.map((n,i)=>`<span class="${ms.includes(i+1)?'on':''}">${n}</span>`).join('')}</div>${d.monthsNote?`<p class="mu">${esc(d.monthsNote)}</p>`:''}<p class="mu">تقدير عام للطقس، وليس مراجعة رسمية.</p>`:''})()}<div class="kv" style="margin-top:10px">${d.flight?`<b>مدة الطيران</b><span>${ar(d.flight)} من الرياض</span>`:''}${d.budget?`<b>الميزانية</b><span>${bud(d.budget)}</span>`:''}${d.seasons?.length?`<b>أفضل المواسم</b><span>${d.seasons.map(s=>({winter:'شتاء',spring:'ربيع',summer:'صيف',autumn:'خريف'}[s])).join('، ')}</span>`:''}${d.tags?.length?`<b>الاهتمامات</b><span>${d.tags.join('، ')}</span>`:''}</div>
@@ -221,10 +235,12 @@ const views={
    body=`<div class="pass vpass"><div class="main"><div class="sum"><div><div class="code big" style="font-size:72px">${rv.length?avg:'—'}</div><div class="stars" aria-hidden="true">★★★★★</div><div class="eyebrow">${rv.length} مراجعة</div></div></div></div></div>
    ${rv.map(x=>`<article class="slip"><div class="who"><span>المسافر: ${esc(x.n)}</span></div><div class="stars" aria-label="${x.s} من 5">${'★'.repeat(x.s)}${'☆'.repeat(5-x.s)}</div><p>${esc(x.t)}</p></article>`).join('')||'<div class="hint">كن أول من يكتب مراجعة.</div>'}
    <form id="rf" class="panel"><label for="rt">مراجعتك</label><textarea id="rt" rows="3" required maxlength="300"></textarea><label for="rs">التقييم</label><select id="rs"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select><button class="btn" style="margin-top:12px">اكتب مراجعتك</button></form>`}
-  main.innerHTML=`<div class="row" style="display:flex;justify-content:space-between;align-items:center"><div><h1>${nm(d)}</h1><div class="mu">${[d.city,d.flight?'✈️ '+ar(d.flight):'',d.rating?'★ '+ar(d.rating):''].filter(Boolean).join(' · ')}</div></div>${heart(d)}</div>
+  main.innerHTML=`<div class="row" style="display:flex;justify-content:space-between;align-items:center"><div><h1>${nm(d)}</h1><div class="mu">${[d.city,d.flight?'✈️ '+ar(d.flight):'',d.rating?'★ '+ar(d.rating):''].filter(Boolean).join(' · ')}</div></div><div style="display:flex;gap:8px"><button class="heart" id="share" style="color:var(--ink)" aria-label="مشاركة">⤴</button>${heart(d)}</div></div>
   <div class="tabs" role="tablist">${Object.entries(T3).map(([k,v])=>`<button role="tab" class="tab" data-tab="${k}" aria-selected="${k===tab}">${v}</button>`).join('')}</div>${body}
   <div class="actions"><button class="btn" id="addtrip">＋ أضف إلى رحلتي</button><button class="btn ghost" id="alert">🔔 نبّهني</button></div>`;
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>views.detail(id,b.dataset.tab));
+  main.querySelectorAll('[data-doc]').forEach(c=>c.onchange=()=>{let done=store.get('docs_'+id,[]);const i=+c.dataset.doc;done=c.checked?[...new Set([...done,i])]:done.filter(x=>x!==i);store.set('docs_'+id,done);c.closest('.doc').classList.toggle('done',c.checked);$('#dprog').textContent=`جهّزت ${ar(done.length)} من ${ar(r.docs.length)}`;$('#dbar').style.setProperty('--w',Math.round(done.length/Math.max(1,r.docs.length)*100)+'%')});
+  $('#share').onclick=async()=>{const url=location.href.split('#')[0]+'#/d/'+id,text=`${nm(d)}: ${SEAL[r.visa]} بجواز سعودي${r.reviewed?'':' (غير موثّقة رسميًا، تأكد من الجهة الرسمية)'} — سفرنا`;try{if(navigator.share){await navigator.share({title:nm(d)+' — سفرنا',text,url})}else{await navigator.clipboard.writeText(text+'\n'+url);toast('نُسخ الرابط')}}catch{try{await navigator.clipboard.writeText(text+'\n'+url);toast('نُسخ الرابط')}catch{toast('تعذّرت المشاركة')}}};
   $('#addtrip').onclick=()=>{const t=store.get('trips',[]);t.push({id:Date.now(),d:id,start:'',days:5,plan:[]});store.set('trips',t);toast('أُضيفت إلى رحلاتي')};
   $('#alert').onclick=async()=>{const a=store.get('alerts',[]);if(!a.includes(id))a.push(id);store.set('alerts',a);if('Notification'in window&&Notification.permission==='default')await Notification.requestPermission();toast('سننبهك عند تغيّر شروط '+d.ar)};
   $('#rf')?.addEventListener('submit',async e=>{e.preventDefault();const body=$('#rt').value.trim(),rating=+$('#rs').value;
@@ -265,7 +281,7 @@ const views={
   $('#login')&&($('#login').onclick=()=>auth('/auth/login'));$('#signup')&&($('#signup').onclick=()=>auth('/auth/register'));
   $('#logout')&&($('#logout').onclick=()=>{store.set('token',null);toast('تم تسجيل الخروج');views.tools()})}
 };
-function route(){if(apiOn&&Date.now()-lastFetch>60000)refresh();const h=location.hash.replace(/^#\/?/,'').split('/'),r=h[0]||'home';
+function route(){document.title='سفرنا — دليل المسافر السعودي';if(apiOn&&Date.now()-lastFetch>60000)refresh();const h=location.hash.replace(/^#\/?/,'').split('/'),r=h[0]||'home';
   document.querySelectorAll('.tabbar a').forEach(a=>a.classList.toggle('on',a.dataset.r===(r==='d'?'explore':r)));
  document.querySelector('.tabbar').hidden=r==='welcome';
  if(r==='welcome')views.onboarding();else if(r==='d')views.detail(h[1]);else (views[r]||views.home)();

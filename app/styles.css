@@ -78,3 +78,8 @@ label{display:block;margin:10px 0 4px;font-weight:600;font-size:14px}
 .mstrip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
 .mstrip span{text-align:center;padding:6px 2px;border-radius:8px;background:var(--chip);color:var(--mu);font-size:13px}
 .mstrip span.on{background:var(--green);color:#fff;font-weight:700}
+a.chip{display:flex;align-items:center;gap:4px}
+.doc{display:flex;gap:12px;align-items:center;min-height:44px;padding:2px 0;cursor:pointer;margin:0;font-weight:400;font-size:16px}
+.doc input{width:22px;height:22px;min-height:0;padding:0;flex:none;accent-color:var(--green);background:none}
+.doc.done span{color:var(--mu);text-decoration:line-through}
+.prog{height:6px;background:var(--chip);border-radius:3px;overflow:hidden;margin:4px 0 8px}.prog i{display:block;height:100%;width:var(--w);background:var(--green);border-radius:3px;margin-inline-start:0;transition:width .25s}
