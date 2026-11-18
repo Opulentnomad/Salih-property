@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node --disable-warning=ExperimentalWarning src/server.js",
     "seed": "node --disable-warning=ExperimentalWarning src/seed.js",
+    "review-list": "node --disable-warning=ExperimentalWarning scripts/review-list.js",
     "import": "node --disable-warning=ExperimentalWarning src/import-passport-index.js",
     "test": "node --disable-warning=ExperimentalWarning --test test/api.test.js"
   },
