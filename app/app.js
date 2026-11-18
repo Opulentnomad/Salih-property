@@ -1,7 +1,7 @@
 (()=>{
 const D=window.SAFARNA_DATA,$=(s,r=document)=>r.querySelector(s),main=$('#main');
 const store={get(k,d){try{return JSON.parse(localStorage.getItem('sf_'+k))??d}catch{return d}},set(k,v){try{localStorage.setItem('sf_'+k,JSON.stringify(v))}catch{}}};
-let lang=store.get('lang','ar'),state={q:'',region:'',visa:'',budget:'',season:'',fav:'all'};
+let lang=store.get('lang','ar'),state={q:'',region:'',visa:'',budget:'',season:'',month:0,fav:'all'};
 /* تعديلات لوحة الإدارة (CMS تجريبي) */
 const ov=store.get('admin_overrides',{});
 let dests=D.destinations.map(d=>ov[d.id]?{...d,req:{...d.req,...ov[d.id]}}:d);
@@ -18,6 +18,10 @@ const tag=d=>{const v=D.visaLabels[d.req.visa];return `<span class="tag t-${v.c}
 const SEAL={free:'مسموح بالدخول بدون تأشيرة',gcc:'مسموح بالدخول بالهوية الوطنية',voa:'تأشيرة عند الوصول',evisa:'تحتاج تأشيرة إلكترونية قبل السفر',eta:'تحتاج تصريح سفر إلكتروني (ETA)',required:'تحتاج تأشيرة من السفارة قبل السفر'};
 const sealC=d=>D.visaLabels[d.req.visa].c;
 const ar=x=>String(x).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const SEAS={winter:[12,1,2],spring:[3,4,5],summer:[6,7,8],autumn:[9,10,11]};
+const monthsOf=d=>d.months?.length?d.months:[...new Set((d.seasons||[]).flatMap(s=>SEAS[s]||[]))];
+const ORDER={free:0,gcc:0,voa:1,evisa:1,eta:1,required:2};
 const bud=n=>'💰'.repeat(n);
 function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';$('#langBtn').textContent=lang==='ar'?'EN':'عربي';$('#brandName').textContent=lang==='ar'?'سفرنا':'Safarna'}
 function theme(t){document.documentElement.dataset.theme=t;store.set('theme',t);$('#themeBtn').textContent=t==='dark'?'☀️':'🌙'}
@@ -51,23 +55,31 @@ const views={
    return f.map(d=>`<a class="crow" href="#/d/${d.id}"><span class="code">${d.iata}</span><span class="cn"><b>${nm(d)}</b>${d.city?`<small>${d.city}</small>`:''}</span>${tag(d)}<span class="chev" aria-hidden="true">‹</span></a>`).join('')||'<div class="hint">ما لقينا هذي الوجهة. جرّب اسمًا ثانيًا أو افتح «استكشف».</div>'};
   main.innerHTML=`<h1>وين رايح؟</h1><p class="mu">اكتب اسم الدولة وشوف إذا تحتاج تأشيرة بجواز سفرك السعودي.</p>
   <div class="search"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="مثال: تركيا، دبي، IST" autocomplete="off" aria-label="ابحث عن وجهة"></div>
+  <button class="crow" id="mnow" style="width:100%;text-align:right;border:0;color:inherit"><span style="font-size:24px;width:58px;text-align:center" aria-hidden="true">🗓️</span><span class="cn"><b>وين أروح في ${MONTHS[new Date().getMonth()]}؟</b><small>وجهات مناسبة لهذا الشهر · أو اختر شهرًا آخر</small></span><span class="chev" aria-hidden="true">‹</span></button>
   <div id="list">${rows('')}</div>
   <p class="note">⚠️ نوع الدخول مأخوذ من مصدر مفتوح (Passport Index) ولم تراجعه جهة رسمية. تأكد من سفارة الدولة أو شركة الطيران قبل الحجز.</p>`;
+  $('#mnow').onclick=()=>{state.month=new Date().getMonth()+1;location.hash='#/explore'};
   $('#q').oninput=e=>{$('#list').innerHTML=rows(e.target.value)};
   $('#q').onkeydown=e=>{if(e.key==='Enter'){const a=$('#list .crow');if(a)location.hash=a.getAttribute('href')}}},
  explore(){
-  const f=dests.filter(d=>(!state.q||(d.ar+d.en+d.city+d.iata).toLowerCase().includes(state.q.toLowerCase()))&&(!state.region||d.region===state.region)&&(!state.visa||d.req.visa===state.visa)&&(!state.budget||d.budget==state.budget)&&(!state.season||d.seasons.includes(state.season)));
+  const f=dests.filter(d=>(!state.q||(d.ar+d.en+d.city+d.iata).toLowerCase().includes(state.q.toLowerCase()))&&(!state.region||d.region===state.region)&&(!state.visa||d.req.visa===state.visa)&&(!state.budget||d.budget==state.budget)&&(!state.season||d.seasons.includes(state.season))&&(!state.month||monthsOf(d).includes(state.month)));
+  if(state.month)f.sort((a,b)=>ORDER[a.req.visa]-ORDER[b.req.visa]||(b.rating||0)-(a.rating||0)||a.ar.localeCompare(b.ar,'ar'));
+  const known=dests.filter(d=>monthsOf(d).length).length;
   const opt=(o,sel)=>Object.entries(o).map(([k,v])=>`<option value="${k}" ${sel===k?'selected':''}>${v}</option>`).join('');
   main.innerHTML=`<h1>استكشف الوجهات</h1><div class="search"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="ابحث…" value="${esc(state.q)}" aria-label="بحث"></div>
+  <div class="chips" id="mchips" role="group" aria-label="الشهر"><button class="chip" data-m="0" aria-pressed="${!state.month}">كل الأشهر</button>${MONTHS.map((n,i)=>`<button class="chip" data-m="${i+1}" aria-pressed="${state.month===i+1}">${n}</button>`).join('')}</div>
   <div class="two" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
   <select id="region" aria-label="المنطقة"><option value="">كل المناطق</option>${opt(D.regions,state.region)}</select>
   <select id="visa" aria-label="التأشيرة"><option value="">كل أنواع الدخول</option>${opt(Object.fromEntries(Object.entries(D.visaLabels).map(([k,v])=>[k,v.ar])),state.visa)}</select>
   <select id="budget" aria-label="الميزانية"><option value="">كل الميزانيات</option>${opt({1:'اقتصادية',2:'متوسطة',3:'مريحة'},state.budget)}</select>
   <select id="season" aria-label="الموسم"><option value="">كل المواسم</option>${opt({winter:'شتاء',spring:'ربيع',summer:'صيف',autumn:'خريف'},state.season)}</select></div>
-  <p class="mu" aria-live="polite">${f.length} وجهة</p>
+  <p class="mu" aria-live="polite">${state.month?`${f.length} وجهة مناسبة لشهر ${MONTHS[state.month-1]}، الأسهل دخولًا أولًا`:`${f.length} وجهة`}</p>
+  ${state.month?`<p class="note">تظهر الوجهات التي لدينا بيانات أشهرها فقط (${known} وجهة). الأشهر تقديرات عامة للطقس وليست مراجعة رسمية.</p>`:''}
   ${f.map(passCard).join('')||'<div class="hint">لا نتائج مطابقة. جرّب تخفيف الفلاتر.</div>'}`;
   $('#q').oninput=e=>{state.q=e.target.value;clearTimeout(views._t);views._t=setTimeout(()=>{views.explore();const q=$('#q');q.focus();q.setSelectionRange(99,99)},250)};
-  ['region','visa','budget','season'].forEach(k=>$('#'+k).onchange=e=>{state[k]=e.target.value;views.explore()})},
+  ['region','visa','budget','season'].forEach(k=>$('#'+k).onchange=e=>{state[k]=e.target.value;views.explore()});
+  document.querySelectorAll('#mchips [data-m]').forEach(b=>b.onclick=()=>{state.month=+b.dataset.m;views.explore()});
+  const act=$('#mchips [aria-pressed=true]');if(act&&state.month)act.parentElement.scrollLeft=0,act.scrollIntoView({inline:'center',block:'nearest'})},
  check(){
   const sel=state.chk||'tr';
   main.innerHTML=`<h1>تحقق من التأشيرة</h1>
@@ -88,7 +100,7 @@ const views={
   if(tab==='req')body=`${bigPass(d)}<div class="panel"><h2 style="margin-top:0">المستندات المطلوبة</h2><ul class="list">${r.docs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
    <div class="panel"><div class="kv"><b>التطعيمات</b><span>${esc(r.vaccines||'غير محدد، تحقق من المصدر')}</span><b>الحجر الصحي</b><span>${esc(r.quarantine||'غير محدد، تحقق من المصدر')}</span></div>
    ${r.embassy?.name?`<h2>السفارة / القنصلية</h2><div class="kv"><b>الجهة</b><span>${esc(r.embassy.name)}</span><b>الهاتف</b><a href="tel:${esc((r.embassy.phone||'').replace(/\s/g,''))}">${esc(r.embassy.phone||'')}</a><b>العنوان</b><span>${esc(r.embassy.addr||'')}</span></div>`:''}</div>${verifyNote(d)}`;
-  if(tab==='ov')body=`<div class="panel"><p>${esc(d.about||'لا توجد نبذة عن هذه الوجهة بعد.')}</p><div class="kv" style="margin-top:10px">${d.flight?`<b>مدة الطيران</b><span>${ar(d.flight)} من الرياض</span>`:''}${d.budget?`<b>الميزانية</b><span>${bud(d.budget)}</span>`:''}${d.seasons?.length?`<b>أفضل المواسم</b><span>${d.seasons.map(s=>({winter:'شتاء',spring:'ربيع',summer:'صيف',autumn:'خريف'}[s])).join('، ')}</span>`:''}${d.tags?.length?`<b>الاهتمامات</b><span>${d.tags.join('، ')}</span>`:''}</div>
+  if(tab==='ov')body=`<div class="panel"><p>${esc(d.about||'لا توجد نبذة عن هذه الوجهة بعد.')}</p>${(()=>{const ms=monthsOf(d);return ms.length?`<h2>أفضل وقت للزيارة</h2><div class="mstrip" role="img" aria-label="أفضل الأشهر: ${ms.map(m=>MONTHS[m-1]).join('، ')}">${MONTHS.map((n,i)=>`<span class="${ms.includes(i+1)?'on':''}">${n}</span>`).join('')}</div>${d.monthsNote?`<p class="mu">${esc(d.monthsNote)}</p>`:''}<p class="mu">تقدير عام للطقس، وليس مراجعة رسمية.</p>`:''})()}<div class="kv" style="margin-top:10px">${d.flight?`<b>مدة الطيران</b><span>${ar(d.flight)} من الرياض</span>`:''}${d.budget?`<b>الميزانية</b><span>${bud(d.budget)}</span>`:''}${d.seasons?.length?`<b>أفضل المواسم</b><span>${d.seasons.map(s=>({winter:'شتاء',spring:'ربيع',summer:'صيف',autumn:'خريف'}[s])).join('، ')}</span>`:''}${d.tags?.length?`<b>الاهتمامات</b><span>${d.tags.join('، ')}</span>`:''}</div>
    <h2>احجز</h2><div class="actions"><a class="btn ghost" rel="sponsored noopener" target="_blank" href="https://www.example.com/flights?to=${d.id}">✈️ رحلات</a><a class="btn ghost" rel="sponsored noopener" target="_blank" href="https://www.example.com/hotels?c=${d.id}">🏨 فنادق</a></div>
    <p class="mu">روابط تجريبية — تُستبدل بروابط الشركاء. قد نحصل على عمولة.</p></div>`;
   if(tab==='rev'){const avg=(rv.reduce((a,x)=>a+x.s,0)/(rv.length||1)).toFixed(1);

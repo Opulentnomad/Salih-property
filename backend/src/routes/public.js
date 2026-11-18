@@ -9,10 +9,10 @@ export default async function publicRoutes(app, { db }) {
     schema: { querystring: { type: 'object', additionalProperties: false, properties: {
       q: { type: 'string', maxLength: 60 }, region: { type: 'string', maxLength: 20 },
       visa: { type: 'string', enum: VISAS }, budget: { type: 'integer', minimum: 1, maximum: 3 },
-      season: { type: 'string', enum: SEASONS }, limit: { type: 'integer', minimum: 1, maximum: 300, default: 50 },
+      season: { type: 'string', enum: SEASONS }, month: { type: 'integer', minimum: 1, maximum: 12 }, limit: { type: 'integer', minimum: 1, maximum: 300, default: 50 },
       offset: { type: 'integer', minimum: 0, default: 0 } } } },
   }, async (req) => {
-    const { q, region, visa, budget, season, limit, offset } = req.query;
+    const { q, region, visa, budget, season, month, limit, offset } = req.query;
     const where = []; const args = [];
     if (q) { where.push(`(name_ar LIKE ? ESCAPE '\\' OR name_en LIKE ? ESCAPE '\\' OR city LIKE ? ESCAPE '\\' OR iata LIKE ? ESCAPE '\\' OR cca3 LIKE ? ESCAPE '\\')`); args.push(like(q), like(q), like(q), like(q), like(q)); }
     if (region) { where.push('region=?'); args.push(region); }
@@ -21,6 +21,7 @@ export default async function publicRoutes(app, { db }) {
     const rows = db.prepare(`SELECT * FROM destinations ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY rating DESC, id`).all(...args);
     let items = rows.map((d) => destDto(d, latestPublished(db, d.id)));
     if (visa) items = items.filter((d) => d.req?.visa === visa);
+    if (month) items = items.filter((d) => d.months.includes(month));
     const total = items.length;
     items = items.slice(offset, offset + limit);
     return { items, total, nextOffset: offset + limit < total ? offset + limit : null };

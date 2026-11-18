@@ -1,5 +1,6 @@
 import { audit, tx } from '../db.js';
 import { reqDto, parse, VISAS } from '../dto.js';
+import { seasonsFromMonths } from '../best-months.js';
 
 const FIELDS = ['visa', 'stay', 'passport', 'docs', 'vaccines', 'quarantine', 'embassy', 'source', 'sourceUrl'];
 
@@ -60,6 +61,19 @@ export default async function adminRoutes(app, { db }) {
       audit(db, uid(req), 'requirement.publish', 'entry_requirement', draft.id, { destId: draft.destination_id, version: draft.version });
     });
     return { ...reqDto(db.prepare('SELECT * FROM entry_requirements WHERE id=?').get(draft.id)), changed: Object.keys(diff) };
+  });
+
+  // أفضل أشهر الزيارة (بيانات الوجهة لا شروط الدخول)
+  app.put('/destinations/:id/months', {
+    preHandler: EDIT,
+    schema: { body: { type: 'object', required: ['months'], additionalProperties: false, properties: {
+      months: { type: 'array', maxItems: 12, uniqueItems: true, items: { type: 'integer', minimum: 1, maximum: 12 } }, note: { type: ['string', 'null'], maxLength: 160 } } } },
+  }, async (req, reply) => {
+    const months = [...req.body.months].sort((a, b) => a - b);
+    const r = db.prepare('UPDATE destinations SET best_months=?, months_note=?, seasons=? WHERE id=?').run(JSON.stringify(months), req.body.note ?? null, JSON.stringify(seasonsFromMonths(months)), req.params.id);
+    if (!r.changes) return reply.code(404).send({ error: 'not_found' });
+    audit(db, uid(req), 'destination.months', 'destination', req.params.id, { months });
+    return { id: req.params.id, months, seasons: seasonsFromMonths(months) };
   });
 
   app.get('/reviews', { preHandler: REVIEW, schema: { querystring: { type: 'object', properties: { status: { enum: ['pending', 'published', 'rejected'], default: 'pending' } } } } }, async (req) => ({

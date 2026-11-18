@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE TABLE IF NOT EXISTS destinations(
   id TEXT PRIMARY KEY, iata TEXT NOT NULL, name_ar TEXT NOT NULL, name_en TEXT, city TEXT, emoji TEXT,
   g1 TEXT, g2 TEXT, region TEXT, budget INTEGER CHECK(budget BETWEEN 1 AND 3), seasons TEXT NOT NULL DEFAULT '[]',
-  tags TEXT NOT NULL DEFAULT '[]', flight TEXT, currency TEXT, rating REAL, about_ar TEXT, cca3 TEXT);
+  tags TEXT NOT NULL DEFAULT '[]', flight TEXT, currency TEXT, rating REAL, about_ar TEXT, cca3 TEXT, best_months TEXT, months_note TEXT);
 CREATE TABLE IF NOT EXISTS entry_requirements(
   id INTEGER PRIMARY KEY, destination_id TEXT NOT NULL REFERENCES destinations(id) ON DELETE CASCADE,
   passport_country TEXT NOT NULL DEFAULT 'SA', version INTEGER NOT NULL,
@@ -60,6 +60,8 @@ export function openDb(file = ':memory:') {
   // ترحيل قواعد أُنشئت قبل إضافة هذه الأعمدة
   const has = (t, c) => db.prepare(`PRAGMA table_info(${t})`).all().some((r) => r.name === c);
   if (!has('destinations', 'cca3')) db.exec('ALTER TABLE destinations ADD COLUMN cca3 TEXT');
+  if (!has('destinations', 'best_months')) db.exec('ALTER TABLE destinations ADD COLUMN best_months TEXT');
+  if (!has('destinations', 'months_note')) db.exec('ALTER TABLE destinations ADD COLUMN months_note TEXT');
   if (!has('entry_requirements', 'reviewed')) db.exec('ALTER TABLE entry_requirements ADD COLUMN reviewed INTEGER NOT NULL DEFAULT 0');
   return db;
 }

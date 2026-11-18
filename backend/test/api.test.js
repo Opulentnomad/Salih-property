@@ -16,7 +16,7 @@ let admin;
 before(async () => {
   db = openDb(':memory:');
   await seed(db, { adminEmail: 'admin@example.com', adminPassword: 'adminpass123' });
-  app = await buildApp({ db, jwtSecret: 'x'.repeat(40) });
+  app = await buildApp({ db, jwtSecret: 'x'.repeat(40), authMax: 1000 });
   admin = (await call('POST', '/api/auth/login', { body: { email: 'admin@example.com', password: 'adminpass123' } })).json;
 });
 
@@ -177,4 +177,29 @@ test('mapRequirement covers every dataset value', () => {
   assert.deepEqual(mapRequirement('visa required', 'US'), { visa: 'required', stay: null });
   assert.equal(mapRequirement('-1', 'SA'), null);
   assert.equal(mapRequirement('no admission', 'XX'), null);
+});
+
+test('best months: filter by month, derived seasons, admin edit', async () => {
+  const jan = (await call('GET', '/api/destinations?month=1&limit=300')).json.items.map((d) => d.id);
+  assert.ok(jan.includes('mv') && jan.includes('ae') && !jan.includes('gb'));
+  const jul = (await call('GET', '/api/destinations?month=7&limit=300')).json.items.map((d) => d.id);
+  assert.ok(jul.includes('id') && !jul.includes('ae'));
+  assert.equal((await call('GET', '/api/destinations?month=13')).status, 400);
+  const mv = (await call('GET', '/api/destinations/mv')).json;
+  assert.deepEqual(mv.months, [1, 2, 3, 4, 11, 12]);
+  assert.ok(mv.seasons.includes('winter') && !mv.seasons.includes('summer'));
+  assert.equal((await call('GET', '/api/destinations?season=winter&month=1&limit=300')).json.items.every((d) => d.months.includes(1)), true);
+  const u = await register('m@example.com');
+  assert.equal((await call('PUT', '/api/admin/destinations/gb/months', { token: u.token, body: { months: [1] } })).status, 403);
+  const ok = await call('PUT', '/api/admin/destinations/gb/months', { token: admin.token, body: { months: [7, 6, 8], note: 'تجربة' } });
+  assert.deepEqual(ok.json.months, [6, 7, 8]); assert.deepEqual(ok.json.seasons, ['summer']);
+  assert.equal((await call('PUT', '/api/admin/destinations/gb/months', { token: admin.token, body: { months: [0] } })).status, 400);
+  assert.deepEqual((await call('GET', '/api/destinations/gb')).json.months, [6, 7, 8]);
+});
+
+test('login is rate limited by default (brute-force protection)', async () => {
+  const strict = await buildApp({ db, jwtSecret: 'y'.repeat(40) });
+  let last;
+  for (let i = 0; i < 12; i++) last = (await strict.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'nobody@example.com', password: 'wrongpass1' } })).statusCode;
+  assert.equal(last, 429);
 });

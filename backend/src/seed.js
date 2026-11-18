@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { openDb, tx } from './db.js';
 import { hashPassword } from './auth.js';
 import { importPassportIndex } from './import-passport-index.js';
+import { applyBestMonths } from './best-months.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -39,7 +40,9 @@ export async function seed(db, { adminEmail, adminPassword, importOpen = true } 
     }
     if (adminHash) db.prepare(`INSERT INTO users(email,password_hash,name,role) VALUES(?,?,?,'admin')`).run(adminEmail, adminHash, 'Admin');
   });
-  if (importOpen) return importPassportIndex(db);
+  const stats = importOpen ? importPassportIndex(db) : undefined;
+  applyBestMonths(db);
+  return stats;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

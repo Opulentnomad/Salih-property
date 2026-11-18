@@ -5,7 +5,7 @@ const userDto = (u) => ({ id: u.id, email: u.email, name: u.name, role: u.role, 
 const noStore = (reply) => reply.header('Cache-Control', 'no-store');
 
 export default async function accountRoutes(app, { db }) {
-  const authRate = { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } };
+  const authRate = { config: { rateLimit: { max: app.authMax, timeWindow: '1 minute' } } };
   const sign = (u) => app.jwt.sign({ sub: String(u.id), role: u.role }, { expiresIn: '7d' });
   const bodyCred = { type: 'object', required: ['email', 'password'], additionalProperties: false, properties: {
     email: { type: 'string', format: 'email', maxLength: 254 }, password: { type: 'string', minLength: 8, maxLength: 128 }, name: { type: 'string', maxLength: 60 } } };

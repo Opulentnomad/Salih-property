@@ -1,5 +1,5 @@
 export const STALE_DAYS = 30;
-export const parse = (s, d) => { try { return JSON.parse(s); } catch { return d; } };
+export const parse = (s, d) => { try { return JSON.parse(s) ?? d; } catch { return d; } };
 export const DISCLAIMER = 'المعلومات استرشادية وقد تتغير. تحقق من الجهة الرسمية أو شركة الطيران قبل السفر.';
 
 export function reqDto(r) {
@@ -19,7 +19,7 @@ export function destDto(d, req) {
   return {
     id: d.id, iata: d.iata || d.cca3, ar: d.name_ar, en: d.name_en, city: d.city, emoji: d.emoji,
     g: [d.g1, d.g2], region: d.region, budget: d.budget, seasons: parse(d.seasons, []),
-    tags: parse(d.tags, []), flight: d.flight, cur: d.currency, rating: d.rating, about: d.about_ar,
+    tags: parse(d.tags, []), months: parse(d.best_months, []), monthsNote: d.months_note, flight: d.flight, cur: d.currency, rating: d.rating, about: d.about_ar,
     req: reqDto(req),
   };
 }

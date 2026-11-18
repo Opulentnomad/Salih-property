@@ -75,3 +75,6 @@ label{display:block;margin:10px 0 4px;font-weight:600;font-size:14px}
 .crow{display:flex;align-items:center;gap:12px;background:var(--paper);border-radius:14px;padding:10px 14px;margin-bottom:8px;min-height:60px}
 .crow .code{font-size:26px;width:58px;flex:none;color:var(--ink)}.crow .cn{flex:1;display:flex;flex-direction:column;line-height:1.35}.crow small{color:var(--mu);font-size:12px}
 .crow .chev{color:var(--mu);font-size:22px}.crow:active{transform:scale(.99)}
+.mstrip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
+.mstrip span{text-align:center;padding:6px 2px;border-radius:8px;background:var(--chip);color:var(--mu);font-size:13px}
+.mstrip span.on{background:var(--green);color:#fff;font-weight:700}

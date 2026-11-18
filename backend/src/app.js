@@ -15,7 +15,7 @@ const CSP = [
   "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'",
 ].join('; ');
 
-export async function buildApp({ db, jwtSecret, staticDir, corsOrigin, logger = false } = {}) {
+export async function buildApp({ db, jwtSecret, staticDir, corsOrigin, logger = false, authMax = 10 } = {}) {
   const prod = process.env.NODE_ENV === 'production';
   let secret = jwtSecret || process.env.JWT_SECRET;
   if (!secret) {
@@ -29,6 +29,7 @@ export async function buildApp({ db, jwtSecret, staticDir, corsOrigin, logger = 
   await app.register(rateLimit, { global: true, max: 300, timeWindow: '1 minute' });
   await app.register(jwt, { secret, sign: { algorithm: 'HS256' }, verify: { algorithms: ['HS256'] } });
 
+  app.decorate('authMax', authMax); // حدّ طلبات الدخول/التسجيل في الدقيقة
   app.decorate('authenticate', async (req, reply) => {
     try { await req.jwtVerify(); } catch { return reply.code(401).send({ error: 'unauthorized', message: 'سجّل الدخول للمتابعة.' }); }
     const u = db.prepare('SELECT id, role FROM users WHERE id=?').get(Number(req.user.sub));

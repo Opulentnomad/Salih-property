@@ -3,6 +3,7 @@
 const m = document.getElementById('m'), $ = (s) => document.querySelector(s);
 const VL = { free: 'بدون تأشيرة', gcc: 'الدخول بالهوية', voa: 'عند الوصول', evisa: 'تأشيرة إلكترونية', eta: 'ETA', required: 'تأشيرة مسبقة' };
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const MN = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 const FN = { visa: 'نوع الدخول', stay_days: 'مدة الإقامة', passport_validity: 'صلاحية الجواز', docs: 'المستندات', vaccines: 'التطعيمات', quarantine: 'الحجر', embassy: 'السفارة', source: 'المصدر', source_url: 'رابط المصدر' };
 let token = sessionStorage.getItem('adm_token'), role = sessionStorage.getItem('adm_role'), tab = 'dest';
 const toast = (t) => { const e = $('#toast'); e.textContent = t; e.classList.add('show'); setTimeout(() => e.classList.remove('show'), 2400); };
@@ -62,7 +63,14 @@ async function edit(id) {
   <label for="src">المصدر الرسمي</label><input id="src" maxlength="150" value="${esc(r.source)}">
   <label for="su">رابط المصدر (https)</label><input id="su" type="url" pattern="https://.*" value="${esc(r.sourceUrl || '')}">
   <div class="actions" style="margin-top:14px"><button class="btn">حفظ كمسودة</button><button type="button" class="btn ghost" id="bk">رجوع</button></div></form>
+  <h2>أفضل أشهر الزيارة</h2><form class="panel" id="mf"><div class="mstrip" role="group" aria-label="الأشهر">${MN.map((n, i) => `<label class="chip" style="display:flex;gap:6px;align-items:center;margin:0;min-height:44px"><input type="checkbox" style="width:auto;min-height:0" value="${i + 1}" ${(d.months || []).includes(i + 1) ? 'checked' : ''}>${n}</label>`).join('')}</div>
+  <label for="mn">ملاحظة قصيرة (اختياري)</label><input id="mn" maxlength="160" value="${esc(d.monthsNote || '')}"><button class="btn" style="margin-top:12px">حفظ الأشهر</button></form>
   <h2>الإصدارات</h2>${hist.items.map((h) => `<div class="slip"><div class="who"><span>إصدار ${h.version} · ${({ published: 'منشور', draft: 'مسودة', archived: 'مؤرشف' })[h.status]}</span><span>${esc(h.verified.slice(0, 10))}</span></div>${h.status === 'draft' && role !== 'editor' ? `<button class="btn sm" data-pub="${h.id}">نشر هذا الإصدار</button>` : `<span class="mu">${esc(VL[h.visa])} · ${h.stay} يومًا</span>`}</div>`).join('')}`;
+  $('#mf').onsubmit = async (ev) => {
+    ev.preventDefault();
+    const months = [...m.querySelectorAll('#mf input[type=checkbox]:checked')].map((c) => +c.value);
+    try { await api('/admin/destinations/' + id + '/months', { method: 'PUT', body: { months, note: $('#mn').value || null } }); toast('حُفظت الأشهر'); } catch (e) { fail(e); }
+  };
   $('#bk').onclick = () => shell();
   $('#ef').onsubmit = async (ev) => {
     ev.preventDefault();
