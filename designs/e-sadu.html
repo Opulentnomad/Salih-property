@@ -1,0 +1,123 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سفرنا — الاتجاه هـ: سدو</title>
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+:root{--red:#B3262E;--indigo:#1D2B64;--wool:#FBFAF6;--char:#1A1A1A;--saf:#E5A823;--mu:#5B5F73;
+--diamond:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><rect width='24' height='24' fill='%231D2B64'/><path d='M12 2L22 12L12 22L2 12Z' fill='%23B3262E'/><path d='M12 8L16 12L12 16L8 12Z' fill='%23FBFAF6'/></svg>");
+--tri:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='16'><rect width='24' height='16' fill='%231A1A1A'/><path d='M0 16L12 2L24 16Z' fill='%23FBFAF6'/><path d='M6 16L12 9L18 16Z' fill='%23B3262E'/></svg>");
+--stripe:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='12'><rect width='16' height='12' fill='%23B3262E'/><rect y='3' width='16' height='2' fill='%23FBFAF6'/><rect y='7' width='16' height='2' fill='%231A1A1A'/></svg>");
+--dred:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><rect width='24' height='24' fill='%23B3262E'/><path d='M12 2L22 12L12 22L2 12Z' fill='%231A1A1A'/><path d='M12 8L16 12L12 16L8 12Z' fill='%23FBFAF6'/></svg>");
+--dsaf:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><rect width='24' height='24' fill='%23E5A823'/><path d='M12 2L22 12L12 22L2 12Z' fill='%231D2B64'/><path d='M12 8L16 12L12 16L8 12Z' fill='%23FBFAF6'/></svg>");
+--dchar:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><rect width='24' height='24' fill='%231A1A1A'/><path d='M12 2L22 12L12 22L2 12Z' fill='%23FBFAF6'/><path d='M12 8L16 12L12 16L8 12Z' fill='%23B3262E'/></svg>")}
+body{background:#E7E2D8;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;color:var(--char)}
+.k{font-family:'Reem Kufi','IBM Plex Sans Arabic',sans-serif;font-weight:700}
+.phone{background:var(--wool)}
+.band{height:24px;background:var(--diamond) repeat-x 0 0/24px 24px}.band.t{height:16px;background:var(--tri) repeat-x 0 0/24px 16px}.band.s{height:12px;background:var(--stripe) repeat-x 0 0/16px 12px}
+.weave{display:grid}
+h1{font-size:34px;line-height:1.3}
+.pad{padding:20px 22px 28px}
+.btn{display:flex;justify-content:center;align-items:center;min-height:54px;font-weight:700;font-size:17px;background:var(--indigo);color:var(--wool);border:2px solid var(--char);box-shadow:4px 4px 0 var(--red);width:100%}
+.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--red)}
+/* 1 */
+.p1{background:var(--red);color:var(--wool)}
+.p1 .sb{color:var(--wool)}
+.p1 h1{font-size:44px;margin:26px 0 12px}
+.p1 p.lead{font-size:16px;opacity:.92;max-width:30ch}
+.rows{margin:26px 0;display:grid;gap:0;border-top:3px solid var(--wool)}
+.rows div{display:flex;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(251,250,246,.45);font-size:16px;font-weight:500}
+.rows i{width:14px;height:14px;background:var(--wool);transform:rotate(45deg);flex:none}
+.p1 .btn{background:var(--wool);color:var(--indigo);border-color:var(--char);box-shadow:4px 4px 0 var(--char)}
+.p1 .foot{position:absolute;inset:auto 0 0}
+/* 2 */
+.head2{display:flex;justify-content:space-between;align-items:end;margin-bottom:16px}
+.head2 span{font-size:13px;color:var(--mu)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{position:relative;aspect-ratio:1/1.12;border:2px solid var(--char);overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+.tile .pat{position:absolute;inset:0 0 56px;background-size:24px 24px}
+.tile .lab{position:relative;background:var(--wool);padding:8px 10px;border-top:2px solid var(--char);min-height:56px}
+.tile b{font-size:17px;display:block;line-height:1.3}.tile small{font-size:12px;color:var(--mu)}
+.tile .heart{position:absolute;top:8px;inset-inline-start:8px;width:44px;height:44px;background:var(--wool);border:2px solid var(--char);font-size:20px;color:var(--red);z-index:2}
+.ok{color:#14683E;font-weight:700}.wa{color:#8A5A00;font-weight:700}.no{color:#8F1C24;font-weight:700}
+.empty{margin-top:16px;border:2px dashed var(--indigo);padding:14px;font-size:14px;color:var(--mu);text-align:center}
+/* 3 */
+.rhead{background:var(--indigo);color:var(--wool);padding:18px 22px 20px}
+.rhead .row{display:flex;gap:20px;align-items:center}
+.rhead .num{font-size:78px;line-height:1}
+.dia{display:flex;gap:5px}.dia i{width:14px;height:14px;background:var(--saf);transform:rotate(45deg);margin:3px}.dia i.off{background:transparent;border:2px solid var(--saf)}
+.dist{display:grid;gap:5px;margin-top:14px}.dist div{display:flex;gap:10px;align-items:center;font-size:12px}
+.dist i{flex:1;height:10px;background:rgba(251,250,246,.15)}.dist i b{display:block;height:100%;width:var(--w);background:var(--diamond) repeat-x 0 50%/10px 10px,var(--red);background-color:var(--red);margin-inline-start:auto}
+.rev{border-inline-start:6px solid var(--red);padding:2px 14px 16px;margin-bottom:6px}
+.rev .by{display:flex;justify-content:space-between;font-size:13px;color:var(--mu)}
+.rev p{font-size:15.5px;margin:6px 0}
+.rev .dia i{width:10px;height:10px;margin:2px}.rev .dia i{background:var(--red)}.rev .dia i.off{background:transparent;border-color:var(--red)}
+.sep{height:12px;background:var(--stripe) repeat-x 0 0/16px 12px;margin:4px 0 14px}
+.tabs{display:flex;gap:0;margin:0 0 16px;border:2px solid var(--char)}
+.tabs button{flex:1;min-height:44px;font-weight:600;font-size:14px;background:var(--wool)}
+.tabs [aria-selected=true]{background:var(--char);color:var(--wool)}
+/* 4 */
+.p4{background:var(--indigo)}
+.p4 .sb{color:var(--wool)}
+.p4 h1{color:var(--wool);font-size:30px;margin:14px 0 14px}
+.card{background:var(--wool);border:2px solid var(--char);padding:14px}
+.sel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.sel div{border:2px solid var(--char);padding:6px 10px}.sel small{font-size:11px;color:var(--mu);display:block}.sel b{font-size:16px}
+.rug{margin-top:18px;background:var(--wool);border:2px solid var(--char);padding:6px}
+.rug .in{border:2px solid var(--red);padding:16px 16px 14px;position:relative}
+.rug .in::before,.rug .in::after{content:"";position:absolute;width:14px;height:14px;background:var(--red);transform:rotate(45deg);top:-9px;inset-inline-end:calc(50% - 7px)}
+.rug .in::after{top:auto;bottom:-9px}
+.status{text-align:center;padding:10px 0 12px}
+.status small{font-size:13px;color:var(--mu);display:block}
+.status .k{font-size:34px;color:var(--red);line-height:1.2}
+.lead{display:flex;align-items:baseline;gap:8px;margin:8px 0;font-size:15px}
+.lead i{flex:1;border-bottom:2px dotted #9A9AA8}
+.lead b{font-weight:700}
+.dl{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:6px;font-size:14px}
+.dl li{display:flex;gap:10px;align-items:center}.dl li::before{content:"";width:9px;height:9px;background:var(--indigo);transform:rotate(45deg);flex:none}
+.fine{font-size:11px;color:var(--mu);margin-top:12px;border-top:1px solid #CFCAC0;padding-top:8px}
+.p4 .btn{margin-top:18px;background:var(--red);box-shadow:4px 4px 0 var(--char)}
+</style></head><body>
+<div class="stage">
+
+<div class="slot"><div class="cap">١ — الترحيب</div><div class="phone p1" aria-label="شاشة الترحيب">
+<div class="sb"><span>9:41</span><span>5G ▮</span></div>
+<div class="band" style="margin-top:6px" aria-hidden="true"></div><div class="band t" aria-hidden="true"></div>
+<div class="pad"><span class="k" style="font-size:18px">سفرنا</span>
+<h1 class="k">اعرف قبل<br>ما تسافر</h1>
+<p class="lead">التأشيرة والمستندات المطلوبة لجواز سفرك السعودي، لكل وجهة، في مكان واحد.</p>
+<div class="rows"><div><i></i>شروط الدخول مع تاريخ آخر تحقق</div><div><i></i>وجهاتك المحفوظة تعمل بدون إنترنت</div><div><i></i>تنبيه عند أي تغيير في الشروط</div></div>
+<a class="btn" href="#">ابدأ الآن</a></div>
+<div class="foot" aria-hidden="true"><div class="band s"></div><div class="band t"></div><div class="band"></div></div></div></div>
+
+<div class="slot"><div class="cap">٢ — المفضلة</div><div class="phone" aria-label="شاشة المفضلة">
+<div class="sb"><span>9:41</span><span>5G ▮</span></div><div class="band t" aria-hidden="true"></div>
+<div class="pad"><div class="head2"><h1 class="k">المفضلة</h1><span>٤ وجهات</span></div>
+<div class="grid">
+<article class="tile"><div class="pat" style="background-image:var(--diamond)"></div><button class="heart" data-fav aria-pressed="true" aria-label="إزالة من المفضلة">♥</button><div class="lab"><b class="k">تركيا</b><small class="ok">بدون تأشيرة</small></div></article>
+<article class="tile"><div class="pat" style="background-image:var(--dred)"></div><button class="heart" data-fav aria-pressed="true" aria-label="إزالة من المفضلة">♥</button><div class="lab"><b class="k">الإمارات</b><small class="ok">الدخول بالهوية</small></div></article>
+<article class="tile"><div class="pat" style="background-image:var(--dsaf)"></div><button class="heart" data-fav aria-pressed="true" aria-label="إزالة من المفضلة">♥</button><div class="lab"><b class="k">المالديف</b><small class="wa">عند الوصول</small></div></article>
+<article class="tile"><div class="pat" style="background-image:var(--dchar)"></div><button class="heart" data-fav aria-pressed="true" aria-label="إزالة من المفضلة">♥</button><div class="lab"><b class="k">فرنسا</b><small class="no">تأشيرة مسبقة</small></div></article>
+</div><div class="empty">اضغط ♡ في أي وجهة لتضيفها هنا.</div></div></div></div>
+
+<div class="slot"><div class="cap">٣ — مراجعات الوجهة</div><div class="phone" aria-label="شاشة المراجعات">
+<div class="sb"><span>9:41</span><span>5G ▮</span></div>
+<div class="rhead"><div style="margin-bottom:10px;font-size:14px;opacity:.85">‹ تركيا</div><div class="row"><div class="k num">٤٫٦</div><div><div class="dia" role="img" aria-label="٤٫٦ من ٥"><i></i><i></i><i></i><i></i><i class="off"></i></div><div style="font-size:13px;margin-top:2px">٣٢٨ مراجعة</div></div></div>
+<div class="dist"><div>٥<i><b style="--w:72%"></b></i></div><div>٤<i><b style="--w:18%"></b></i></div><div>٣<i><b style="--w:6%"></b></i></div></div></div>
+<div class="band s" aria-hidden="true"></div>
+<div class="pad"><div class="tabs" role="tablist"><button role="tab" aria-selected="true">الأحدث</button><button role="tab" aria-selected="false">الأعلى</button><button role="tab" aria-selected="false">عائلات</button></div>
+<article class="rev"><div class="by"><span>عبدالله ع. · عائلة</span><span>نوفمبر ٢٠٢٥</span></div><div class="dia" aria-label="٥ من ٥"><i></i><i></i><i></i><i></i><i></i></div><p>الإجراءات في المطار سريعة. جهّزنا حجز الفندق مطبوعًا وطلبوه منا.</p></article><div class="sep" aria-hidden="true"></div>
+<article class="rev"><div class="by"><span>سارة م. · أصدقاء</span><span>أكتوبر ٢٠٢٥</span></div><div class="dia" aria-label="٤ من ٥"><i></i><i></i><i></i><i></i><i class="off"></i></div><p>رحلة ممتازة، لكن الأسواق مزدحمة في العطلات. احجزوا مبكرًا.</p></article>
+<a class="btn" href="#" style="margin-top:12px">اكتب مراجعتك</a></div></div></div>
+
+<div class="slot"><div class="cap">٤ — التحقق من التأشيرة</div><div class="phone p4" aria-label="شاشة التحقق من التأشيرة">
+<div class="sb"><span>9:41</span><span>5G ▮</span></div><div class="band" aria-hidden="true"></div>
+<div class="pad"><h1 class="k">تحقق من التأشيرة</h1>
+<div class="card"><div class="sel"><div><small>جواز السفر</small><b>السعودية</b></div><div><small>الوجهة</small><b>تركيا</b></div></div>
+<div class="sel" style="margin:0"><div><small>تاريخ السفر</small><b>٢٥ نوفمبر</b></div><div><small>المدة</small><b>٦ أيام</b></div></div></div>
+<div class="rug"><div class="in"><div class="status"><small>النتيجة</small><div class="k">مسموح لك بالدخول</div></div>
+<div class="lead"><span>نوع الدخول</span><i></i><b>بدون تأشيرة</b></div><div class="lead"><span>أقصى مدة</span><i></i><b>٩٠ يومًا</b></div><div class="lead"><span>صلاحية الجواز</span><i></i><b>٦ أشهر</b></div><div class="lead"><span>تطعيم / حجر</span><i></i><b>لا يوجد</b></div>
+<ul class="dl"><li>جواز سفر ساري</li><li>حجز طيران ذهاب وعودة</li><li>حجز فندق أو عنوان إقامة</li></ul>
+<p class="fine">آخر تحقق ٢٠٢٥-٠١-١٠ · بيانات تجريبية، تأكد من الجهة الرسمية.</p></div></div>
+<a class="btn" href="#">أضف إلى رحلتي</a></div></div></div>
+
+</div><script src="shared.js"></script></body></html>
