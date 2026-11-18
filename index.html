@@ -18,6 +18,8 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<a class="skip" href="#main">تخطي إلى المحتوى</a>
+<div id="live" class="sr" aria-live="polite"></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 <symbol id="ecg" viewBox="0 0 340 120"><path d="M8 70h82l24-44 34 86 34-100 28 58h122" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </defs></svg>
@@ -32,8 +34,10 @@
       <button type="button" id="aboutBtn" class="navbtn">عن ثواني</button>
     </nav>
     <div class="actions">
+      <div class="fsz" role="group" aria-label="حجم الخط"><button type="button" data-fs="-1" aria-label="تصغير الخط">أ−</button><button type="button" data-fs="1" aria-label="تكبير الخط">أ+</button></div>
+      <button class="emerg" id="emBtn" type="button">طوارئ</button>
       <span class="offpill" id="net"><i></i><span>يعمل دون اتصال بعد الزيارة الأولى</span></span>
-      <button class="ghost" id="shareBtn" type="button">↗ مشاركة</button>
+      <button class="ghost hide-m" id="shareBtn" type="button">↗ مشاركة</button>
       <button class="ghost" id="installBtn" type="button" hidden>تثبيت التطبيق</button>
       <button class="round" id="themeBtn" type="button" aria-label="تغيير المظهر">◐</button>
     </div>
@@ -50,6 +54,7 @@
         <a class="cta" href="#browse">اعثر على الحالة <span aria-hidden="true">←</span></a>
         <a class="callrow" href="tel:997"><i aria-hidden="true">↗</i><span><b>اتصال بالإسعاف</b><small>الهلال الأحمر السعودي · 997</small></span></a>
       </div>
+      <button class="all fullbtn" id="fullBtn" type="button">عرض كل الأقسام ←</button>
       <p class="hnote">إذا كان هناك خطر مباشر، ابتعد إلى مكان آمن واتصل بالطوارئ.</p>
     </div>
     <div class="art" aria-hidden="true">
@@ -66,7 +71,7 @@
   </section>
 
   <section class="wrap sec" id="quick" aria-labelledby="quick-h">
-    <div class="sec-head"><div><small>ابدأ من هنا</small><h2 id="quick-h">ماذا يحدث الآن؟</h2></div><a class="all" href="#browse">كل الحالات ←</a></div>
+    <div class="sec-head"><div><small>ابدأ من هنا</small><h2 id="quick-h">ماذا يحدث الآن؟</h2></div><div class="links"><button class="all" id="scriptBtn" type="button">ماذا أقول عند الاتصال؟</button><a class="all" href="#browse">كل الحالات ←</a></div></div>
     <div class="searchbox"><span aria-hidden="true">⌕</span><label class="sr" for="q">ابحث في الحالات</label><input id="q" type="search" autocomplete="off" placeholder="ابحث عن حالة، مثل: نزيف أو حريق"><button type="button" class="mic" id="micBtn" hidden aria-label="بحث صوتي">🎙</button><kbd>⌘ K</kbd></div>
     <p class="qhint" id="qhint" aria-live="polite"></p>
     <div class="tiles" id="tiles"></div>
@@ -76,6 +81,7 @@
     <div class="sec-head"><div><small>مرتّب حسب الموقف</small><h2 id="browse-h">دليل الحالات</h2></div><span class="count" id="count" aria-live="polite"></span></div>
     <div class="chips" id="cats" role="group" aria-label="التصنيف"></div>
     <div class="chips places" id="places" role="group" aria-label="المكان"></div>
+    <p class="note" id="kidsNote" hidden>تعرض لك بطاقات مناسبة لعمرك. اطلب من شخص كبير مساعدتك في الباقي. <button class="all" id="kidsAll" type="button">عرض كل البطاقات</button></p>
     <div class="grid" id="grid"></div>
     <div class="empty" id="empty" hidden>لا توجد حالة بهذا الاسم. جرّب كلمة أخرى.</div>
   </section>
@@ -118,13 +124,19 @@
   <section class="wrap sec" id="plan" aria-labelledby="plan-h">
     <div class="sec-head"><div><small>تُحفظ على جهازك فقط</small><h2 id="plan-h">خطة عائلتك</h2></div></div>
     <p class="mut">تظهر هذه البيانات أسفل كل بطاقة وفي الطباعة والمشاركة.</p>
+    <h3 class="subh">من يستخدم ثواني؟</h3>
+    <div class="btnrow" role="group" aria-label="نمط الاستخدام"><button class="btn ghostb" type="button" data-profile="child">طفل أو مراهق</button><button class="btn ghostb" type="button" data-profile="adult">بالغ</button><button class="btn ghostb" type="button" data-profile="senior">كبير سن (عرض مبسّط وصوت)</button></div>
+    <p class="mut" id="starsLine"></p>
+    <h3 class="subh">سرعة القراءة الصوتية</h3>
+    <div class="btnrow" role="group" aria-label="سرعة القراءة"><button class="btn ghostb" type="button" data-rate="0.8">أبطأ</button><button class="btn ghostb" type="button" data-rate="0.95">عادية</button><button class="btn ghostb" type="button" data-rate="1.1">أسرع</button></div>
+    <h3 class="subh">بيانات العائلة</h3>
     <div class="form2">
       <label>الموقع / المنزل<input id="f_loc" data-fam="loc"></label>
       <label>رقم طوارئ العائلة البديل<input id="f_tel" data-fam="tel" inputmode="tel"></label>
       <label>نقطة التجمع الآمنة<input id="f_pt" data-fam="pt"></label>
       <label>موقع حقيبة الإسعافات والطفاية<input id="f_kit" data-fam="kit"></label>
     </div>
-    <div class="btnrow" style="margin-top:12px"><span class="mut" style="align-self:center">حجم الخط:</span><button class="btn ghostb" data-scale="1" type="button">عادي</button><button class="btn ghostb" data-scale="1.12" type="button">كبير</button><button class="btn ghostb" data-scale="1.25" type="button">كبير جداً</button></div>
+    <div class="btnrow" style="margin-top:12px"><span class="mut" style="align-self:center">حجم الخط:</span><button class="btn ghostb" data-scale="1" type="button">عادي</button><button class="btn ghostb" data-scale="1.12" type="button">كبير</button><button class="btn ghostb" data-scale="1.25" type="button">كبير جداً</button><button class="btn ghostb" data-scale="1.4" type="button">الأكبر</button></div>
     <details class="ai">
       <summary>لم تجد حالتك؟ ولّد بطاقة بالذكاء الاصطناعي</summary>
       <div class="aibox">
@@ -154,6 +166,9 @@
 
 <div class="backdrop" id="modal" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle"><button class="close" id="closeModal" type="button" aria-label="إغلاق">×</button><div id="mBody"></div></section></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<dialog id="profDlg" aria-labelledby="profT"><h3 id="profT" style="margin:0 0 6px">من سيستخدم ثواني؟</h3><p class="mut" style="margin-bottom:10px">نضبط لك الخط والعرض والصوت. تقدر تغيّره لاحقاً من «خطة عائلتك».</p>
+  <div class="pbtns"><button class="pbtn" type="button" data-profile="child"><b>طفل أو مراهق</b><small>بطاقات مناسبة لعمرك واختبار قصير</small></button><button class="pbtn" type="button" data-profile="adult"><b>بالغ</b><small>كل الأقسام</small></button><button class="pbtn" type="button" data-profile="senior"><b>كبير سن</b><small>خط أكبر وعرض مبسّط وقراءة بالصوت</small></button></div>
+  <button class="btn ghostb" type="button" id="profSkip" style="width:100%;margin-top:10px">تخطي</button></dialog>
 <dialog id="keyDlg"><form method="dialog"><h3 style="margin:0">مفتاح Gemini API</h3><p class="mut">يُحفظ على جهازك فقط ويُرسل إلى Google عند التوليد.</p><label for="keyInput" class="sr">المفتاح</label><input id="keyInput" type="password" placeholder="AIza…" autocomplete="off"><div class="btnrow"><button class="btn solid" value="save">حفظ</button><button class="btn ghostb" value="cancel">إلغاء</button></div></form></dialog>
 
 <script src="data.js"></script>

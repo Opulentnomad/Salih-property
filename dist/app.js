@@ -15,8 +15,12 @@ let LIB=PRESETS.slice();
 function ext(p){const m=META[p.id]||{};p.ctx=m.ctx||CTX_DEF[p.cat]||PLACES;p.refs=m.refs||p.refs||[];p.vids=m.vids||p.vids||[];return p;}
 LIB=LIB.map(ext);
 const byId=id=>LIB.find(p=>p.id===id);
-const S={q:'',cat:'all',place:'all',kit:'home',deferred:null,swReady:false};
+const S={q:'',cat:'all',place:'all',kit:'home',deferred:null,swReady:false,kidsAll:false};
 const GD={id:null,idx:0,mode:'over',talk:false,opener:null};
+const profile=()=>LS.get('profile','');
+const isSimple=()=>document.documentElement.dataset.mode==='simple';
+const SCALES=[1,1.12,1.25,1.4];
+const say=t=>{const l=$('live');l.textContent='';setTimeout(()=>{l.textContent=t},60);};
 
 /* ---------- pictograms ---------- */
 const G={
@@ -60,9 +64,9 @@ const catName=p=>(CATS[p.cat]||{}).name||'';
 
 /* ---------- renderers ---------- */
 function filtered(){const q=norm(S.q);
- return LIB.filter(p=>(S.cat==='all'||p.cat===S.cat)&&(S.place==='all'||(p.ctx||[]).includes(S.place))&&(!q||norm([p.title,p.level,p.golden,catName(p),(p.steps||[]).join(' '),(p.avoid||[]).join(' '),(p.gear||[]).join(' '),(p.ctx||[]).join(' ')].join(' ')).includes(q)));}
+ return LIB.filter(p=>(S.cat==='all'||p.cat===S.cat)&&(S.place==='all'||(p.ctx||[]).includes(S.place))&&(profile()!=='child'||S.kidsAll||KIDS_IDS.includes(p.id))&&(!q||norm([p.title,p.level,p.golden,catName(p),(p.steps||[]).join(' '),(p.avoid||[]).join(' '),(p.gear||[]).join(' '),(p.ctx||[]).join(' ')].join(' ')).includes(q)));}
 function renderTiles(){
- $('tiles').innerHTML=QUICK.map(id=>{const p=byId(id);if(!p)return'';
+ $('tiles').innerHTML=QUICK.slice(0,isSimple()?6:8).map(id=>{const p=byId(id);if(!p)return'';
   return `<button class="tile lv-${p.lv}" data-card="${id}" type="button"><span class="top">${icon(p)}<span aria-hidden="true">←</span></span><h3>${esc(QLABEL[id]||p.title)}</h3><p>${esc(p.level)}</p>${p.lv==='c'||p.lv==='d'?'<span class="urgent">حالة عاجلة</span>':''}</button>`}).join('');}
 function renderCats(){
  const tabs=[['all','الكل ('+LIB.length+')']].concat(Object.keys(CATS).map(k=>[k,CATS[k].name+' ('+LIB.filter(p=>p.cat===k).length+')']));
@@ -72,6 +76,7 @@ function renderGrid(){
  const l=filtered();
  $('count').textContent=l.length+' بطاقة';
  $('empty').hidden=l.length>0;
+ $('kidsNote').hidden=!(profile()==='child'&&!S.kidsAll);
  $('grid').innerHTML=l.map(p=>`<button class="gcard lv-${p.lv}" type="button" data-card="${p.id}"><span class="top">${icon(p)}<span class="num" aria-label="رقم الطوارئ">${esc(p.phone)}</span></span><span class="cat">${esc(catName(p))}</span><h3>${esc(p.title)}</h3><p>${esc(p.level)}</p><span class="foot"><span>عرض الخطوات ←</span></span></button>`).join('');
  const h=$('qhint');h.innerHTML=S.q?(l.length?`${l.length} بطاقة مطابقة. <a href="#browse" class="all">عرضها ←</a>`:'لا توجد بطاقة مطابقة. جرّب كلمة أخرى.'):'';
 }
@@ -125,14 +130,14 @@ let speaking=false;
 function stopSpeak(){try{speechSynthesis.cancel()}catch(e){}speaking=false;$$('.wave').forEach(w=>w.classList.remove('on'));const b=document.querySelector('[data-act=speak]');if(b)b.textContent='🔊 تشغيل الصوت';}
 function speak(text){
  if(!('speechSynthesis' in window)){toast('جهازك لا يدعم القراءة الصوتية');return;}
- try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ar-SA';u.rate=.95;
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ar-SA';u.rate=Number(LS.get('rate','0.95'))||.95;
   const v=(speechSynthesis.getVoices()||[]).find(v=>/^ar/i.test(v.lang));if(v)u.voice=v;else if(speechSynthesis.getVoices().length)toast('لم يُعثر على صوت عربي على جهازك');
   u.onstart=()=>{speaking=true;$$('.wave').forEach(w=>w.classList.add('on'));const b=document.querySelector('[data-act=speak]');if(b)b.textContent='⏹ إيقاف الصوت';};
   u.onend=u.onerror=()=>{speaking=false;$$('.wave').forEach(w=>w.classList.remove('on'));const b=document.querySelector('[data-act=speak]');if(b)b.textContent='🔊 تشغيل الصوت';};
   speechSynthesis.speak(u);}catch(e){toast('تعذر تشغيل الصوت');}}
 const guideText=(p,i)=>i===0?'القاعدة الأولى. '+p.golden:'الخطوة '+i+'. '+p.steps[i-1];
 function srcHTML(p){let h='';
- if(p.vids&&p.vids.length)h+=`<div class="srcbox"><h3>فيديو توضيحي</h3>${p.vids.map(v=>`<a class="srclink" href="${esc(v[1])}" target="_blank" rel="noopener">▶ ${esc(v[0])}</a>`).join('')}<small>المشاهدة تحتاج اتصالاً بالإنترنت.</small></div>`;
+ if(p.vids&&p.vids.length)h+=`<div class="srcbox"><h3>فيديو توضيحي</h3>${p.vids.map(v=>{const m=/youtu\.be\/([\w-]{6,})/.exec(v[1]);return `<a class="srclink" href="${esc(v[1])}" target="_blank" rel="noopener">▶ ${esc(v[0])}</a>`+(m?`<button class="btn ghostb sm vbtn" type="button" data-act="vid" data-id="${m[1]}" data-t="${esc(v[0])}">تشغيل داخل الصفحة</button>`:'');}).join('')}<small>المشاهدة تحتاج اتصالاً بالإنترنت.</small></div>`;
  if(p.refs&&p.refs.length)h+=`<div class="srcbox"><h3>المصادر</h3>${p.refs.map(r=>`<a class="srclink" href="${esc(r[1])}" target="_blank" rel="noopener">${esc(r[0])} ↗</a>`).join('')}</div>`;
  return h;}
 function buildText(p){p=p||byId(GD.id);const f=family();
@@ -152,7 +157,7 @@ function guide(p){const n=p.steps.length,i=GD.idx;
  if(i>n)return `<div class="stage lv-${p.lv}"><div class="sart">${icon(p)}</div><h3 style="font-family:var(--fh);font-size:24px;margin-top:12px">أحسنت. هل اتصلت بـ ${esc(p.phone)}؟</h3><p class="mut">تابع حالة المصاب حتى وصول المسعفين.</p>
   <div class="avoidb" style="margin-top:12px"><h3>تجنب فوراً</h3><ul>${p.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
   <div class="cb" style="padding:12px 0 0">${srcHTML(p)}</div>
-  <div class="btnrow"><a class="btn red" href="tel:${esc(p.phone)}">اتصل بـ ${esc(p.phone)}</a><button class="btn ghostb" type="button" data-act="restart">إعادة الخطوات</button><button class="btn ghostb" type="button" data-act="mode" data-m="over">عرض البطاقة كاملة</button></div></div>`;
+  <div class="btnrow"><a class="btn red" href="tel:${esc(p.phone)}">اتصل بـ ${esc(p.phone)}</a><button class="btn ${profile()==='child'?'solid':'ghostb'}" type="button" data-act="quiz">اختبر نفسك</button><button class="btn ghostb" type="button" data-act="restart">إعادة الخطوات</button><button class="btn ghostb" type="button" data-act="mode" data-m="over">عرض البطاقة كاملة</button></div></div>`;
  const bars=Array.from({length:n+1},(_,k)=>`<i class="${k<=i?'on':''}"></i>`).join('');
  const extra=(p.id==='p3'?'<button class="btn ghostb sm" type="button" data-act="tool" data-t="tools">افتح إيقاع الإنعاش</button>':'')+(p.id==='p2'?'<button class="btn ghostb sm" type="button" data-act="tool" data-t="tools">ابدأ مؤقت العاصبة</button>':'');
  return `<div class="stage lv-${p.lv}" id="stage"><div class="sart">${icon(p)}<div class="wave">${'<i></i>'.repeat(26)}</div><div class="cap">${esc(p.level)}</div></div>
@@ -163,18 +168,18 @@ function guide(p){const n=p.steps.length,i=GD.idx;
   <a class="btn red" href="tel:${esc(p.phone)}" style="width:100%;margin-top:12px">اتصل الآن ${esc(p.phone)}</a>`;}
 function drawModal(){
  const p=byId(GD.id);if(!p)return;
- $('mBody').innerHTML=`<div class="lv-${p.lv}">${GD.mode==='guide'?`<span class="mcat">${esc(catName(p))}${p.lv==='c'||p.lv==='d'?' · حالة عاجلة':''}</span><h2 id="mTitle">${esc(p.title)}</h2>`:'<span class="sr" id="mTitle">'+esc(p.title)+'</span>'}
-  <div class="tabs" role="tablist"><button type="button" role="tab" data-act="mode" data-m="over" aria-selected="${GD.mode==='over'}">البطاقة كاملة</button><button type="button" role="tab" data-act="mode" data-m="guide" aria-selected="${GD.mode==='guide'}">خطوة بخطوة وبالصوت</button></div>
-  ${GD.mode==='over'?overview(p):guide(p)}</div>`;
+ $('mBody').innerHTML=`<div class="lv-${p.lv}">${GD.mode!=='over'?`<span class="mcat">${esc(catName(p))}${p.lv==='c'||p.lv==='d'?' · حالة عاجلة':''}</span><h2 id="mTitle">${esc(p.title)}</h2>`:'<span class="sr" id="mTitle">'+esc(p.title)+'</span>'}
+  <div class="tabs" role="tablist"><button type="button" role="tab" data-act="mode" data-m="over" aria-selected="${GD.mode==='over'}">البطاقة كاملة</button><button type="button" role="tab" data-act="mode" data-m="guide" aria-selected="${GD.mode==='guide'||GD.mode==='quiz'}">خطوة بخطوة وبالصوت</button>${EN[p.id]?`<button type="button" role="tab" data-act="mode" data-m="en" aria-selected="${GD.mode==='en'}" lang="en" dir="ltr">English</button>`:''}</div>
+  ${GD.mode==='over'?overview(p):GD.mode==='en'?enView(p):GD.mode==='quiz'?quizView(p):guide(p)}</div>`;
  const st=$('stage');if(st){let x0=null;st.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});st.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx<-55)go(1);else if(dx>55)go(-1);});}
 }
-function go(d){const p=byId(GD.id),n=p.steps.length,ni=Math.max(0,Math.min(n+1,GD.idx+d));if(ni===GD.idx)return;GD.idx=ni;drawModal();
+function go(d){const p=byId(GD.id),n=p.steps.length,ni=Math.max(0,Math.min(n+1,GD.idx+d));if(ni===GD.idx)return;GD.idx=ni;drawModal();say(ni===0?p.golden:ni<=n?'الخطوة '+ni+' من '+n+'. '+p.steps[ni-1]:'انتهت الخطوات');
  if(GD.talk&&ni<=n)speak(guideText(p,ni));else if(ni>n)stopSpeak();}
 function openCard(id,mode){
  const p=byId(id);if(!p)return;GD.id=id;GD.idx=0;GD.mode=mode||'over';GD.talk=false;GD.opener=document.activeElement;stopSpeak();
- drawModal();$('modal').hidden=false;document.body.style.overflow='hidden';$('closeModal').focus();
+ drawModal();showModal();
  try{history.replaceState(null,'','?card='+id)}catch(e){}}
-function closeModal(){if($('modal').hidden)return;$('modal').hidden=true;document.body.style.overflow='';stopSpeak();GD.id=null;
+function closeModal(){if($('modal').hidden)return;$('modal').hidden=true;document.body.style.overflow='';setBg(false);stopSpeak();GD.id=null;
  try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}
  if(GD.opener&&GD.opener.focus)try{GD.opener.focus()}catch(e){}}
 function openAbout(){GD.id=null;GD.opener=document.activeElement;
@@ -182,12 +187,53 @@ function openAbout(){GD.id=null;GD.opener=document.activeElement;
  <div class="nums">${NUMS.map(([n,t,d,c])=>`<a class="numc" href="tel:${n}" style="--c:${c}"><b>${n}</b><span>${t}<small>${d}</small></span></a>`).join('')}</div>
  <div class="btnrow"><a class="btn ghostb" href="#plan" data-close>خطة عائلتك</a><a class="btn ghostb" href="#references" data-close>المراجع</a><button class="btn ghostb" type="button" data-act="sharesite">مشاركة ثواني</button></div>
  <p class="note">للتعلم العملي راجع برامج التدريب الرسمية في الهلال الأحمر السعودي. ثواني مبادرة توعوية غير رسمية.</p>`;
- $('modal').hidden=false;document.body.style.overflow='hidden';$('closeModal').focus();}
+ showModal();}
 $('closeModal').onclick=closeModal;
 $('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();
  if(GD.id&&GD.mode==='guide'&&!$('modal').hidden&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')){if(e.key==='ArrowLeft')go(1);if(e.key==='ArrowRight')go(-1);}});
 
+/* ---------- English / quiz / emergency / script ---------- */
+function enView(p){const e=EN[p.id];
+ return `<div class="en" dir="ltr" lang="en"><div class="note" style="margin-top:0">Draft translation for visitors who do not read Arabic. The Arabic card is the reference. Always call the emergency number first.</div>
+ <a class="callbig" href="tel:${esc(p.phone)}"><span>Call now</span><b>${esc(p.phone)}</b></a>
+ <h3 class="enh">${esc(e.title)}</h3><p class="mut">${esc(e.level)}</p>
+ <div class="golden" style="margin-top:10px"><b>First rule</b>${esc(e.golden)}</div>
+ <h3 class="enh" style="font-size:20px">Steps</h3><ol class="stepsl">${e.steps.map(s=>`<li><span>${esc(s)}</span></li>`).join('')}</ol>
+ <div class="avoidb" style="margin-top:12px"><h3>Avoid immediately</h3><ul>${e.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div></div>`;}
+const QZ={qs:[],i:0,s:0,sel:null};
+const shuffle=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+function buildQuiz(p){const nums=['997','911','998','937','993','996'],qs=[];
+ qs.push({q:'ما الرقم المناسب للاتصال في هذه الحالة؟',ok:p.phone,opts:shuffle([p.phone,...shuffle(nums.filter(n=>n!==p.phone)).slice(0,2)]),why:'الرقم المناسب هو '+p.phone+'.'});
+ if(p.avoid.length&&p.steps.length>=2){const a=p.avoid[Math.floor(Math.random()*p.avoid.length)];qs.push({q:'أي مما يلي يجب تجنبه في هذه الحالة؟',ok:a,opts:shuffle([a,...shuffle(p.steps.slice()).slice(0,2)]),why:'هذا ما يجب تجنبه: '+a});}
+ if(p.avoid.length>=1){const s=p.steps[Math.floor(Math.random()*p.steps.length)];qs.push({q:'أي مما يلي خطوة صحيحة في هذه الحالة؟',ok:s,opts:shuffle([s,...shuffle(p.avoid.slice()).slice(0,2)]),why:'الخطوة الصحيحة: '+s});}
+ return qs;}
+function quizView(p){
+ if(QZ.i>=QZ.qs.length){const n=QZ.qs.length,st='★'.repeat(QZ.s)+'☆'.repeat(n-QZ.s);
+  return `<div class="stage"><div class="stars" aria-label="${QZ.s} من ${n}">${st}</div><h3 style="font-family:var(--fh);font-size:24px;text-align:center">${QZ.s===n?'ممتاز! أنت جاهز لهذه الحالة':QZ.s>0?'أحسنت، راجع الخطوات مرة أخرى':'لا بأس، اقرأ الخطوات مرة ثانية وحاول'}</h3>
+  <div class="btnrow" style="justify-content:center"><button class="btn solid" type="button" data-act="quiz">اختبار جديد</button><button class="btn ghostb" type="button" data-act="restart">راجع الخطوات</button></div></div>`;}
+ const q=QZ.qs[QZ.i],done=QZ.sel!==null;
+ return `<div class="stage"><div class="stepno">سؤال ${QZ.i+1} من ${QZ.qs.length}</div><div class="steptx" style="min-height:0;font-size:calc(21px*var(--scale))">${esc(q.q)}</div>
+ <div class="opts">${q.opts.map((o,k)=>`<button type="button" class="opt ${done?(o===q.ok?'ok':(k===QZ.sel?'bad':'')):''}" data-act="qans" data-k="${k}" ${done?'disabled':''}>${esc(o)}</button>`).join('')}</div>
+ <div class="fb" aria-live="polite">${done?(q.opts[QZ.sel]===q.ok?'أحسنت! إجابة صحيحة.':esc(q.why)):''}</div>
+ ${done?`<div class="btnrow"><button class="btn solid" type="button" data-act="qnext">${QZ.i+1>=QZ.qs.length?'النتيجة':'السؤال التالي'}</button></div>`:''}</div>`;}
+function scriptHTML(){const f=LS.get('fam_loc','').trim();
+ return `<div class="script"><h3>ماذا أقول عند الاتصال؟</h3><ol><li>«السلام عليكم، أحتاج إسعافاً.»</li><li>العنوان: ${f?esc(f):'اذكر المدينة والحي واسم الشارع وأقرب معلم'}.</li><li>ماذا حدث؟ مثال: «شخص لا يتنفس» أو «نزيف شديد» أو «حريق في المطبخ».</li><li>كم عدد المصابين وكم عمرهم تقريباً؟</li><li>هل المصاب واعٍ؟ هل يتنفس؟</li><li>اسمي … ورقم جوالي … وابقَ على الخط ولا تغلقه حتى يطلب منك.</li></ol><div class="btnrow"><button class="btn ghostb sm" type="button" data-act="copyscript">نسخ النص</button></div></div>`;}
+function openEmergency(){GD.id=null;GD.opener=document.activeElement;
+ const items=[['p3','لا يتنفس أو لا يستجيب'],['p2','ينزف بشدة'],['p1','يختنق'],['p4','حساسية شديدة'],['p20','رائحة غاز'],['p21','حريق']];
+ $('mBody').innerHTML=`<span class="mcat">وضع الطوارئ</span><h2 id="mTitle">ماذا يحدث الآن؟</h2>
+ <a class="callhuge" href="tel:997"><span>اتصل بالإسعاف</span><b>997</b></a>
+ <div class="emgrid">${items.map(([id,l])=>`<button type="button" class="emb" data-act="em" data-id="${id}">${l}</button>`).join('')}</div>
+ <div class="btnrow"><button class="btn solid" type="button" data-act="locate">شارك موقعي عبر واتساب</button><a class="btn ghostb" href="tel:911">الطوارئ الموحد 911</a><a class="btn ghostb" href="tel:998">الدفاع المدني 998</a></div>${scriptHTML()}`;
+ showModal();}
+function openScript(){GD.id=null;GD.opener=document.activeElement;$('mBody').innerHTML=`<span class="mcat">قبل أن تتصل</span><h2 id="mTitle">ماذا أقول للإسعاف؟</h2><a class="callhuge" href="tel:997"><span>اتصل بالإسعاف</span><b>997</b></a>${scriptHTML()}`;showModal();}
+function locate(){$('locBtn').click();}
+function showModal(){$('modal').hidden=false;document.body.style.overflow='hidden';setBg(true);$('closeModal').focus();}
+function setBg(on){['main','top'].forEach(i=>{const e=$(i);if(e)e.inert=on;});$$('.foot,.mobile-nav').forEach(e=>e.inert=on);}
+
+document.addEventListener('keydown',e=>{if(e.key!=='Tab'||$('modal').hidden)return;
+ const f=$$('#modal a[href],#modal button:not([disabled]),#modal input,#modal [tabindex]:not([tabindex="-1"])').filter(x=>x.offsetParent!==null);if(!f.length)return;
+ const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}});
 /* ---------- export ---------- */
 let h2c=null;
 function loadH2C(){if(window.html2canvas)return Promise.resolve();if(!h2c)h2c=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=res;s.onerror=()=>rej(new Error('offline'));document.head.appendChild(s);});return h2c;}
@@ -197,7 +243,7 @@ const C={run:false,count:0,t0:0,acc:0,beat:null,clk:null,actx:null,lastSwap:0};
 const T={run:false,acc:0,t0:0,int:null,since:''};
 const cprElapsed=()=>Math.floor((C.acc+(C.run?Date.now()-C.t0:0))/1000);
 function beep(){try{if(!C.actx)C.actx=new (window.AudioContext||window.webkitAudioContext)();const o=C.actx.createOscillator(),g=C.actx.createGain();o.type='square';o.frequency.value=880;g.gain.setValueAtTime(.35,C.actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,C.actx.currentTime+.09);o.connect(g);g.connect(C.actx.destination);o.start();o.stop(C.actx.currentTime+.1);}catch(e){}}
-function cprAlert(t){const a=$('cAlert');a.textContent=t;a.hidden=false;toast(t.split('.')[0]);}
+function cprAlert(t){const a=$('cAlert');a.textContent=t;a.hidden=false;toast(t.split('.')[0]);say(t);}
 function cprPaint(){const e=cprElapsed();$('cCount').textContent=C.count;$('cTime').textContent=pad(Math.floor(e/60))+':'+pad(e%60);
  if(C.run&&e>0&&e%120===0&&C.lastSwap!==e){C.lastSwap=e;cprAlert('مضت دقيقتان. بدّل المسعف إن وُجد من يساعدك.');}}
 function cprTick(){if(C.run){C.count++;beep();try{navigator.vibrate&&navigator.vibrate(25)}catch(e){}const h=$('heartbox');h.classList.add('beat');setTimeout(()=>h.classList.remove('beat'),100);
@@ -246,11 +292,21 @@ document.addEventListener('click',async e=>{
  const pl=e.target.closest('[data-place]');if(pl){S.place=pl.dataset.place;renderCats();renderGrid();return;}
  const kt=e.target.closest('[data-kit]');if(kt){S.kit=kt.dataset.kit;renderKit();return;}
  if(e.target.closest('#kitReset')){LS.set('thawani-kit-'+S.kit,'[]');renderKit();return;}
+ const pfb=e.target.closest('[data-profile]');if(pfb){applyProfile(pfb.dataset.profile);if($('profDlg').open)$('profDlg').close();return;}
+ const rt=e.target.closest('[data-rate]');if(rt){LS.set('rate',rt.dataset.rate);toast('تم ضبط سرعة القراءة');return;}
+ const fs=e.target.closest('[data-fs]');if(fs){const cur=SCALES.indexOf(Number(LS.get('scale','1')));const ni=Math.max(0,Math.min(SCALES.length-1,(cur<0?0:cur)+Number(fs.dataset.fs)));LS.set('scale',String(SCALES[ni]));applyScale();return;}
  const sc=e.target.closest('[data-scale]');if(sc){LS.set('scale',sc.dataset.scale);applyScale();return;}
  if(e.target.closest('[data-close]')){closeModal();return;}
  const a=e.target.closest('[data-act]');if(!a)return;const act=a.dataset.act,p=GD.id?byId(GD.id):null;
  switch(act){
-  case 'mode':GD.mode=a.dataset.m;if(GD.mode==='over'){GD.talk=false;stopSpeak();}drawModal();break;
+  case 'mode':GD.mode=a.dataset.m;if(GD.mode==='over'||GD.mode==='en'){GD.talk=false;stopSpeak();}drawModal();if(GD.mode==='guide'&&LS.get('autoread','')==='1'){GD.talk=true;speak(guideText(p,Math.min(GD.idx,p.steps.length)));}break;
+  case 'quiz':QZ.qs=buildQuiz(p);QZ.i=0;QZ.s=0;QZ.sel=null;GD.mode='quiz';stopSpeak();drawModal();break;
+  case 'qans':{const q=QZ.qs[QZ.i];QZ.sel=Number(a.dataset.k);if(q.opts[QZ.sel]===q.ok)QZ.s++;drawModal();say(q.opts[QZ.sel]===q.ok?'إجابة صحيحة':q.why);break;}
+  case 'qnext':QZ.i++;QZ.sel=null;if(QZ.i>=QZ.qs.length){LS.set('stars',String((Number(LS.get('stars','0'))||0)+QZ.s));updateStars();}drawModal();break;
+  case 'em':closeModal();openCard(a.dataset.id,'guide');if(LS.get('autoread','')==='1'){GD.talk=true;speak(guideText(byId(a.dataset.id),0));}break;
+  case 'locate':locate();break;
+  case 'copyscript':try{await navigator.clipboard.writeText($$('.script li').map((x,i)=>(i+1)+'. '+x.textContent).join('\n'));toast('تم نسخ النص');}catch(_){toast('تعذر النسخ');}break;
+  case 'vid':if(!navigator.onLine){toast('تشغيل الفيديو يحتاج اتصالاً بالإنترنت');break;}{const w=document.createElement('div');w.className='vid';w.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(a.dataset.id)+'" title="'+esc(a.dataset.t)+'" loading="lazy" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>';a.replaceWith(w);}break;
   case 'next':go(1);break;case 'prev':go(-1);break;case 'restart':GD.idx=0;drawModal();break;
   case 'speak':if(speaking){GD.talk=false;stopSpeak();}else{GD.talk=true;speak(guideText(p,Math.min(GD.idx,p.steps.length)));}break;
   case 'tool':closeModal();$(a.dataset.t).scrollIntoView({behavior:'smooth'});break;
@@ -264,6 +320,19 @@ document.addEventListener('change',e=>{const c=e.target.closest('[data-kitem]');
  const k=CHECKLISTS.find(x=>x.id===S.kit),pc=Math.round(ids.length/k.items.length*100);$('kp').textContent=pc+'%';$('kb').style.width=pc+'%';});
 $$('[data-fam]').forEach(i=>{i.value=LS.get('fam_'+i.dataset.fam,'');i.placeholder=FDEF[i.dataset.fam];i.addEventListener('input',()=>{LS.set('fam_'+i.dataset.fam,i.value);if(!$('modal').hidden&&GD.id&&GD.mode==='over')drawModal();});});
 
+/* ---------- profile / font size / emergency ---------- */
+function applyMode(){document.documentElement.dataset.mode=LS.get('mode','full');}
+function updateStars(){const n=Number(LS.get('stars','0'))||0;const e=$('starsLine');if(e)e.textContent=n?'نجومك من الاختبارات: '+n+' ★':'';}
+function applyProfile(pf){LS.set('profile',pf);document.documentElement.dataset.pf=pf;
+ if(pf==='senior'){LS.set('mode','simple');LS.set('autoread','1');if(Number(LS.get('scale','1'))<1.25){LS.set('scale','1.25');applyScale();}}
+ else{LS.set('mode','full');LS.set('autoread','');}
+ if(pf==='child')S.kidsAll=false;applyMode();renderAll();updateStars();
+ toast(pf==='child'?'تم ضبط ثواني لك':pf==='senior'?'تم ضبط عرض مبسّط وخط أكبر وقراءة بالصوت':'تم ضبط العرض الكامل');}
+$('emBtn').onclick=openEmergency;$('scriptBtn').onclick=openScript;
+$('fullBtn').onclick=()=>{LS.set('mode','full');applyMode();renderAll();};
+$('kidsAll').onclick=()=>{S.kidsAll=true;renderGrid();};
+$('profSkip').onclick=()=>$('profDlg').close();
+
 /* ---------- PWA: status, install, SW, scroll spy ---------- */
 function updateNet(){const n=$('net'),off=!navigator.onLine;n.classList.toggle('off',off);n.querySelector('span').textContent=off?'تعمل بدون إنترنت':(S.swReady?'جاهز للعمل دون اتصال':'يعمل دون اتصال بعد الزيارة الأولى');}
 window.addEventListener('online',updateNet);window.addEventListener('offline',updateNet);
@@ -275,6 +344,7 @@ if('IntersectionObserver' in window){const ids=['home','browse','checklists'],io
 if('speechSynthesis' in window)try{speechSynthesis.getVoices();}catch(e){}
 
 /* ---------- start ---------- */
-applyTheme();applyScale();renderNums();renderRefs();renderAll();updateNet();tShow();cprDraw();
+document.documentElement.dataset.pf=profile();applyMode();applyTheme();applyScale();updateStars();renderNums();renderRefs();renderAll();updateNet();tShow();cprDraw();
 const want=new URLSearchParams(location.search).get('card');if(want&&byId(want))openCard(want);
+else if(!profile()&&$('profDlg').showModal)setTimeout(()=>{try{$('profDlg').showModal();}catch(e){}},600);
 })();
