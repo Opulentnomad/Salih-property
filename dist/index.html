@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ثواني | بطاقات الطوارئ</title>
-<meta name="description" content="ثواني: 43 بطاقة إجراءات للإسعافات الأولية وطوارئ المنزل والطريق والبر، خطوة بخطوة وبالصوت، تعمل بدون إنترنت.">
-<meta name="theme-color" content="#E4E9F2">
+<title>ثواني | دليل الطوارئ</title>
+<meta name="description" content="ثواني: 43 بطاقة إجراءات للإسعافات الأولية وطوارئ المنزل والطريق والبر، خطوة بخطوة وبالصوت، مع قوائم تجهيز ومصادر سعودية، وتعمل بدون إنترنت.">
+<meta name="theme-color" content="#F7F7F3">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -14,32 +14,147 @@
 <meta name="apple-mobile-web-app-title" content="ثواني">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="app" id="app">
-  <section class="welcome" id="welcome" hidden aria-label="مرحباً"></section>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ecg" viewBox="0 0 340 120"><path d="M8 70h82l24-44 34 86 34-100 28 58h122" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs></svg>
 
-  <div class="shell" id="shell">
-    <header class="hdr" id="hdr"></header>
-    <main class="main" id="main" tabindex="-1"></main>
-    <nav class="nav" id="nav" aria-label="التنقل الرئيسي"></nav>
+<header class="topbar" id="top">
+  <div class="wrap bar">
+    <a class="brand" href="#home" aria-label="ثواني، الرئيسية"><span class="mark">ث</span><span>ثواني.</span></a>
+    <nav class="desk-nav" aria-label="التنقل الرئيسي">
+      <a href="#home" data-spy="home" class="cur">الرئيسية</a>
+      <a href="#browse" data-spy="browse">دليل الحالات</a>
+      <a href="#checklists" data-spy="checklists">قوائم التجهيز</a>
+      <button type="button" id="aboutBtn" class="navbtn">عن ثواني</button>
+    </nav>
+    <div class="actions">
+      <span class="offpill" id="net"><i></i><span>يعمل دون اتصال بعد الزيارة الأولى</span></span>
+      <button class="ghost" id="shareBtn" type="button">↗ مشاركة</button>
+      <button class="ghost" id="installBtn" type="button" hidden>تثبيت التطبيق</button>
+      <button class="round" id="themeBtn" type="button" aria-label="تغيير المظهر">◐</button>
+    </div>
   </div>
+</header>
 
-  <div id="sheet" class="scrim" hidden></div>
-  <div id="toasts" role="status" aria-live="polite"></div>
-</div>
+<main id="main">
+  <section class="wrap hero" id="home">
+    <div class="copy">
+      <div class="eyebrow">دليل إسعافات أولية مبسّط</div>
+      <h1 class="big">في لحظة طارئة،<br><em>كل ثانية</em> تصنع فرقاً.</h1>
+      <p class="lead">خطوات واضحة تساعدك على التصرف بهدوء إلى أن تصل المساعدة. اختر الحالة التي أمامك.</p>
+      <div class="ctas">
+        <a class="cta" href="#browse">اعثر على الحالة <span aria-hidden="true">←</span></a>
+        <a class="callrow" href="tel:997"><i aria-hidden="true">↗</i><span><b>اتصال بالإسعاف</b><small>الهلال الأحمر السعودي · 997</small></span></a>
+      </div>
+      <p class="hnote">إذا كان هناك خطر مباشر، ابتعد إلى مكان آمن واتصل بالطوارئ.</p>
+    </div>
+    <div class="art" aria-hidden="true">
+      <span class="orb o1"></span><span class="orb o2"></span>
+      <div class="ccard">
+        <div class="dots">•••</div>
+        <div class="ecgp"><svg viewBox="0 0 340 120"><use href="#ecg"/></svg></div>
+        <div class="ccap"><span class="pl">+</span><span><b>ابقَ هادئاً</b><small>خطوة واحدة في كل مرة</small></span></div>
+      </div>
+      <span class="chipf cf1">تأكد من الأمان<b>01</b></span>
+      <span class="chipf cf2">اطلب المساعدة<b>02</b></span>
+      <span class="stamp">دليلك<br>وقت الحاجة</span>
+    </div>
+  </section>
 
-<dialog id="keyDlg">
-  <form method="dialog">
-    <h3 style="margin:0">مفتاح Gemini API</h3>
-    <p class="sub">يُحفظ على جهازك فقط ويُرسل إلى Google عند التوليد.</p>
-    <label for="keyInput" class="sr">المفتاح</label>
-    <input id="keyInput" type="password" placeholder="AIza…" autocomplete="off">
-    <div style="display:flex;gap:8px"><button class="btn blue" style="flex:1" value="save">حفظ</button><button class="btn ghost" style="flex:1" value="cancel">إلغاء</button></div>
-  </form>
-</dialog>
+  <section class="wrap sec" id="quick" aria-labelledby="quick-h">
+    <div class="sec-head"><div><small>ابدأ من هنا</small><h2 id="quick-h">ماذا يحدث الآن؟</h2></div><a class="all" href="#browse">كل الحالات ←</a></div>
+    <div class="searchbox"><span aria-hidden="true">⌕</span><label class="sr" for="q">ابحث في الحالات</label><input id="q" type="search" autocomplete="off" placeholder="ابحث عن حالة، مثل: نزيف أو حريق"><button type="button" class="mic" id="micBtn" hidden aria-label="بحث صوتي">🎙</button><kbd>⌘ K</kbd></div>
+    <p class="qhint" id="qhint" aria-live="polite"></p>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="wrap sec" id="browse" aria-labelledby="browse-h">
+    <div class="sec-head"><div><small>مرتّب حسب الموقف</small><h2 id="browse-h">دليل الحالات</h2></div><span class="count" id="count" aria-live="polite"></span></div>
+    <div class="chips" id="cats" role="group" aria-label="التصنيف"></div>
+    <div class="chips places" id="places" role="group" aria-label="المكان"></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>لا توجد حالة بهذا الاسم. جرّب كلمة أخرى.</div>
+  </section>
+
+  <section class="wrap sec" id="tools" aria-labelledby="tools-h">
+    <div class="sec-head"><div><small>افتحها قبل أن تبدأ الإسعاف</small><h2 id="tools-h">أدوات الميدان</h2></div></div>
+    <div class="two">
+      <div class="panel cpr">
+        <h3>إيقاع الضغطات الصدرية</h3><p class="mut">110 ضغطات في الدقيقة، ضمن المعدل الموصى به (100 إلى 120). اضغط في منتصف الصدر مع كل نبضة.</p>
+        <div class="heartbox" id="heartbox"><svg class="ecgl" viewBox="0 0 340 120" aria-hidden="true"><use href="#ecg"/></svg><span class="hrt" aria-hidden="true">♥</span></div>
+        <button class="cta wide" id="cprBtn" type="button">اضغط الآن</button>
+        <div class="stats"><div><b id="cCount" class="num">0</b><span>ضغطة</span></div><div><b class="num">110</b><span>نبضة/دقيقة</span></div><div><b id="cTime" class="num">00:00</b><span>الزمن</span></div></div>
+        <p class="note" id="cAlert" hidden></p>
+        <div class="btnrow"><a class="btn red" href="tel:997">اتصل 997</a><button class="btn ghostb" id="cprReset" type="button">تصفير</button><button class="btn ghostb" data-card="p3" type="button">خطوات الإنعاش</button></div>
+      </div>
+      <div class="panel">
+        <h3>مؤقت العاصبة</h3><p class="mut">سجّل وقت تركيبها وأبلغ به المسعفين عند وصولهم.</p>
+        <div class="clock" id="tClock">00:00:00</div><div class="since" id="tSince"></div>
+        <div class="btnrow"><button class="btn solid" id="tGo" type="button">بدء</button><button class="btn ghostb" id="tPause" type="button">إيقاف مؤقت</button><button class="btn ghostb" id="tReset" type="button">تصفير</button></div>
+        <p class="mut" style="margin-top:14px">ضع العاصبة أعلى الجرح بـ 5 إلى 7 سم، ولا تفكّها بنفسك. التفاصيل في بطاقة «إيقاف النزيف الشرياني».</p>
+        <button class="btn ghostb" data-card="p2" type="button" style="margin-top:8px">افتح بطاقة النزيف</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="checklists" aria-labelledby="kit-h">
+    <div class="sec-head"><div><small>استعد قبل الحاجة</small><h2 id="kit-h">قوائم التجهيز</h2></div><span class="count">علاماتك تُحفظ على هذا الجهاز</span></div>
+    <p class="mut kitintro">قوائم عملية للبيت والسيارة والمدرسة والاستراحة والتخييم والسفر. اختر المكان، علّم ما جهّزته، وراجع المحتويات دورياً.</p>
+    <div class="chips" id="kitTabs" role="group" aria-label="اختر قائمة التجهيز"></div>
+    <div class="panel kitpanel" id="kitPanel"></div>
+    <p class="note">الأدوية الشخصية تُحفظ حسب تعليمات الطبيب والملصق. لا تضع أدوية حساسة للحرارة في السيارة، ولا تعطِ دواءً لشخص آخر. في المدرسة تُدار أدوية الطلاب وفق سياسة المدرسة وموافقة ولي الأمر.</p>
+  </section>
+
+  <section class="wrap sec" id="numbers" aria-labelledby="num-h">
+    <div class="sec-head"><div><small>احفظها أو ثبّت الصفحة</small><h2 id="num-h">أرقام الطوارئ في المملكة</h2></div></div>
+    <div class="nums" id="nums"></div>
+    <button class="btn solid" id="locBtn" type="button" style="margin-top:14px">شارك موقعي عبر واتساب</button>
+  </section>
+
+  <section class="wrap sec" id="plan" aria-labelledby="plan-h">
+    <div class="sec-head"><div><small>تُحفظ على جهازك فقط</small><h2 id="plan-h">خطة عائلتك</h2></div></div>
+    <p class="mut">تظهر هذه البيانات أسفل كل بطاقة وفي الطباعة والمشاركة.</p>
+    <div class="form2">
+      <label>الموقع / المنزل<input id="f_loc" data-fam="loc"></label>
+      <label>رقم طوارئ العائلة البديل<input id="f_tel" data-fam="tel" inputmode="tel"></label>
+      <label>نقطة التجمع الآمنة<input id="f_pt" data-fam="pt"></label>
+      <label>موقع حقيبة الإسعافات والطفاية<input id="f_kit" data-fam="kit"></label>
+    </div>
+    <div class="btnrow" style="margin-top:12px"><span class="mut" style="align-self:center">حجم الخط:</span><button class="btn ghostb" data-scale="1" type="button">عادي</button><button class="btn ghostb" data-scale="1.12" type="button">كبير</button><button class="btn ghostb" data-scale="1.25" type="button">كبير جداً</button></div>
+    <details class="ai">
+      <summary>لم تجد حالتك؟ ولّد بطاقة بالذكاء الاصطناعي</summary>
+      <div class="aibox">
+        <label for="aiText" class="sr">وصف الحالة</label><textarea id="aiText" rows="3" placeholder="مثال: لدغة نحل لطفل"></textarea>
+        <div class="btnrow"><button class="btn solid" id="aiGo" type="button">توليد البطاقة</button><button class="btn ghostb" id="keyBtn" type="button">مفتاح Gemini</button></div>
+        <p class="mut">يحتاج مفتاح Gemini خاصاً بك، يُحفظ على جهازك فقط. راجع أي بطاقة مولّدة قبل الاعتماد عليها.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="wrap sec" id="references" aria-labelledby="ref-h">
+    <div class="sec-head"><div><small>اقرأ التفاصيل من مصدرها</small><h2 id="ref-h">المراجع</h2></div></div>
+    <p class="mut">أرقام الأقواس في الصفحة تشير إلى هذه القائمة. لكل بطاقة مصادرها الخاصة داخلها.</p>
+    <div class="refs" id="refs"></div>
+  </section>
+
+  <section class="wrap safety">
+    <div class="sf-i">!</div><div><b>المساعدة الطبية أولاً</b><p>هذه البطاقات للتوعية ولا تغني عن الاتصال بالإسعاف أو التدريب العملي المعتمد. قد تتحدث الإرشادات، فراجع الإصدار الأحدث عند مصادرها.</p></div><a href="tel:997">اتصل بـ 997 ↗</a>
+  </section>
+</main>
+
+<footer class="wrap foot"><a class="brand" href="#home"><span class="mark sm">ث</span><span>ثواني.</span></a><span>خطوات بسيطة، لوقت لا يحتمل الانتظار.</span><button class="navbtn" id="aboutBtn2" type="button">عن الدليل</button></footer>
+
+<nav class="mobile-nav" aria-label="التنقل السريع">
+  <a href="#home" class="cur"><span>⌂</span>الرئيسية</a><a href="#browse"><span>▤</span>الحالات</a><a href="#tools"><span>♥</span>إنعاش</a><a href="#checklists"><span>☑</span>التجهيز</a><a href="tel:997" class="mcall"><span>↗</span>997</a>
+</nav>
+
+<div class="backdrop" id="modal" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle"><button class="close" id="closeModal" type="button" aria-label="إغلاق">×</button><div id="mBody"></div></section></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<dialog id="keyDlg"><form method="dialog"><h3 style="margin:0">مفتاح Gemini API</h3><p class="mut">يُحفظ على جهازك فقط ويُرسل إلى Google عند التوليد.</p><label for="keyInput" class="sr">المفتاح</label><input id="keyInput" type="password" placeholder="AIza…" autocomplete="off"><div class="btnrow"><button class="btn solid" value="save">حفظ</button><button class="btn ghostb" value="cancel">إلغاء</button></div></form></dialog>
 
 <script src="data.js"></script>
 <script src="app.js"></script>

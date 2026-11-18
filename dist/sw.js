@@ -1,5 +1,5 @@
 /* ثواني — Service Worker: يعمل بدون إنترنت بعد أول زيارة */
-const VERSION = 'v8';
+const VERSION = 'v9';
 const CORE = `thawani-core-${VERSION}`;
 const RUNTIME = `thawani-runtime-${VERSION}`;
 const ASSETS = ['./','index.html','styles.css','app.js','data.js','manifest.webmanifest',

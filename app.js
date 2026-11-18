@@ -1,347 +1,91 @@
-/* ثواني — تطبيق PWA تفاعلي (يعتمد على data.js: CATS, LV, PRESETS) */
+/* ثواني — الموقع (يعتمد على data.js: CATS, LV, PRESETS, META, CHECKLISTS, PLACES, CTX_DEF) */
 (function(){
 'use strict';
-const $ = id => document.getElementById(id);
-const LS = {
-  get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},
-  set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
-};
-const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const norm = s => String(s||'').toLowerCase().replace(/[ً-ٰٟـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').trim();
-const pad = n => String(n).padStart(2,'0');
-
-let LIB = PRESETS.slice();
-try{const ai=JSON.parse(LS.get('ai_cards','[]'));if(Array.isArray(ai))LIB=LIB.concat(ai);}catch(e){}
-function ext(p){const m=(typeof META!=='undefined'&&META[p.id])||{};p.ctx=m.ctx||CTX_DEF[p.cat]||PLACES;p.refs=m.refs||[];p.vids=m.vids||[];return p;}
-LIB=LIB.map(ext);
-const byId = id => LIB.find(p=>p.id===id);
+const $=id=>document.getElementById(id);
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 const getJ=(k,d)=>{try{const v=JSON.parse(LS.get(k,''));return v==null?d:v}catch(e){return d}};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s||'').toLowerCase().replace(/[ً-ٰٟـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').trim();
+const pad=n=>String(n).padStart(2,'0');
+const $$=s=>[...document.querySelectorAll(s)];
 
-/* ================= icons ================= */
-const svgU = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-const U = {
-  home:svgU('<path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/>'),
-  grid:svgU('<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>'),
-  pulse:svgU('<path d="M2 12h5l2-7 4 14 2-7h7"/>'),
-  user:svgU('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.500-7 8-7s8 3 8 7"/>'),
-  book:svgU('<path d="M4 4h6a3 3 0 0 1 2 1 3 3 0 0 1 2-1h6v15h-6a3 3 0 0 0-2 1 3 3 0 0 0-2-1H4z"/><path d="M12 5v15"/>'),
-  search:svgU('<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>'),
-  mic:svgU('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
-  back:svgU('<path d="M9 5l7 7-7 7"/>'),
-  next:svgU('<path d="M15 5l-7 7 7 7"/>'),
-  prev:svgU('<path d="M9 5l7 7-7 7"/>'),
-  spk:svgU('<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.500 6.500a8 8 0 0 1 0 11"/>'),
-  stop:svgU('<rect x="6" y="6" width="12" height="12" rx="2"/>'),
-  palette:svgU('<circle cx="12" cy="12" r="9"/><circle cx="8" cy="11" r="1.300"/><circle cx="12" cy="7.500" r="1.300"/><circle cx="16" cy="11" r="1.300"/><path d="M12 21c-1.600 0-1.600-2.200 0-3.200 1.500-1 4.300-.2 4.800-2.800"/>'),
-  check:svgU('<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7.500 12.500l3 3 6-7"/>'),
-  moon:svgU('<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>')
-};
-const G = { // glyphs for pictograms (filled)
-  heart:'<path d="M12 21s-7.500-4.600-9.600-9.200C.9 8.400 3 5 6.400 5c2 0 3.600 1.100 4.600 2.700h2C14 6.100 15.600 5 17.600 5 21 5 23.100 8.400 21.600 11.800 19.500 16.400 12 21 12 21z"/>',
-  drop:'<path d="M12 2.500s6.500 7 6.500 12a6.500 6.500 0 0 1-13 0c0-5 6.500-12 6.500-12z"/>',
-  flame:'<path d="M12 2c.8 3.500 5.500 5.500 5.500 11A5.500 5.500 0 0 1 12 19a5.500 5.500 0 0 1-5.500-5.500c0-2.200 1-3.600 2.200-4.800.2 1.600.9 2.400 1.800 2.800C10.200 8.500 11 5 12 2zM12 22a3 3 0 0 1-3-3h6a3 3 0 0 1-3 3z"/>',
-  bolt:'<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>',
-  wave:'<path d="M2 8c2.500 0 2.500-2 5-2s2.500 2 5 2 2.500-2 5-2 2.500 2 5 2v3c-2.500 0-2.500-2-5-2s-2.500 2-5 2-2.500-2-5-2-2.500 2-5 2zM2 15c2.500 0 2.500-2 5-2s2.500 2 5 2 2.500-2 5-2 2.500 2 5 2v3c-2.500 0-2.500-2-5-2s-2.500 2-5 2-2.500-2-5-2-2.500 2-5 2z"/>',
-  sun:'<circle cx="12" cy="12" r="4.500"/><path d="M11 1h2v4h-2zM11 19h2v4h-2zM1 11h4v2H1zM19 11h4v2h-4zM4.200 5.600l1.400-1.400 2.800 2.800-1.400 1.400zM15.600 17l1.400-1.400 2.800 2.800-1.400 1.400zM17 8.400l2.800-2.800 1.400 1.400-2.800 2.800zM3.800 18.400l2.800-2.800 1.400 1.400-2.800 2.800z"/>',
-  gas:'<path d="M9 2h6v2h-1v2.500c2.500.8 4 3 4 5.500v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-8c0-2.500 1.500-4.700 4-5.500V4H9z"/>',
-  car:'<path d="M5 11l1.600-4.500A2 2 0 0 1 8.500 5h7a2 2 0 0 1 1.900 1.500L19 11a2 2 0 0 1 2 2v4h-2v1.500a1.500 1.500 0 0 1-3 0V17H8v1.500a1.500 1.500 0 0 1-3 0V17H3v-4a2 2 0 0 1 2-2zm3-4-1.200 4h10.400L16 7z" fill-rule="evenodd"/>',
-  child:'<circle cx="12" cy="6" r="3.500"/><path d="M5 21c0-4.500 3-8 7-8s7 3.500 7 8z"/>',
-  warn:'<path d="M12 2 1 21h22zm-1 7h2v6h-2zm0 8h2v2h-2z" fill-rule="evenodd"/>',
-  eye:'<path d="M12 5C6 5 2 12 2 12s4 7 10 7 10-7 10-7-4-7-10-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z" fill-rule="evenodd"/><circle cx="12" cy="12" r="2"/>',
-  bone:'<path d="M17 3.500a3 3 0 0 1 3 3c0 .8-.3 1.500-.9 2.100l-9.200 9.200c-.6.600-1.300.9-2.100.9a3 3 0 0 1-3-3c0-.8.3-1.500.9-2.100l9.200-9.200c.6-.6 1.300-.9 2.100-.9z"/>',
-  cross:'<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
-  wind:'<path d="M3 8h11a3 3 0 1 0-3-3h2a1 1 0 1 1 1 1H3zM3 13h15a3 3 0 1 1-3 3h2a1 1 0 1 0 1-1H3zM3 18h8v2H3z"/>',
-  pill:'<path d="M8 3a5 5 0 0 0-3.500 8.500l8 8A5 5 0 0 0 19.500 12.500l-8-8A5 5 0 0 0 8 3zm0 2a3 3 0 0 1 2.100.9l2.100 2.100-5.200 5.200L4.900 11A3 3 0 0 1 8 5z" fill-rule="evenodd"/>',
-  home:'<path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3z"/>',
-  lift:'<path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm3 7 4-4 4 4zm0 4h8l-4 4z" fill-rule="evenodd"/>',
-  siren:'<path d="M12 3a6 6 0 0 1 6 6v6H6V9a6 6 0 0 1 6-6zM4 17h16v3H4zM11 0h2v2h-2z"/>'
-};
-function kindOf(p){
-  const t=p.title;
-  if(/غاز/.test(t))return'gas';
-  if(/صعق|كهرب/.test(t))return'bolt';
-  if(/مصعد/.test(t))return'lift';
-  if(/حريق|اشتعال|حروق|حرائق/.test(t))return'flame';
-  if(/غرق|سيول|مياه/.test(t))return'wave';
-  if(/شمس|حرار/.test(t))return'sun';
-  if(/لدغ/.test(t))return'warn';
-  if(/عين/.test(t))return'eye';
-  if(/كسور|عظام|عمود/.test(t))return'bone';
-  if(/سكر|دواء|أدوية/.test(t)&&!/نوبة قلبية/.test(t))return'pill';
-  if(/ربو|غبار|غصة|اختناق|الفحم/.test(t))return'wind';
-  if(/نزيف|جروح|بتر|رعاف/.test(t))return'drop';
-  if(/إنعاش|قلب|جلطة|إغماء|حساسية/.test(t))return'heart';
-  if(/طفل|رضيع|أطفال|كبار|سقوط/.test(t))return'child';
-  if(/مركبة|إطار|حوادث|المفتاح|بطارية|الخط السريع|المرور|التغريز|الصحراء/.test(t))return'car';
-  if(/إخلاء|منزل|التسمم الغذائي/.test(t))return'home';
-  return'cross';
-}
-const pic = p => `<span class="pic lv-${p.lv||'c'}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${G[kindOf(p)]}</svg></span>`;
-const catIcon = g => `<svg class="ic" viewBox="0 0 24 24" fill="#fff" opacity=".95" aria-hidden="true">${G[g]}</svg>`;
+/* ---------- data ---------- */
+let LIB=PRESETS.slice();
+{const ai=getJ('ai_cards',[]);if(Array.isArray(ai))LIB=LIB.concat(ai);}
+function ext(p){const m=META[p.id]||{};p.ctx=m.ctx||CTX_DEF[p.cat]||PLACES;p.refs=m.refs||p.refs||[];p.vids=m.vids||p.vids||[];return p;}
+LIB=LIB.map(ext);
+const byId=id=>LIB.find(p=>p.id===id);
+const S={q:'',cat:'all',place:'all',kit:'home',deferred:null,swReady:false};
+const GD={id:null,idx:0,mode:'over',talk:false,opener:null};
 
-const CATUI = {
-  first_aid:{g:'g-red',ic:'heart',t:'حالات حرجة',d:'مثل نزيف، غصة، توقف قلب'},
-  kids_elderly:{g:'g-orange',ic:'child',t:'الأطفال وكبار السن',d:'غصة رضيع، تسمم، سقوط'},
-  home_safety:{g:'g-green',ic:'home',t:'سلامة المنزل',d:'غاز، حريق، كهرباء، مصعد'},
-  vehicle_road:{g:'g-blue',ic:'car',t:'المركبة والطريق',d:'تعطل، إطار، حوادث، حريق'},
-  weather_outdoor:{g:'g-teal',ic:'sun',t:'الطقس والبر',d:'ضربة شمس، لدغات، سيول'}
+/* ---------- pictograms ---------- */
+const G={
+ heart:'<path d="M12 21s-7.500-4.600-9.600-9.200C.9 8.400 3 5 6.400 5c2 0 3.600 1.100 4.600 2.700h2C14 6.100 15.600 5 17.600 5 21 5 23.100 8.400 21.600 11.800 19.500 16.400 12 21 12 21z"/>',
+ drop:'<path d="M12 2.500s6.500 7 6.500 12a6.500 6.500 0 0 1-13 0c0-5 6.500-12 6.500-12z"/>',
+ flame:'<path d="M12 2c.8 3.500 5.500 5.500 5.500 11A5.500 5.500 0 0 1 12 19a5.500 5.500 0 0 1-5.500-5.500c0-2.200 1-3.600 2.200-4.800.2 1.600.9 2.400 1.800 2.800C10.200 8.500 11 5 12 2zM12 22a3 3 0 0 1-3-3h6a3 3 0 0 1-3 3z"/>',
+ bolt:'<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>',
+ wave:'<path d="M2 8c2.500 0 2.500-2 5-2s2.500 2 5 2 2.500-2 5-2 2.500 2 5 2v3c-2.500 0-2.500-2-5-2s-2.500 2-5 2-2.500-2-5-2-2.500 2-5 2zM2 15c2.500 0 2.500-2 5-2s2.500 2 5 2 2.500-2 5-2 2.500 2 5 2v3c-2.500 0-2.500-2-5-2s-2.500 2-5 2-2.500-2-5-2-2.500 2-5 2z"/>',
+ sun:'<circle cx="12" cy="12" r="4.500"/><path d="M11 1h2v4h-2zM11 19h2v4h-2zM1 11h4v2H1zM19 11h4v2h-4zM4.200 5.600l1.400-1.400 2.800 2.800-1.400 1.400zM15.600 17l1.400-1.400 2.800 2.800-1.400 1.400zM17 8.400l2.800-2.800 1.400 1.400-2.800 2.800zM3.800 18.400l2.800-2.800 1.400 1.400-2.800 2.800z"/>',
+ gas:'<path d="M9 2h6v2h-1v2.500c2.500.8 4 3 4 5.500v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-8c0-2.500 1.500-4.700 4-5.500V4H9z"/>',
+ car:'<path d="M5 11l1.600-4.500A2 2 0 0 1 8.500 5h7a2 2 0 0 1 1.900 1.500L19 11a2 2 0 0 1 2 2v4h-2v1.500a1.500 1.500 0 0 1-3 0V17H8v1.500a1.500 1.500 0 0 1-3 0V17H3v-4a2 2 0 0 1 2-2zm3-4-1.200 4h10.400L16 7z" fill-rule="evenodd"/>',
+ child:'<circle cx="12" cy="6" r="3.500"/><path d="M5 21c0-4.500 3-8 7-8s7 3.500 7 8z"/>',
+ warn:'<path d="M12 2 1 21h22zm-1 7h2v6h-2zm0 8h2v2h-2z" fill-rule="evenodd"/>',
+ eye:'<path d="M12 5C6 5 2 12 2 12s4 7 10 7 10-7 10-7-4-7-10-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z" fill-rule="evenodd"/><circle cx="12" cy="12" r="2"/>',
+ bone:'<path d="M17 3.500a3 3 0 0 1 3 3c0 .8-.3 1.500-.9 2.100l-9.200 9.200c-.6.600-1.300.9-2.100.9a3 3 0 0 1-3-3c0-.8.3-1.500.9-2.100l9.200-9.200c.6-.6 1.300-.9 2.100-.9z"/>',
+ cross:'<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
+ wind:'<path d="M3 8h11a3 3 0 1 0-3-3h2a1 1 0 1 1 1 1H3zM3 13h15a3 3 0 1 1-3 3h2a1 1 0 1 0 1-1H3zM3 18h8v2H3z"/>',
+ pill:'<path d="M8 3a5 5 0 0 0-3.500 8.500l8 8A5 5 0 0 0 19.500 12.500l-8-8A5 5 0 0 0 8 3zm0 2a3 3 0 0 1 2.100.9l2.100 2.100-5.200 5.200L4.900 11A3 3 0 0 1 8 5z" fill-rule="evenodd"/>',
+ home:'<path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3z"/>',
+ lift:'<path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm3 7 4-4 4 4zm0 4h8l-4 4z" fill-rule="evenodd"/>'
 };
-const QUICK = ['p3','p1','p2','p5','p20','p21','p25','p15'];
-const QLABEL = {p3:'توقف القلب',p1:'اختناق بغصة',p2:'نزيف شديد',p5:'ألم صدر أو جلطة',p20:'رائحة غاز',p21:'حريق مطبخ',p25:'دخان فحم',p15:'طفل ابتلع سماً'};
+function kindOf(p){const t=p.title;
+ if(/غاز/.test(t))return'gas';if(/صعق|كهرب/.test(t))return'bolt';if(/مصعد/.test(t))return'lift';
+ if(/حريق|اشتعال|حروق|حرائق/.test(t))return'flame';if(/غرق|سيول|مياه/.test(t))return'wave';
+ if(/شمس|حرار|جفاف|الحر/.test(t))return'sun';if(/لدغ|لسعة|عضة/.test(t))return'warn';if(/عين/.test(t))return'eye';
+ if(/كسور|عظام|عمود/.test(t))return'bone';if(/سكر|دواء|أدوية/.test(t)&&!/نوبة قلبية/.test(t))return'pill';
+ if(/ربو|غبار|غصة|اختناق|الفحم|دوار/.test(t))return'wind';if(/نزيف|جروح|جرح|بتر|رعاف/.test(t))return'drop';
+ if(/إنعاش|قلب|جلطة|إغماء|حساسية/.test(t))return'heart';if(/طفل|رضيع|أطفال|كبار|سقوط/.test(t))return'child';
+ if(/مركبة|إطار|حوادث|المفتاح|بطارية|الخط السريع|المرور|التغريز|الصحراء|سفر/.test(t))return'car';
+ if(/إخلاء|منزل|التسمم الغذائي/.test(t))return'home';return'cross';}
+const icon=p=>`<span class="ic"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${G[kindOf(p)]}</svg></span>`;
+const QUICK=['p3','p1','p2','p5','p20','p21','p25','p15'];
+const QLABEL={p3:'توقف القلب',p1:'اختناق بغصة',p2:'نزيف شديد',p5:'ألم صدر أو جلطة',p20:'رائحة غاز',p21:'حريق مطبخ',p25:'دخان فحم',p15:'طفل ابتلع سماً'};
 
-/* ================= toast / speech / helpers ================= */
-function toast(msg,err){const t=document.createElement('div');t.className='toast'+(err?' err':'');t.textContent=msg;$('toasts').appendChild(t);setTimeout(()=>t.remove(),3200);}
+/* ---------- helpers ---------- */
+let toastT;
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),3500);}
 const FDEF={loc:'منزل العائلة',tel:'911 / 997',pt:'خارج المبنى الرئيسي',kit:'مدخل المنزل / المطبخ'};
-function family(){const o={};for(const k in FDEF)o[k]=(LS.get('fam_'+k,'')||'').trim()||FDEF[k];return o;}
+const family=()=>{const o={};for(const k in FDEF)o[k]=(LS.get('fam_'+k,'')||'').trim()||FDEF[k];return o;};
+const catName=p=>(CATS[p.cat]||{}).name||'';
 
-let speaking=false;
-function stopSpeak(){try{speechSynthesis.cancel()}catch(e){}speaking=false;document.querySelectorAll('.wave').forEach(w=>w.classList.remove('on'));const b=document.querySelector('[data-act=speak]');if(b)b.innerHTML=U.spk+' تشغيل الصوت';}
-function speak(text){
-  if(!('speechSynthesis' in window)){toast('جهازك لا يدعم القراءة الصوتية',true);return;}
-  try{
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);u.lang='ar-SA';u.rate=.95;
-    const v=(speechSynthesis.getVoices()||[]).find(v=>/^ar/i.test(v.lang));
-    if(v)u.voice=v;else if(speechSynthesis.getVoices().length)toast('لم يُعثر على صوت عربي على جهازك',true);
-    u.onstart=()=>{speaking=true;document.querySelectorAll('.wave').forEach(w=>w.classList.add('on'));const b=document.querySelector('[data-act=speak]');if(b)b.innerHTML=U.stop+' إيقاف الصوت';};
-    u.onend=u.onerror=()=>{speaking=false;document.querySelectorAll('.wave').forEach(w=>w.classList.remove('on'));const b=document.querySelector('[data-act=speak]');if(b)b.innerHTML=U.spk+' تشغيل الصوت';};
-    speechSynthesis.speak(u);
-  }catch(e){toast('تعذر تشغيل الصوت',true);}
+/* ---------- renderers ---------- */
+function filtered(){const q=norm(S.q);
+ return LIB.filter(p=>(S.cat==='all'||p.cat===S.cat)&&(S.place==='all'||(p.ctx||[]).includes(S.place))&&(!q||norm([p.title,p.level,p.golden,catName(p),(p.steps||[]).join(' '),(p.avoid||[]).join(' '),(p.gear||[]).join(' '),(p.ctx||[]).join(' ')].join(' ')).includes(q)));}
+function renderTiles(){
+ $('tiles').innerHTML=QUICK.map(id=>{const p=byId(id);if(!p)return'';
+  return `<button class="tile lv-${p.lv}" data-card="${id}" type="button"><span class="top">${icon(p)}<span aria-hidden="true">←</span></span><h3>${esc(QLABEL[id]||p.title)}</h3><p>${esc(p.level)}</p>${p.lv==='c'||p.lv==='d'?'<span class="urgent">حالة عاجلة</span>':''}</button>`}).join('');}
+function renderCats(){
+ const tabs=[['all','الكل ('+LIB.length+')']].concat(Object.keys(CATS).map(k=>[k,CATS[k].name+' ('+LIB.filter(p=>p.cat===k).length+')']));
+ $('cats').innerHTML=tabs.map(([k,l])=>`<button class="chip" type="button" data-cat="${k}" aria-pressed="${S.cat===k}">${esc(l)}</button>`).join('');
+ $('places').innerHTML=[['all','كل الأماكن']].concat(PLACES.map(x=>[x,x])).map(([k,l])=>`<button class="chip" type="button" data-place="${k}" aria-pressed="${S.place===k}">${esc(l)}</button>`).join('');}
+function renderGrid(){
+ const l=filtered();
+ $('count').textContent=l.length+' بطاقة';
+ $('empty').hidden=l.length>0;
+ $('grid').innerHTML=l.map(p=>`<button class="gcard lv-${p.lv}" type="button" data-card="${p.id}"><span class="top">${icon(p)}<span class="num" aria-label="رقم الطوارئ">${esc(p.phone)}</span></span><span class="cat">${esc(catName(p))}</span><h3>${esc(p.title)}</h3><p>${esc(p.level)}</p><span class="foot"><span>عرض الخطوات ←</span></span></button>`).join('');
+ const h=$('qhint');h.innerHTML=S.q?(l.length?`${l.length} بطاقة مطابقة. <a href="#browse" class="all">عرضها ←</a>`:'لا توجد بطاقة مطابقة. جرّب كلمة أخرى.'):'';
 }
-
-/* ================= state ================= */
-const S={q:'',cat:'all',place:'all',kit:'home',focus:false,scrollTo:null,swReady:false,deferred:null};
-const GD={id:null,idx:0,mode:'steps',talk:false};
-const hasVoiceIn = !!(window.SpeechRecognition||window.webkitSpeechRecognition);
-const recent=()=>{try{return JSON.parse(LS.get('recent','[]'))}catch(e){return[]}};
-function pushRecent(id){const r=recent().filter(x=>x!==id);r.unshift(id);LS.set('recent',JSON.stringify(r.slice(0,4)));}
-
-/* ================= views ================= */
-const NAV=[['home','الرئيسية',U.home],['lib','البطاقات',U.grid],['cpr','إنعاش',U.pulse],['kit','التجهيز',U.check],['me','خطتي',U.user]];
-function renderNav(cur){
-  $('nav').innerHTML=NAV.map(([k,l,i])=>`<button data-go="#/${k}" class="${k==='cpr'?'mid':''}" ${k===cur?'aria-current="page"':''} aria-label="${l}">${i}${k==='cpr'?'':'<span>'+l+'</span>'}</button>`).join('');
-}
-const netPill = () => `<span class="pill" data-net></span>`;
-function updateNet(){
-  document.querySelectorAll('[data-net]').forEach(el=>{
-    const off=!navigator.onLine;el.className='pill'+(off?' off':'');
-    el.innerHTML='<i></i>'+(off?'تعمل بدون إنترنت':(S.swReady?'متاح بلا إنترنت':'متصل'));
-  });
-}
-const searchBox = ph => `<div class="search"><span class="mag">${U.search}</span><label class="sr" for="q">بحث</label><input id="q" type="search" autocomplete="off" placeholder="${ph}" value="${esc(S.q)}">${hasVoiceIn?`<button class="mic" data-act="voice" aria-label="بحث صوتي">${U.mic}</button>`:''}</div>`;
-
-function viewHome(){
-  $('hdr').className='hdr';
-  $('hdr').innerHTML=`<div class="hrow"><h1>ثواني</h1>${netPill()}<button class="ib" data-act="skins" aria-label="اختيار التصميم">${U.palette}</button></div>${searchBox('ابحث عن حالة أو إصابة…')}`;
-  const rc=recent().map(byId).filter(Boolean);
-  const cats=Object.keys(CATUI).map(k=>{const n=LIB.filter(p=>p.cat===k).length,c=CATUI[k];
-    return `<button class="cat ${c.g}" data-go="#/lib/${k}">${catIcon(c.ic)}<div class="t"><h3>${c.t}</h3><p>${c.d}</p><span class="badge num">${n} بطاقة</span></div></button>`}).join('');
-  $('main').innerHTML=`
-  <div class="sos-wrap"><button class="sos" data-act="sos" aria-label="اتصال بالطوارئ"><small>اتصال</small>بالطوارئ<b>997</b></button></div>
-  <h2 class="sec">ماذا يحدث الآن؟</h2>
-  <div class="quick">${QUICK.map(id=>{const p=byId(id);return p?`<button class="qk lv-${p.lv}" data-go="#/card/${id}">${pic(p)}<span>${esc(QLABEL[id]||p.title)}</span></button>`:''}).join('')}</div>
-  ${rc.length?`<h2 class="sec">شاهدتها مؤخراً</h2><div class="rows">${rc.map(rowHTML).join('')}</div>`:''}
-  <h2 class="sec">أين أنت؟</h2><div class="chips">${PLACES.map(pl=>`<button class="chip" data-act="placego" data-v="${pl}">${pl}</button>`).join('')}</div>
-  <h2 class="sec">الوصول السريع</h2><div class="cats">${cats}</div>
-  <h2 class="sec">لماذا هذا مهم؟</h2>
-  <p class="fact">عند توقف القلب تنخفض فرص النجاة بنحو 7 إلى 10% مع كل دقيقة تمر دون إنعاش أو صدمة كهربائية. <a href="#/refs" data-ref="r1">[1]</a></p>
-  <p class="fact">النزيف الشديد قد يُنهي الحياة خلال دقائق، وإيقافه يبدأ بيد أول شخص موجود. <a href="#/refs" data-ref="r4">[4]</a></p>
-  <p class="fact">أول أكسيد الكربون بلا لون ولا رائحة، ويصيب الجالسين حول الفحم قبل أن يشعروا به. <a href="#/refs" data-ref="r7">[7]</a></p>
-  <p class="sub" style="margin-top:8px">البطاقات للتوعية ولا تغني عن الاتصال بالإسعاف أو دورة إسعافات معتمدة.</p>`;
-  const q=$('q');q.addEventListener('focus',()=>{S.focus=true;location.hash='#/lib';});
-}
-function rowHTML(p){return `<button class="row lv-${p.lv}" data-go="#/card/${p.id}">${pic(p)}<span class="tx">${esc(p.title)}<small>${esc(p.level)}</small></span><span class="ph num">${esc(p.phone)}</span></button>`;}
-
-function filtered(){const q=norm(S.q);return LIB.filter(p=>(S.cat==='all'||p.cat===S.cat)&&(S.place==='all'||(p.ctx||[]).includes(S.place))&&(!q||norm([p.title,p.level,p.golden,(p.steps||[]).join(' '),(p.avoid||[]).join(' '),(p.gear||[]).join(' ')].join(' ')).includes(q)));}
-function listHTML(){
-  const l=filtered();
-  return l.length?`<div class="rows">${l.map(rowHTML).join('')}</div>`:`<div class="empty">لا توجد بطاقة مطابقة لـ «${esc(S.q)}». جرّب كلمة أخرى، أو ولّد بطاقة من صفحة «خطتي».</div>`;
-}
-function viewLib(cat){
-  if(cat!==undefined)S.cat=cat||'all';
-  $('hdr').className='hdr';
-  $('hdr').innerHTML=`<div class="hrow"><button class="ib" data-go="#/home" aria-label="رجوع">${U.back}</button><h2>${S.cat==='all'?'كل البطاقات':CATUI[S.cat]?CATUI[S.cat].t:''}</h2>${netPill()}</div>${searchBox('ابحث: غصة، لدغة، حريق…')}`;
-  const chips=[['all','الكل ('+LIB.length+')']].concat(Object.keys(CATUI).map(k=>[k,CATUI[k].t+' ('+LIB.filter(p=>p.cat===k).length+')']));
-  $('main').innerHTML=`<div class="chips" id="chips">${chips.map(([k,l])=>`<button class="chip" data-chip="${k}" aria-pressed="${S.cat===k}">${l}</button>`).join('')}</div><div class="chips" id="plc" aria-label="تصفية حسب المكان">${[['all','كل الأماكن']].concat(PLACES.map(x=>[x,x])).map(([k,l])=>`<button class="chip sm" data-place="${k}" aria-pressed="${S.place===k}">${l}</button>`).join('')}</div><p class="sub" id="cnt" style="margin:4px 2px 10px"></p><div id="lst"></div>`;
-  const fill=()=>{$('lst').innerHTML=listHTML();$('cnt').textContent=filtered().length+' بطاقة';document.querySelectorAll('[data-chip]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.chip===S.cat));document.querySelectorAll('[data-place]').forEach(c=>c.setAttribute('aria-pressed',c.dataset.place===S.place));};
-  fill();
-  $('q').addEventListener('input',e=>{S.q=e.target.value;fill();});
-  $('chips').addEventListener('click',e=>{const c=e.target.closest('[data-chip]');if(c){S.cat=c.dataset.chip;fill();}});
-  $('plc').addEventListener('click',e=>{const c=e.target.closest('[data-place]');if(c){S.place=c.dataset.place;fill();}});
-  if(S.focus){S.focus=false;$('q').focus();}
-}
-
-/* ---- guide ---- */
-function guideText(p,i){return i===0?'القاعدة الأولى. '+p.golden:'الخطوة '+i+'. '+p.steps[i-1];}
-function viewCard(id){
-  const p=byId(id);if(!p){location.hash='#/lib';return;}
-  if(GD.id!==id){GD.id=id;GD.idx=0;GD.mode='steps';GD.talk=false;stopSpeak();pushRecent(id);}
-  $('hdr').className='hdr slim';
-  $('hdr').innerHTML=`<div class="hrow"><button class="ib" data-act="back" aria-label="رجوع">${U.back}</button><h2>${esc(p.title.replace(/\s*\(.*\)\s*$/,''))}</h2><button class="ib" data-act="sos" aria-label="اتصال طوارئ" style="background:var(--red)"><b class="num" style="font-size:15px">${esc(p.phone)}</b></button></div>`;
-  drawGuide();
-}
-function drawGuide(){
-  const p=byId(GD.id),n=p.steps.length,i=GD.idx,main=$('main');
-  const modes=`<div class="modes" role="tablist"><button role="tab" data-act="mode" data-m="steps" aria-selected="${GD.mode==='steps'}">خطوة بخطوة</button><button role="tab" data-act="mode" data-m="full" aria-selected="${GD.mode==='full'}">البطاقة كاملة</button></div>`;
-  let body='';
-  if(GD.mode==='full'){body=fullCard(p);}
-  else if(i<=n){
-    const bars=Array.from({length:n+1},(_,k)=>`<i class="${k<=i?'on':''}"></i>`).join('');
-    const extra=(p.id==='p3'?`<a class="btn ghost sm" href="#/cpr" data-go="#/cpr">${U.pulse} افتح إيقاع الإنعاش</a>`:'')+(p.id==='p2'?`<a class="btn ghost sm" href="#/cpr" data-go="#/cpr">ابدأ مؤقت العاصبة</a>`:'');
-    body=`<div class="stage lv-${p.lv}" id="stage">
-      <div class="art">${pic(p)}<div class="wave">${'<i></i>'.repeat(26)}</div><div class="cap">${esc(p.level)}</div></div>
-      <div class="stepno">${i===0?'قبل أن تبدأ':'الخطوة '+i+' من '+n}</div>
-      <div class="steptx ${i===0?'gold':''}" id="stx">${esc(i===0?p.golden:p.steps[i-1])}</div>
-      <div class="bar" aria-hidden="true">${bars}</div>
-      <div class="ctl"><button class="btn ghost" data-act="prev" aria-label="السابق" ${i===0?'disabled':''}>${U.prev}</button><button class="btn blue" data-act="speak">${speaking?U.stop+' إيقاف الصوت':U.spk+' تشغيل الصوت'}</button><button class="btn green" data-act="next">${i===n?'إنهاء':'التالي'} ${U.next}</button></div>
-      ${extra?`<div class="act">${extra}</div>`:''}
-    </div>
-    <a class="btn red" href="tel:${esc(p.phone)}" style="margin-top:12px;width:100%">اتصل الآن ${esc(p.phone)}</a>`;
-  } else {
-    body=`<div class="stage lv-${p.lv} done"><div class="art">${pic(p)}</div>
-      <h3>أحسنت. هل اتصلت بـ ${esc(p.phone)}؟</h3><p class="sub">تابع حالة المصاب حتى وصول المسعفين.</p>
-      <div class="avoid"><h3>تجنب فوراً</h3><ul>${p.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>${srcHTML(p)}
-      <div class="act"><a class="btn red" href="tel:${esc(p.phone)}">اتصل بـ ${esc(p.phone)}</a><button class="btn ghost" data-act="restart">إعادة الخطوات</button><button class="btn ghost" data-act="mode" data-m="full">عرض البطاقة كاملة</button></div></div>`;
-  }
-  main.innerHTML=modes+body;
-  main.scrollTop=0;
-  const st=$('stage');if(st){let x0=null;st.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});
-    st.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx<-55)go(1);else if(dx>55)go(-1);});}
-}
-function go(d){
-  const p=byId(GD.id),n=p.steps.length;
-  const ni=Math.max(0,Math.min(n+1,GD.idx+d));if(ni===GD.idx)return;
-  GD.idx=ni;drawGuide();
-  if(GD.talk&&ni>=0&&ni<=n)speak(guideText(p,ni));else if(ni>n)stopSpeak();
-}
-function srcHTML(p){
-  let h='';
-  if(p.vids&&p.vids.length)h+=`<div class="srcbox"><h3 class="h">فيديو توضيحي</h3>${p.vids.map(v=>`<a class="srclink" href="${esc(v[1])}" target="_blank" rel="noopener">▶ ${esc(v[0])}</a>`).join('')}<small>المشاهدة تحتاج اتصالاً بالإنترنت.</small></div>`;
-  if(p.refs&&p.refs.length)h+=`<div class="srcbox"><h3 class="h">المصادر</h3>${p.refs.map(r=>`<a class="srclink" href="${esc(r[1])}" target="_blank" rel="noopener">${esc(r[0])} ↗</a>`).join('')}</div>`;
-  return h;
-}
-function buildText(p){
-  p=p||byId(GD.id)||LIB[0];const f=family();
-  return ['🚨 *'+p.title+'*','📞 رقم الطوارئ: '+p.phone+'  |  '+p.level,'','⭐ *القاعدة الأولى:*',p.golden,'','⚡ *الخطوات:*',...p.steps.map((s,i)=>(i+1)+'. '+s),'',
-   '⛔ *تجنب فوراً:*',...p.avoid.map(a=>'• '+a),'','🧰 *التجهيزات وعلامات الخطر:*',...p.gear.map(g=>'• '+g),'','🏠 *بيانات العائلة*',
-   '📍 الموقع: '+f.loc,'📞 طوارئ العائلة: '+f.tel,'🏃 نقطة التجمع: '+f.pt,'🩺 الإسعافات/الطفاية: '+f.kit,'','— ثواني'].join('\n');
-}
-function fullCard(p){
-  const f=family(),cat=(CATS[p.cat]||{}).name||'';
-  return `<div class="xr"><a class="btn green sm" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(buildText(p))}">واتساب</a><button class="btn ghost sm" data-act="copy">نسخ النص</button><button class="btn ghost sm" data-act="png">حفظ كصورة</button><button class="btn ghost sm" data-act="print">طباعة A4</button>${navigator.share?'<button class="btn ghost sm" data-act="share" style="grid-column:1/-1">مشاركة…</button>':''}</div>
-  <div class="tagwrap" id="tagwrap"><article class="tag lv-${p.lv}" id="tag">
-    <div class="th"><span class="hole"></span><small>${esc(cat)} • ${esc(LV[p.lv]||'')}</small><h2>${esc(p.title)}</h2><p>${esc(p.level)}</p><a class="call" href="tel:${esc(p.phone)}"><small>اتصل الآن</small><b>${esc(p.phone)}</b></a></div>
-    <div class="tb"><div class="gold"><h3>القاعدة الأولى</h3>${esc(p.golden)}</div>
-      <div><h3 class="h">الخطوات</h3><ol class="stp">${p.steps.map(s=>`<li><span>${esc(s)}</span></li>`).join('')}</ol></div>
-      <div class="avoid" style="margin:0"><h3>تجنب فوراً</h3><ul>${p.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
-      <div class="gear"><h3>التجهيزات وعلامات الخطر</h3>${p.gear.map(g=>`<label><input type="checkbox"><span>${esc(g)}</span></label>`).join('')}</div>${srcHTML(p)}</div>
-    <div class="tf"><div><em>الموقع:</em> <b>${esc(f.loc)}</b></div><div><em>طوارئ العائلة:</em> <b>${esc(f.tel)}</b></div><div><em>نقطة التجمع:</em> <b>${esc(f.pt)}</b></div><div><em>الإسعافات والطفاية:</em> <b>${esc(f.kit)}</b></div></div>
-  </article></div>`;
-}
-
-/* ---- CPR + timer ---- */
-const C={run:false,count:0,t0:0,acc:0,beat:null,clk:null,actx:null};
-const T={run:false,acc:0,t0:0,int:null,since:''};
-function cprElapsed(){return Math.floor((C.acc+(C.run?Date.now()-C.t0:0))/1000);}
-function cprTick(){
-  if(C.run){
-    C.count++;beep();try{navigator.vibrate&&navigator.vibrate(25)}catch(e){}
-    const h=$('heart');if(h){h.classList.add('beat');setTimeout(()=>h.classList.remove('beat'),100);}
-    if(C.count%30===0)cprAlert('30 ضغطة. إن كنت مدرباً أعطِ نفسين إنقاذيين، وإلا واصل الضغط دون توقف.');
-  }
-  cprPaint();
-}
-function cprAlert(t){const a=$('cAlert');if(a){a.textContent=t;a.hidden=false;}toast(t.split('.')[0]);}
-function cprPaint(){
-  const e=cprElapsed(),m=Math.floor(e/60),s=e%60;
-  if($('cCount'))$('cCount').textContent=C.count;
-  if($('cTime'))$('cTime').textContent=pad(m)+':'+pad(s);
-  if(C.run&&e>0&&e%120===0&&C.lastSwap!==e){C.lastSwap=e;cprAlert('مضت دقيقتان. بدّل المسعف إن وُجد من يساعدك.');}
-}
-function beep(){try{
-  if(!C.actx)C.actx=new (window.AudioContext||window.webkitAudioContext)();
-  const o=C.actx.createOscillator(),g=C.actx.createGain();o.type='square';o.frequency.value=880;
-  g.gain.setValueAtTime(.35,C.actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,C.actx.currentTime+.09);
-  o.connect(g);g.connect(C.actx.destination);o.start();o.stop(C.actx.currentTime+.1);}catch(e){}}
-function cprToggle(){
-  if(C.run){C.acc+=Date.now()-C.t0;C.run=false;clearInterval(C.beat);clearInterval(C.clk);}
-  else{if(C.actx&&C.actx.state==='suspended')C.actx.resume();C.run=true;C.t0=Date.now();cprTick();C.beat=setInterval(cprTick,60000/110);C.clk=setInterval(cprPaint,500);}
-  cprDraw();markMid();
-}
-function cprReset(){C.run=false;clearInterval(C.beat);clearInterval(C.clk);C.count=0;C.acc=0;C.lastSwap=0;cprDraw();markMid();}
-function cprDraw(){
-  const b=$('press');if(!b)return;
-  b.classList.toggle('on',C.run);b.textContent=C.run?'إيقاف مؤقت':(C.count?'استئناف':'اضغط الآن');
-  const h=$('heart');if(h)h.classList.toggle('run',C.run);cprPaint();
-}
-function markMid(){const m=document.querySelector('.nav .mid');if(m)m.style.animation=C.run?'pulse 1s infinite':'';}
-function tShow(){const s=Math.floor((T.acc+(T.run?Date.now()-T.t0:0))/1000);const el=$('tClock');if(el)el.textContent=pad(Math.floor(s/3600))+':'+pad(Math.floor(s%3600/60))+':'+pad(s%60);}
-function viewCpr(){
-  $('hdr').className='hdr slim cprhdr';
-  $('hdr').innerHTML=`<div class="hrow"><button class="ib" data-go="#/home" aria-label="رجوع">${U.back}</button><h2>إنعاش قلبي رئوي <small style="font-weight:500;opacity:.7">CPR</small></h2>${netPill()}</div>`;
-  $('main').innerHTML=`
-  <div class="heart ${C.run?'run':''}" id="heart"><svg class="ecg" viewBox="0 0 300 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40h70l8-24 10 48 10-40 6 16h40l8-22 10 44 10-30 6 8h60"/></svg>
-    <svg class="h" viewBox="0 0 24 24" fill="var(--red)" aria-hidden="true">${G.heart}</svg></div>
-  <button class="press ${C.run?'on':''}" id="press" data-act="cprToggle">${C.run?'إيقاف مؤقت':(C.count?'استئناف':'اضغط الآن')}</button>
-  <div class="stats"><div class="stat"><b id="cCount" class="num">${C.count}</b><span>ضغطة</span></div><div class="stat"><b class="num">110</b><span>نبضة/دقيقة</span></div><div class="stat"><b id="cTime" class="num">00:00</b><span>الزمن</span></div></div>
-  <p class="alert" id="cAlert" hidden></p>
-  <div class="three"><a class="btn red sm" href="tel:997">اتصل 997</a><button class="btn ghost sm" data-act="cprReset">تصفير</button><a class="btn ghost sm" href="#/card/p3" data-go="#/card/p3">الخطوات</a></div>
-  <p class="sub" style="margin-top:10px">اضغط في منتصف الصدر بعمق 5 إلى 6 سم مع كل نبضة، واتركه يرتد بالكامل. ضع الهاتف على مكبر الصوت وتحدث مع الإسعاف.</p>
-  <div class="panel"><h3 style="font-size:19px;font-weight:800">مؤقت العاصبة</h3><p class="sub">سجّل وقت تركيبها وأبلغ به المسعفين.</p>
-    <div class="clock" id="tClock">00:00:00</div><div class="since" id="tSince">${esc(T.since)}</div>
-    <div class="three"><button class="btn green sm" data-act="tGo">${T.acc?'استئناف':'بدء'}</button><button class="btn ghost sm" data-act="tPause">إيقاف</button><button class="btn ghost sm" data-act="tReset">تصفير</button></div></div>`;
-  cprPaint();tShow();
-}
-
-/* ---- me / refs ---- */
-function viewMe(){
-  $('hdr').className='hdr slim';
-  $('hdr').innerHTML=`<div class="hrow"><button class="ib" data-go="#/home" aria-label="رجوع">${U.back}</button><h2>خطتي وإعداداتي</h2>${netPill()}</div>`;
-  const sc=LS.get('scale','1');
-  $('main').innerHTML=`
-  <h2 class="sec">خطة عائلتي</h2><p class="sub" style="margin-bottom:10px">تظهر أسفل كل بطاقة وفي الطباعة والمشاركة، وتُحفظ على جهازك فقط.</p>
-  <div class="fld"><label for="f_loc">الموقع / المنزل</label><input id="f_loc" data-fam="loc" value="${esc(LS.get('fam_loc',''))}" placeholder="${esc(FDEF.loc)}"></div>
-  <div class="fld"><label for="f_tel">رقم طوارئ العائلة البديل</label><input id="f_tel" data-fam="tel" inputmode="tel" value="${esc(LS.get('fam_tel',''))}" placeholder="${esc(FDEF.tel)}"></div>
-  <div class="fld"><label for="f_pt">نقطة التجمع الآمنة</label><input id="f_pt" data-fam="pt" value="${esc(LS.get('fam_pt',''))}" placeholder="${esc(FDEF.pt)}"></div>
-  <div class="fld"><label for="f_kit">موقع حقيبة الإسعافات والطفاية</label><input id="f_kit" data-fam="kit" value="${esc(LS.get('fam_kit',''))}" placeholder="${esc(FDEF.kit)}"></div>
-  <h2 class="sec">التصميم</h2>
-  <button class="btn blue" data-act="skins" style="width:100%">اختيار التصميم (${SKINS.find(k=>k.id===skinOf()).n})</button>
-  <h2 class="sec">مراجع وأدوات</h2>
-  <div style="display:grid;gap:8px"><button class="btn ghost" data-go="#/refs">المراجع العلمية</button><button class="btn ghost" data-act="sharesite">مشاركة ثواني مع الأهل</button></div>
-  <h2 class="sec">حجم الخط</h2>
-  <div class="seg" role="group" aria-label="حجم الخط">${[['1','عادي'],['1.12','كبير'],['1.25','كبير جداً']].map(([k,l])=>`<button data-act="scaleSet" data-v="${k}" aria-pressed="${sc===k}">${l}</button>`).join('')}</div>
-  ${S.deferred?'<button class="btn blue" data-act="install" style="width:100%;margin-top:16px">تثبيت التطبيق على الشاشة الرئيسية</button>':'<p class="sub" style="margin-top:14px">للتثبيت على آيفون: زر المشاركة ثم «إضافة إلى الشاشة الرئيسية». على أندرويد: قائمة المتصفح ثم «تثبيت التطبيق».</p>'}
-  <h2 class="sec">ولّد بطاقة بالذكاء الاصطناعي</h2>
-  <div class="box"><div class="fld"><label for="aiText">وصف الحالة</label><textarea id="aiText" rows="3" placeholder="مثال: لدغة نحل لطفل" value=""></textarea></div>
-   <div style="display:flex;gap:8px"><button class="btn blue" style="flex:2" data-act="ai" id="aiGo">توليد البطاقة</button><button class="btn ghost" style="flex:1" data-act="key">المفتاح</button></div>
-   <p class="sub" style="margin-top:8px">يحتاج مفتاح Gemini خاصاً بك. راجع أي بطاقة مولّدة قبل الاعتماد عليها.</p></div>`;
-  document.querySelectorAll('[data-fam]').forEach(i=>i.addEventListener('input',()=>LS.set('fam_'+i.dataset.fam,i.value)));
-}
-function viewKit(){
-  $('hdr').className='hdr slim';
-  $('hdr').innerHTML=`<div class="hrow"><button class="ib" data-go="#/home" aria-label="رجوع">${U.back}</button><h2>قوائم التجهيز</h2>${netPill()}</div>`;
-  const k=CHECKLISTS.find(x=>x.id===S.kit)||CHECKLISTS[0];S.kit=k.id;
-  const saved=getJ('thawani-kit-'+k.id,[]),done=saved.length,pct=Math.round(done/k.items.length*100);
-  $('main').innerHTML=`<p class="sub" style="margin-bottom:10px">استعد قبل الحاجة. علّم ما جهّزته، وراجع المحتويات دورياً. علاماتك تُحفظ على جهازك فقط.</p>
-  <div class="chips" id="kt">${CHECKLISTS.map(x=>`<button class="chip" data-act="kitTab" data-v="${x.id}" aria-pressed="${x.id===k.id}">${esc(x.title)}</button>`).join('')}</div>
-  <div class="box" style="margin-top:8px"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><h3 style="font-size:20px;font-weight:800">قائمة ${esc(k.title)}</h3><p class="sub">${esc(k.note)}</p></div><div style="text-align:center"><b class="num" style="font-size:26px" id="kp">${pct}%</b><div class="sub">مكتمل</div></div></div>
+function renderKit(){
+ const k=CHECKLISTS.find(x=>x.id===S.kit)||CHECKLISTS[0];S.kit=k.id;
+ const saved=getJ('thawani-kit-'+k.id,[]),pct=Math.round(saved.length/k.items.length*100);
+ $('kitTabs').innerHTML=CHECKLISTS.map(x=>`<button class="chip" type="button" data-kit="${x.id}" aria-pressed="${x.id===k.id}">${esc(x.title)}</button>`).join('');
+ $('kitPanel').innerHTML=`<div class="head"><div><h3>قائمة ${esc(k.title)}</h3><p class="mut">${esc(k.note)}</p></div><div class="pct"><b class="num" id="kp">${pct}%</b><span class="mut">مكتمل</span></div></div>
   <div class="kbar" aria-hidden="true"><i id="kb" style="width:${pct}%"></i></div>
   <div class="kitems">${k.items.map((t,i)=>`<label><input type="checkbox" data-kitem="${i}" ${saved.includes(i)?'checked':''}><span>${esc(t)}</span></label>`).join('')}</div>
   <a class="srclink" href="${esc(k.refUrl)}" target="_blank" rel="noopener">${esc(k.refTitle)} ↗</a>
-  <button class="btn ghost sm" data-act="kitReset" style="margin-top:10px">إعادة ضبط هذه القائمة</button></div>
-  <p class="disc" style="margin-top:6px">الأدوية الشخصية تُحفظ حسب تعليمات الطبيب والملصق. لا تضع أدوية حساسة للحرارة في السيارة، ولا تعطِ دواءً لشخص آخر. في المدرسة تُدار أدوية الطلاب وفق سياسة المدرسة وموافقة ولي الأمر.</p>`;
-}
-const SKINS=[
- {id:'paper',n:'كودكس (تقريبي)',d:'ورق دافئ وأخضر وبطاقات باستيل، أقرب ما أمكن لنسخة كودكس',c:['#F7F7F3','#FFFFFF','#087E68'],m:'#F7F7F3'},
- {id:'soft',n:'ناعم',d:'أسطح بارزة بظلال لينة (التصميم الحالي)',c:['#E4E9F2','#E4E9F2','#4C63D6'],m:'#E4E9F2'},
- {id:'najdi',n:'نجدي',d:'رمل وأخضر عميق وذهبي بزخرفة مثلثات نجدية',c:['#F1E8D6','#FBF6EA','#0B5D4B'],m:'#0B5D4B'}];
-const skinOf=()=>{const s=LS.get('skin','paper');return SKINS.some(k=>k.id===s)?s:'soft';};
-function openSkins(){
-  const cur=skinOf(),sh=$('sheet');sh.hidden=false;
-  sh.innerHTML=`<div class="sheetp" role="dialog" aria-label="اختيار التصميم"><div class="grab"></div><h2>اختر التصميم</h2>
-   <div class="skins">${SKINS.map(k=>`<button class="skinopt" data-act="skin" data-v="${k.id}" aria-pressed="${k.id===cur}"><span class="sw" style="background:${k.c[0]}"><i style="background:${k.c[1]}"></i><i style="background:${k.c[2]}"></i></span><span><b>${k.n}</b><small>${k.d}</small></span></button>`).join('')}</div>
-   <button class="btn ghost" data-act="closeSheet" style="width:100%">تم</button></div>`;
-}
+  <button class="btn ghostb" type="button" id="kitReset">إعادة ضبط هذه القائمة</button>`;}
+const NUMS=[['997','الهلال الأحمر (الإسعاف)','حالات طبية وإصابات','#C5483A'],['911','الطوارئ الموحد','الشرطة والإسعاف والإطفاء','#8E1B2B'],['998','الدفاع المدني','حريق، غاز، سيول، احتجاز','#BA7A20'],['937','وزارة الصحة والسموم','استشارات وتسمم','#087E68'],['993','المرور','حوادث السير','#527CB3'],['996','أمن الطرق','تعطل أو حادث على الطريق','#527CB3']];
+function renderNums(){$('nums').innerHTML=NUMS.map(([n,t,d,c])=>`<a class="numc" href="tel:${n}" style="--c:${c}"><b>${n}</b><span>${t}<small>${d}</small></span></a>`).join('');}
 const REFS=[
  ['الإنعاش والإسعاف الأولي (دولية)',[
   ['r1','الجمعية الأمريكية للقلب (AHA): إرشادات الإنعاش القلبي الرئوي والرعاية القلبية الطارئة','https://cpr.heart.org','الإنعاش، الغصة، الجلطة والنوبة القلبية، الغرق.'],
@@ -358,191 +102,179 @@ const REFS=[
   ['r11','الجمعية الأمريكية للسكري (ADA)','https://diabetes.org','هبوط السكر وقاعدة 15-15.'],
   ['r12','هيئة الخدمات الصحية البريطانية (NHS): الإسعافات الأولية','https://www.nhs.uk/conditions/first-aid/','الرعاف، العين، الإغماء، الكسور وإصابات الرأس.'],
   ['r13','مايو كلينك: الإسعافات الأولية','https://www.mayoclinic.org/first-aid','بتر الأطراف، التسمم الغذائي والجفاف، الربو.']]],
- ['المنزل والمركبة',[
-  ['r14','الرابطة الوطنية للحماية من الحرائق (NFPA)','https://www.nfpa.org','طفايات الحريق (PASS)، حرائق المطبخ، خطة الإخلاء.']]],
+ ['المنزل والمركبة',[['r14','الرابطة الوطنية للحماية من الحرائق (NFPA)','https://www.nfpa.org','طفايات الحريق (PASS)، حرائق المطبخ، خطة الإخلاء.']]],
  ['جهات في المملكة العربية السعودية',[
   ['r15','هيئة الهلال الأحمر السعودي (997)','https://www.srca.gov.sa','الإسعاف والتوعية الإسعافية.'],
   ['r16','وزارة الصحة (937)','https://www.moh.gov.sa','الاستشارات الصحية واستشارات السموم.'],
   ['r17','وزارة الداخلية: الدفاع المدني (998) والمرور وأمن الطرق (996)','https://www.moi.gov.sa','الحرائق والسيول وتسرب الغاز وسلامة الطرق.'],
-  ['r18','نجم لخدمات التأمين','https://www.najm.sa','الإبلاغ عن الحوادث المرورية البسيطة.']]]
-];
-function viewRefs(){
-  $('hdr').className='hdr slim';
-  $('hdr').innerHTML=`<div class="hrow"><button class="ib" data-go="#/home" aria-label="رجوع">${U.back}</button><h2>المراجع العلمية</h2>${netPill()}</div>`;
-  $('main').innerHTML=`<p class="sub" style="margin-bottom:12px">المصادر التي بُنيت عليها الإرشادات، لتقرأ التفاصيل أو تحضر دورة معتمدة. أرقام الأقواس في التطبيق تشير إلى هذه القائمة.</p>`+
-   REFS.map(([g,items])=>`<h2 class="sec">${g}</h2>`+items.map(([id,t,u,d])=>`<div class="ref" id="${id}"><span class="n">[${id.slice(1)}]</span><a href="${u}" target="_blank" rel="noopener">${t}</a><small>${d}</small><div class="u">${u.replace(/^https?:\/\/(www\.)?/,'')}</div></div>`).join('')).join('')+
-   `<p class="disc"><b>تنبيه.</b> المحتوى للتوعية العامة وقد تتحدث الإرشادات مع الوقت. تأكد من الإصدار الأحدث عند المراجع، وخذ دورة إسعافات أولية معتمدة. في الخطر الحقيقي اتصل أولاً بالرقم المناسب.</p>`;
-  if(S.scrollTo){const el=$(S.scrollTo);S.scrollTo=null;if(el){el.scrollIntoView({block:'center'});el.style.borderColor='var(--red)';}}
-}
+  ['r18','نجم لخدمات التأمين','https://www.najm.sa','الإبلاغ عن الحوادث المرورية البسيطة.']]]];
+function renderRefs(){$('refs').innerHTML=REFS.map(([g,it])=>`<div><h3>${g}</h3>${it.map(([id,t,u,d])=>`<div class="ref" id="${id}"><span class="n">[${id.slice(1)}]</span><a href="${u}" target="_blank" rel="noopener">${t}</a><small>${d}</small><div class="u">${u.replace(/^https?:\/\/(www\.)?/,'')}</div></div>`).join('')}</div>`).join('');}
+function renderAll(){renderTiles();renderCats();renderGrid();renderKit();}
 
-/* ================= SOS sheet ================= */
-const NUMS=[['997','الهلال الأحمر (الإسعاف)','حالات طبية وإصابات','var(--red)'],['911','الطوارئ الموحد','الشرطة والإسعاف والإطفاء','#B3182B'],['998','الدفاع المدني','حريق، غاز، سيول، احتجاز','#E98A00'],['993','المرور','حوادث السير','var(--blue)'],['937','وزارة الصحة والسموم','استشارات وتسمم','var(--green)'],['996','أمن الطرق','تعطل أو حادث على الطريق','var(--blue)']];
-function openSOS(){
-  const sh=$('sheet');sh.hidden=false;
-  sh.innerHTML=`<div class="sheetp" role="dialog" aria-label="أرقام الطوارئ"><div class="grab"></div><h2>اتصل بالطوارئ</h2>
-   <div class="nums">${NUMS.map(([n,t,d,c])=>`<a class="numr" href="tel:${n}" style="--c:${c}"><b>${n}</b><span>${t}<small>${d}</small></span></a>`).join('')}</div>
-   <div style="display:grid;gap:8px;margin-top:12px"><button class="btn blue" data-act="locate">شارك موقعي عبر واتساب</button><button class="btn ghost" data-act="closeSheet">إغلاق</button></div></div>`;
-}
-function closeSheet(){$('sheet').hidden=true;$('sheet').innerHTML='';}
-function locate(){
-  if(!navigator.geolocation){toast('جهازك لا يدعم تحديد الموقع',true);return;}
-  toast('جارٍ تحديد موقعك…');
-  navigator.geolocation.getCurrentPosition(pos=>{
-    const l='https://maps.google.com/?q='+pos.coords.latitude.toFixed(6)+','+pos.coords.longitude.toFixed(6);
-    window.open('https://wa.me/?text='+encodeURIComponent('أحتاج مساعدة عاجلة. موقعي: '+l),'_blank','noopener');
-  },()=>toast('تعذر تحديد الموقع. فعّل الإذن من الإعدادات',true),{enableHighAccuracy:true,timeout:10000});
-}
+/* ---------- search / filters ---------- */
+$('q').addEventListener('input',e=>{S.q=e.target.value;S.cat='all';S.place='all';renderCats();renderGrid();});
+$('q').addEventListener('keydown',e=>{if(e.key==='Enter'){$('browse').scrollIntoView({behavior:'smooth'});}});
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('q').focus();$('quick').scrollIntoView({behavior:'smooth'});}});
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){$('micBtn').hidden=false;$('micBtn').onclick=()=>{const b=$('micBtn'),r=new SR();r.lang='ar-SA';r.interimResults=false;b.classList.add('on');
+ r.onresult=e=>{const t=e.results[0][0].transcript;$('q').value=t;S.q=t;S.cat='all';S.place='all';renderCats();renderGrid();toast('سمعت: '+t);const l=filtered();if(l.length===1)openCard(l[0].id);};
+ r.onerror=()=>toast('لم أسمعك جيداً. حاول مرة أخرى');r.onend=()=>b.classList.remove('on');try{r.start();toast('تحدث الآن…');}catch(e){b.classList.remove('on');}};}
 
-/* ================= welcome ================= */
-const RESP=`<svg viewBox="0 0 200 270" aria-hidden="true"><ellipse cx="100" cy="258" rx="58" ry="8" fill="#14203F" opacity=".12"/>
-<rect x="66" y="150" width="30" height="96" rx="12" fill="#1B2A5C"/><rect x="104" y="150" width="30" height="96" rx="12" fill="#1B2A5C"/>
-<rect x="60" y="238" width="40" height="14" rx="7" fill="#101828"/><rect x="100" y="238" width="40" height="14" rx="7" fill="#101828"/>
-<rect x="52" y="78" width="96" height="86" rx="26" fill="#3B82F6"/><rect x="52" y="112" width="96" height="9" fill="#fff" opacity=".9"/><rect x="52" y="140" width="96" height="9" fill="#fff" opacity=".9"/>
-<rect x="28" y="84" width="26" height="78" rx="13" fill="#3B82F6"/><rect x="146" y="84" width="26" height="70" rx="13" fill="#3B82F6"/>
-<rect x="120" y="150" width="62" height="48" rx="9" fill="#E5283A"/><rect x="136" y="146" width="30" height="8" rx="4" fill="#9E1220"/><path d="M148 162h10v8h8v10h-8v8h-10v-8h-8v-10h8z" fill="#fff" transform="translate(-2 -4)"/>
-<circle cx="100" cy="52" r="30" fill="#F1B98A"/><path d="M70 50c0-22 16-30 32-30 16 0 28 10 28 28-8-8-18-10-28-10-12 0-22 4-32 12z" fill="#6B3E26"/>
-<circle cx="90" cy="56" r="3.500" fill="#14203F"/><circle cx="112" cy="56" r="3.500" fill="#14203F"/><path d="M92 68q9 8 18 0" stroke="#14203F" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
-const SL2=`<svg viewBox="0 0 200 220" aria-hidden="true"><rect x="52" y="10" width="96" height="190" rx="20" fill="#14203F"/><rect x="58" y="22" width="84" height="166" rx="12" fill="#F2F5FF"/><circle cx="100" cy="86" r="26" fill="#14B866"/><path d="M88 86l8 9 16-18" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="70" y="128" width="60" height="9" rx="4" fill="#C6CDE6"/><rect x="78" y="146" width="44" height="9" rx="4" fill="#C6CDE6"/><path d="M148 30l12-10M152 44l16-4" stroke="#FFB347" stroke-width="5" stroke-linecap="round"/></svg>`;
-const SL3=`<svg viewBox="0 0 200 220" aria-hidden="true"><rect x="20" y="20" width="160" height="50" rx="16" fill="#fff"/><circle cx="46" cy="45" r="14" fill="#E5283A"/><text x="46" y="51" font-size="16" font-weight="900" fill="#fff" text-anchor="middle" font-family="Tajawal">1</text><rect x="70" y="38" width="92" height="9" rx="4" fill="#C6CDE6"/><rect x="70" y="52" width="60" height="7" rx="3" fill="#E1E6F5"/>
-<rect x="20" y="82" width="160" height="50" rx="16" fill="#fff"/><circle cx="46" cy="107" r="14" fill="#FF8A1F"/><text x="46" y="113" font-size="16" font-weight="900" fill="#fff" text-anchor="middle" font-family="Tajawal">2</text><rect x="70" y="100" width="92" height="9" rx="4" fill="#C6CDE6"/><rect x="70" y="114" width="60" height="7" rx="3" fill="#E1E6F5"/>
-<rect x="20" y="144" width="160" height="50" rx="16" fill="#fff"/><circle cx="46" cy="169" r="14" fill="#14B866"/><text x="46" y="175" font-size="16" font-weight="900" fill="#fff" text-anchor="middle" font-family="Tajawal">3</text><rect x="70" y="162" width="92" height="9" rx="4" fill="#C6CDE6"/><rect x="70" y="176" width="60" height="7" rx="3" fill="#E1E6F5"/></svg>`;
-const SLIDES=[[RESP,'مرحباً بك في ثواني','كل ثانية تصنع فارقاً'],[SL2,'يعمل بدون إنترنت','بعد التثبيت، البطاقات معك في أي مكان'],[SL3,'خطوة بخطوة وبالصوت','تعليمات قصيرة تقرؤها أو تسمعها']];
-let wi=0;
-function showWelcome(){
-  const w=$('welcome');w.hidden=false;
-  w.innerHTML=`<button class="skip" data-act="skip">تخطي</button><div class="slides" id="slides">${SLIDES.map(s=>`<div class="slide">${s[0]}<h2>${s[1]}</h2><p>${s[2]}</p></div>`).join('')}</div>
-   <div class="dots" id="dots">${SLIDES.map(()=>'<i></i>').join('')}</div><button class="go" data-act="wnext" id="wgo">التالي</button>`;
-  paintW();
-  let x0=null;const sl=$('slides');sl.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});
-  sl.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx<-50&&wi<SLIDES.length-1){wi++;paintW();}else if(dx>50&&wi>0){wi--;paintW();}});
+/* ---------- modal: card ---------- */
+let speaking=false;
+function stopSpeak(){try{speechSynthesis.cancel()}catch(e){}speaking=false;$$('.wave').forEach(w=>w.classList.remove('on'));const b=document.querySelector('[data-act=speak]');if(b)b.textContent='🔊 تشغيل الصوت';}
+function speak(text){
+ if(!('speechSynthesis' in window)){toast('جهازك لا يدعم القراءة الصوتية');return;}
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ar-SA';u.rate=.95;
+  const v=(speechSynthesis.getVoices()||[]).find(v=>/^ar/i.test(v.lang));if(v)u.voice=v;else if(speechSynthesis.getVoices().length)toast('لم يُعثر على صوت عربي على جهازك');
+  u.onstart=()=>{speaking=true;$$('.wave').forEach(w=>w.classList.add('on'));const b=document.querySelector('[data-act=speak]');if(b)b.textContent='⏹ إيقاف الصوت';};
+  u.onend=u.onerror=()=>{speaking=false;$$('.wave').forEach(w=>w.classList.remove('on'));const b=document.querySelector('[data-act=speak]');if(b)b.textContent='🔊 تشغيل الصوت';};
+  speechSynthesis.speak(u);}catch(e){toast('تعذر تشغيل الصوت');}}
+const guideText=(p,i)=>i===0?'القاعدة الأولى. '+p.golden:'الخطوة '+i+'. '+p.steps[i-1];
+function srcHTML(p){let h='';
+ if(p.vids&&p.vids.length)h+=`<div class="srcbox"><h3>فيديو توضيحي</h3>${p.vids.map(v=>`<a class="srclink" href="${esc(v[1])}" target="_blank" rel="noopener">▶ ${esc(v[0])}</a>`).join('')}<small>المشاهدة تحتاج اتصالاً بالإنترنت.</small></div>`;
+ if(p.refs&&p.refs.length)h+=`<div class="srcbox"><h3>المصادر</h3>${p.refs.map(r=>`<a class="srclink" href="${esc(r[1])}" target="_blank" rel="noopener">${esc(r[0])} ↗</a>`).join('')}</div>`;
+ return h;}
+function buildText(p){p=p||byId(GD.id);const f=family();
+ return ['🚨 *'+p.title+'*','📞 رقم الطوارئ: '+p.phone+'  |  '+p.level,'','⭐ *القاعدة الأولى:*',p.golden,'','⚡ *الخطوات:*',...p.steps.map((s,i)=>(i+1)+'. '+s),'','⛔ *تجنب فوراً:*',...p.avoid.map(a=>'• '+a),'','🧰 *التجهيزات وعلامات الخطر:*',...p.gear.map(g=>'• '+g),'','🏠 *بيانات العائلة*','📍 الموقع: '+f.loc,'📞 طوارئ العائلة: '+f.tel,'🏃 نقطة التجمع: '+f.pt,'🩺 الإسعافات/الطفاية: '+f.kit,'','— ثواني'].join('\n');}
+function overview(p){const f=family();
+ return `<div class="xr"><a class="btn solid sm" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(buildText(p))}">واتساب</a><button class="btn ghostb sm" type="button" data-act="copy">نسخ النص</button><button class="btn ghostb sm" type="button" data-act="png">حفظ كصورة</button><button class="btn ghostb sm" type="button" data-act="print">طباعة A4</button>${navigator.share?'<button class="btn ghostb sm" type="button" data-act="share">مشاركة…</button>':''}</div>
+ <div id="printArea"><article class="card lv-${p.lv}" id="cardEl">
+  <div class="ch"><span class="mcat">${esc(catName(p))} • ${esc(LV[p.lv]||'')}</span><h2 style="margin-top:2px">${esc(p.title)}</h2><p>${esc(p.level)}</p><a class="callbig" href="tel:${esc(p.phone)}"><span>اتصل الآن</span><b>${esc(p.phone)}</b></a></div>
+  <div class="cb"><div class="golden"><b>القاعدة الأولى</b>${esc(p.golden)}</div>
+   <div><h3>الخطوات</h3><ol class="stepsl">${p.steps.map(s=>`<li><span>${esc(s)}</span></li>`).join('')}</ol></div>
+   <div class="avoidb"><h3>تجنب فوراً</h3><ul>${p.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
+   <div class="gearb"><h3>التجهيزات وعلامات الخطر</h3><div class="gearlist">${p.gear.map(g=>`<label><input type="checkbox"><span>${esc(g)}</span></label>`).join('')}</div></div>
+   ${srcHTML(p)}</div>
+  <div class="cfoot"><div><em>الموقع:</em> <b>${esc(f.loc)}</b></div><div><em>طوارئ العائلة:</em> <b>${esc(f.tel)}</b></div><div><em>نقطة التجمع:</em> <b>${esc(f.pt)}</b></div><div><em>الإسعافات والطفاية:</em> <b>${esc(f.kit)}</b></div></div>
+ </article></div>`;}
+function guide(p){const n=p.steps.length,i=GD.idx;
+ if(i>n)return `<div class="stage lv-${p.lv}"><div class="sart">${icon(p)}</div><h3 style="font-family:var(--fh);font-size:24px;margin-top:12px">أحسنت. هل اتصلت بـ ${esc(p.phone)}؟</h3><p class="mut">تابع حالة المصاب حتى وصول المسعفين.</p>
+  <div class="avoidb" style="margin-top:12px"><h3>تجنب فوراً</h3><ul>${p.avoid.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>
+  <div class="cb" style="padding:12px 0 0">${srcHTML(p)}</div>
+  <div class="btnrow"><a class="btn red" href="tel:${esc(p.phone)}">اتصل بـ ${esc(p.phone)}</a><button class="btn ghostb" type="button" data-act="restart">إعادة الخطوات</button><button class="btn ghostb" type="button" data-act="mode" data-m="over">عرض البطاقة كاملة</button></div></div>`;
+ const bars=Array.from({length:n+1},(_,k)=>`<i class="${k<=i?'on':''}"></i>`).join('');
+ const extra=(p.id==='p3'?'<button class="btn ghostb sm" type="button" data-act="tool" data-t="tools">افتح إيقاع الإنعاش</button>':'')+(p.id==='p2'?'<button class="btn ghostb sm" type="button" data-act="tool" data-t="tools">ابدأ مؤقت العاصبة</button>':'');
+ return `<div class="stage lv-${p.lv}" id="stage"><div class="sart">${icon(p)}<div class="wave">${'<i></i>'.repeat(26)}</div><div class="cap">${esc(p.level)}</div></div>
+  <div class="stepno">${i===0?'قبل أن تبدأ':'الخطوة '+i+' من '+n}</div><div class="steptx ${i===0?'g':''}">${esc(i===0?p.golden:p.steps[i-1])}</div>
+  <div class="pbar" aria-hidden="true">${bars}</div>
+  <div class="ctl"><button class="btn ghostb" type="button" data-act="prev" aria-label="السابق" ${i===0?'disabled':''}>→</button><button class="btn solid" type="button" data-act="speak">${speaking?'⏹ إيقاف الصوت':'🔊 تشغيل الصوت'}</button><button class="btn solid" type="button" data-act="next">${i===n?'إنهاء':'التالي'} ←</button></div>
+  ${extra?`<div class="btnrow">${extra}</div>`:''}</div>
+  <a class="btn red" href="tel:${esc(p.phone)}" style="width:100%;margin-top:12px">اتصل الآن ${esc(p.phone)}</a>`;}
+function drawModal(){
+ const p=byId(GD.id);if(!p)return;
+ $('mBody').innerHTML=`<div class="lv-${p.lv}">${GD.mode==='guide'?`<span class="mcat">${esc(catName(p))}${p.lv==='c'||p.lv==='d'?' · حالة عاجلة':''}</span><h2 id="mTitle">${esc(p.title)}</h2>`:'<span class="sr" id="mTitle">'+esc(p.title)+'</span>'}
+  <div class="tabs" role="tablist"><button type="button" role="tab" data-act="mode" data-m="over" aria-selected="${GD.mode==='over'}">البطاقة كاملة</button><button type="button" role="tab" data-act="mode" data-m="guide" aria-selected="${GD.mode==='guide'}">خطوة بخطوة وبالصوت</button></div>
+  ${GD.mode==='over'?overview(p):guide(p)}</div>`;
+ const st=$('stage');if(st){let x0=null;st.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});st.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx<-55)go(1);else if(dx>55)go(-1);});}
 }
-function paintW(){
-  document.querySelectorAll('.slide').forEach(s=>s.style.transform=`translateX(${wi*100}%)`);
-  document.querySelectorAll('#dots i').forEach((d,i)=>d.classList.toggle('on',i===wi));
-  $('wgo').textContent=wi===SLIDES.length-1?'ابدأ الآن':'التالي';
-}
-function endWelcome(){LS.set('welcomed','1');$('welcome').hidden=true;$('welcome').innerHTML='';}
+function go(d){const p=byId(GD.id),n=p.steps.length,ni=Math.max(0,Math.min(n+1,GD.idx+d));if(ni===GD.idx)return;GD.idx=ni;drawModal();
+ if(GD.talk&&ni<=n)speak(guideText(p,ni));else if(ni>n)stopSpeak();}
+function openCard(id,mode){
+ const p=byId(id);if(!p)return;GD.id=id;GD.idx=0;GD.mode=mode||'over';GD.talk=false;GD.opener=document.activeElement;stopSpeak();
+ drawModal();$('modal').hidden=false;document.body.style.overflow='hidden';$('closeModal').focus();
+ try{history.replaceState(null,'','?card='+id)}catch(e){}}
+function closeModal(){if($('modal').hidden)return;$('modal').hidden=true;document.body.style.overflow='';stopSpeak();GD.id=null;
+ try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}
+ if(GD.opener&&GD.opener.focus)try{GD.opener.focus()}catch(e){}}
+function openAbout(){GD.id=null;GD.opener=document.activeElement;
+ $('mBody').innerHTML=`<span class="mcat">عن الدليل</span><h2 id="mTitle">ثواني</h2><p class="mut" style="margin-bottom:14px">دليل توعوي مبسّط للتصرف في مواقف الطوارئ في المملكة. يعرض خطوات عامة إلى حين وصول المساعدة، ولا يستبدل الاتصال بالطوارئ ولا التدريب المعتمد. بعد تثبيته يعمل بدون إنترنت، وبياناتك (خطة العائلة وقوائم التجهيز) تُحفظ على جهازك فقط.</p>
+ <div class="nums">${NUMS.map(([n,t,d,c])=>`<a class="numc" href="tel:${n}" style="--c:${c}"><b>${n}</b><span>${t}<small>${d}</small></span></a>`).join('')}</div>
+ <div class="btnrow"><a class="btn ghostb" href="#plan" data-close>خطة عائلتك</a><a class="btn ghostb" href="#references" data-close>المراجع</a><button class="btn ghostb" type="button" data-act="sharesite">مشاركة ثواني</button></div>
+ <p class="note">للتعلم العملي راجع برامج التدريب الرسمية في الهلال الأحمر السعودي. ثواني مبادرة توعوية غير رسمية.</p>`;
+ $('modal').hidden=false;document.body.style.overflow='hidden';$('closeModal').focus();}
+$('closeModal').onclick=closeModal;
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();
+ if(GD.id&&GD.mode==='guide'&&!$('modal').hidden&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')){if(e.key==='ArrowLeft')go(1);if(e.key==='ArrowRight')go(-1);}});
 
-/* ================= router ================= */
-function route(){
-  stopSpeakIfLeaving();
-  const h=location.hash.replace(/^#\/?/,'')||'home';
-  const [a,b]=h.split('/');
-  closeSheet();
-  if(a==='card'){renderNav('lib');viewCard(b);}
-  else if(a==='lib'){renderNav('lib');viewLib(b);}
-  else if(a==='cpr'){renderNav('cpr');viewCpr();}
-  else if(a==='kit'){renderNav('kit');viewKit();}
-  else if(a==='me'){renderNav('me');viewMe();}
-  else if(a==='refs'){renderNav('refs');viewRefs();}
-  else{renderNav('home');viewHome();}
-  if(a!=='card')GD.id=null;
-  updateNet();markMid();
-  if(a!=='card'&&a!=='lib'||!S.focus)$('main').scrollTop=0;
-}
-function stopSpeakIfLeaving(){if(speaking)stopSpeak();}
-
-/* ================= actions ================= */
+/* ---------- export ---------- */
 let h2c=null;
-function loadH2C(){if(window.html2canvas)return Promise.resolve();
-  if(!h2c)h2c=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=res;s.onerror=()=>rej(new Error('offline'));document.head.appendChild(s);});return h2c;}
-function applyTheme(){const sk=skinOf(),k=SKINS.find(x=>x.id===sk),r=document.documentElement,m=document.querySelector('meta[name=theme-color]');if(sk==='soft')r.removeAttribute('data-skin');else r.setAttribute('data-skin',sk);if(m)m.content=k.m;}
-function applyScale(){document.documentElement.style.setProperty('--scale',LS.get('scale','1'));}
+function loadH2C(){if(window.html2canvas)return Promise.resolve();if(!h2c)h2c=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=res;s.onerror=()=>rej(new Error('offline'));document.head.appendChild(s);});return h2c;}
 
-async function aiGen(){
-  const sc=($('aiText')||{}).value;const key=LS.get('gemini_key','');
-  if(!sc||!sc.trim()){toast('اكتب وصف الحالة أولاً',true);return;}
-  if(!key){toast('أدخل مفتاح Gemini أولاً',true);$('keyInput').value='';$('keyDlg').showModal();return;}
-  const b=$('aiGo');b.disabled=true;b.textContent='جارٍ التوليد…';
-  const prompt=`أنت خبير سلامة وإسعاف في المملكة العربية السعودية. حوّل السيناريو التالي إلى بطاقة إرشادية بالعربية الفصحى المبسطة مبنية على إرشادات إسعاف معتمدة، وأعد JSON فقط بهذا الهيكل:
-{"cat":"first_aid|kids_elderly|home_safety|vehicle_road|weather_outdoor","title":"","phone":"911|997|998|937|996","level":"وصف قصير لمستوى الخطورة","lv":"c|d|w|t|p","golden":"القاعدة الأولى","steps":["5 خطوات مرتبة"],"avoid":["2-3 أخطاء"],"gear":["2-3 تجهيزات أو علامات خطر"]}
-lv: c حرج، d حرج جداً، w تحذير، t إجراء تقني، p وقائي.
-السيناريو: ${sc}`;
-  try{
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
-      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json'}})});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    let o=JSON.parse((await r.json()).candidates[0].content.parts[0].text);if(Array.isArray(o))o=o[0];
-    if(!o.title||!Array.isArray(o.steps)||!o.steps.length)throw new Error('بنية غير صالحة');
-    const card={id:'ai'+Date.now(),cat:CATS[o.cat]?o.cat:'first_aid',title:String(o.title),phone:['911','997','998','937','996'].includes(String(o.phone))?String(o.phone):'911',
-      level:String(o.level||'بطاقة مولّدة بالذكاء الاصطناعي'),lv:LV[o.lv]?o.lv:'c',golden:String(o.golden||''),steps:o.steps.map(String),avoid:(o.avoid||[]).map(String),gear:(o.gear||[]).map(String)};
-    LIB.push(card);let sv=[];try{sv=JSON.parse(LS.get('ai_cards','[]'))}catch(e){}sv.push(card);LS.set('ai_cards',JSON.stringify(sv));
-    toast('أُضيفت البطاقة. راجعها قبل الاعتماد عليها');location.hash='#/card/'+card.id;
-  }catch(e){toast('تعذر التوليد: '+e.message,true);b.disabled=false;b.textContent='توليد البطاقة';}
-}
+/* ---------- CPR + timer ---------- */
+const C={run:false,count:0,t0:0,acc:0,beat:null,clk:null,actx:null,lastSwap:0};
+const T={run:false,acc:0,t0:0,int:null,since:''};
+const cprElapsed=()=>Math.floor((C.acc+(C.run?Date.now()-C.t0:0))/1000);
+function beep(){try{if(!C.actx)C.actx=new (window.AudioContext||window.webkitAudioContext)();const o=C.actx.createOscillator(),g=C.actx.createGain();o.type='square';o.frequency.value=880;g.gain.setValueAtTime(.35,C.actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,C.actx.currentTime+.09);o.connect(g);g.connect(C.actx.destination);o.start();o.stop(C.actx.currentTime+.1);}catch(e){}}
+function cprAlert(t){const a=$('cAlert');a.textContent=t;a.hidden=false;toast(t.split('.')[0]);}
+function cprPaint(){const e=cprElapsed();$('cCount').textContent=C.count;$('cTime').textContent=pad(Math.floor(e/60))+':'+pad(e%60);
+ if(C.run&&e>0&&e%120===0&&C.lastSwap!==e){C.lastSwap=e;cprAlert('مضت دقيقتان. بدّل المسعف إن وُجد من يساعدك.');}}
+function cprTick(){if(C.run){C.count++;beep();try{navigator.vibrate&&navigator.vibrate(25)}catch(e){}const h=$('heartbox');h.classList.add('beat');setTimeout(()=>h.classList.remove('beat'),100);
+ if(C.count%30===0)cprAlert('30 ضغطة. إن كنت مدرباً أعطِ نفسين إنقاذيين، وإلا واصل الضغط دون توقف.');}cprPaint();}
+function cprDraw(){const b=$('cprBtn');b.classList.toggle('on',C.run);b.textContent=C.run?'إيقاف مؤقت':(C.count?'استئناف':'اضغط الآن');$('heartbox').classList.toggle('run',C.run);cprPaint();}
+$('cprBtn').onclick=()=>{if(C.run){C.acc+=Date.now()-C.t0;C.run=false;clearInterval(C.beat);clearInterval(C.clk);}else{if(C.actx&&C.actx.state==='suspended')C.actx.resume();C.run=true;C.t0=Date.now();cprTick();C.beat=setInterval(cprTick,60000/110);C.clk=setInterval(cprPaint,500);}cprDraw();};
+$('cprReset').onclick=()=>{C.run=false;clearInterval(C.beat);clearInterval(C.clk);C.count=0;C.acc=0;C.lastSwap=0;$('cAlert').hidden=true;cprDraw();};
+function tShow(){const s=Math.floor((T.acc+(T.run?Date.now()-T.t0:0))/1000);$('tClock').textContent=pad(Math.floor(s/3600))+':'+pad(Math.floor(s%3600/60))+':'+pad(s%60);}
+$('tGo').onclick=()=>{if(T.run)return;if(!T.acc)T.since='وقت التركيب: '+new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});T.run=true;T.t0=Date.now();T.int=setInterval(tShow,250);$('tSince').textContent=T.since;$('tGo').textContent='استئناف';};
+$('tPause').onclick=()=>{if(!T.run)return;T.acc+=Date.now()-T.t0;T.run=false;clearInterval(T.int);tShow();};
+$('tReset').onclick=()=>{T.run=false;clearInterval(T.int);T.acc=0;T.since='';$('tSince').textContent='';$('tGo').textContent='بدء';tShow();};
 
-function startVoice(btn){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('البحث الصوتي غير مدعوم في هذا المتصفح',true);return;}
-  const r=new SR();r.lang='ar-SA';r.interimResults=false;btn.classList.add('on');
-  r.onresult=e=>{const t=e.results[0][0].transcript;S.q=t;S.cat='all';const l=filtered();toast('سمعت: '+t);
-    if(l.length===1)location.hash='#/card/'+l[0].id;else{S.focus=false;if(location.hash==='#/lib'||location.hash.startsWith('#/lib/'))route();else location.hash='#/lib';}};
-  r.onerror=()=>toast('لم أسمعك جيداً. حاول مرة أخرى',true);
-  r.onend=()=>btn.classList.remove('on');
-  try{r.start();toast('تحدث الآن…');}catch(e){btn.classList.remove('on');}
-}
+/* ---------- location / share / theme / scale ---------- */
+$('locBtn').onclick=()=>{if(!navigator.geolocation){toast('جهازك لا يدعم تحديد الموقع');return;}toast('جارٍ تحديد موقعك…');
+ navigator.geolocation.getCurrentPosition(pos=>{const l='https://maps.google.com/?q='+pos.coords.latitude.toFixed(6)+','+pos.coords.longitude.toFixed(6);window.open('https://wa.me/?text='+encodeURIComponent('أحتاج مساعدة عاجلة. موقعي: '+l),'_blank','noopener');},()=>toast('تعذر تحديد الموقع. فعّل الإذن من الإعدادات'),{enableHighAccuracy:true,timeout:10000});};
+async function shareSite(){if(location.protocol==='file:'){toast('بعد نشر الموقع على رابط HTTPS تقدر تشاركه وتثبته كتطبيق.');return;}
+ const url=location.href.split('#')[0].split('?')[0];try{if(navigator.share)await navigator.share({title:'ثواني',text:'بطاقات طوارئ بالعربية خطوة بخطوة وبالصوت.',url});else{await navigator.clipboard.writeText(url);toast('تم نسخ رابط ثواني للمشاركة.');}}catch(e){if(e&&e.name!=='AbortError')toast('انسخ رابط الصفحة من شريط العنوان.');}}
+$('shareBtn').onclick=shareSite;
+function applyTheme(){const t=LS.get('theme','auto'),r=document.documentElement;if(t==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',t);
+ const dark=t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme:dark)').matches),m=document.querySelector('meta[name=theme-color]');if(m)m.content=dark?'#0E1714':'#F7F7F3';}
+$('themeBtn').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme');const dark=cur==='dark'||(!cur&&matchMedia('(prefers-color-scheme:dark)').matches);LS.set('theme',dark?'light':'dark');applyTheme();};
+const applyScale=()=>document.documentElement.style.setProperty('--scale',LS.get('scale','1'));
+$('aboutBtn').onclick=openAbout;$('aboutBtn2').onclick=openAbout;
 
-document.addEventListener('click',async e=>{
-  const ref=e.target.closest('[data-ref]');if(ref){e.preventDefault();S.scrollTo=ref.dataset.ref;if(location.hash==='#/refs')route();else location.hash='#/refs';return;}
-  const g=e.target.closest('[data-go]');if(g){e.preventDefault();const t=g.dataset.go;if(location.hash===t)route();else location.hash=t;return;}
-  const a=e.target.closest('[data-act]');if(!a)return;
-  const act=a.dataset.act,p=GD.id?byId(GD.id):null;
-  switch(act){
-    case 'sos':openSOS();break;
-    case 'closeSheet':closeSheet();break;
-    case 'locate':locate();break;
-    case 'back':history.length>1?history.back():(location.hash='#/home');break;
-    case 'scaleSet':LS.set('scale',a.dataset.v);applyScale();viewMe();break;
-    case 'mode':GD.mode=a.dataset.m;drawGuide();break;
-    case 'next':go(1);break;
-    case 'prev':go(-1);break;
-    case 'restart':GD.idx=0;drawGuide();break;
-    case 'speak':if(speaking){GD.talk=false;stopSpeak();}else{GD.talk=true;speak(guideText(p,Math.min(GD.idx,p.steps.length)));}break;
-    case 'copy':try{await navigator.clipboard.writeText(buildText());toast('تم نسخ النص');}catch(_){const ta=document.createElement('textarea');ta.value=buildText();document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('تم نسخ النص')}catch(__){toast('تعذر النسخ',true)}ta.remove();}break;
-    case 'share':navigator.share({title:p.title,text:buildText()}).catch(()=>{});break;
-    case 'print':window.print();break;
-    case 'png':try{toast('جارٍ إنشاء الصورة…');await loadH2C();const c=await html2canvas($('tag'),{scale:2,useCORS:true,backgroundColor:getComputedStyle(document.body).backgroundColor});
-      const l=document.createElement('a');l.download=p.title.replace(/[\\/:*?"<>|()]/g,'').trim()+'.png';l.href=c.toDataURL('image/png');l.click();toast('تم حفظ الصورة');}catch(_){h2c=null;toast('حفظ الصورة يحتاج اتصالاً بالإنترنت مرة واحدة',true);}break;
-    case 'cprToggle':cprToggle();break;
-    case 'cprReset':cprReset();break;
-    case 'skins':openSkins();break;
-    case 'skin':LS.set('skin',a.dataset.v);applyTheme();openSkins();toast('التصميم: '+SKINS.find(k=>k.id===a.dataset.v).n);break;
-    case 'placego':S.place=a.dataset.v;S.cat='all';S.q='';location.hash='#/lib';break;
-    case 'kitTab':S.kit=a.dataset.v;viewKit();break;
-    case 'kitReset':LS.set('thawani-kit-'+S.kit,'[]');viewKit();break;
-    case 'sharesite':try{if(navigator.share){await navigator.share({title:'ثواني',text:'بطاقات طوارئ بالعربية خطوة بخطوة وبالصوت.',url:location.href.split('#')[0].split('?')[0]});}else{await navigator.clipboard.writeText(location.href.split('#')[0].split('?')[0]);toast('تم نسخ رابط ثواني');}}catch(_){}break;
-    case 'tGo':if(T.run)break;if(!T.acc)T.since='وقت التركيب: '+new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});T.run=true;T.t0=Date.now();T.int=setInterval(tShow,250);$('tSince').textContent=T.since;a.textContent='استئناف';break;
-    case 'tPause':if(!T.run)break;T.acc+=Date.now()-T.t0;T.run=false;clearInterval(T.int);tShow();break;
-    case 'tReset':T.run=false;clearInterval(T.int);T.acc=0;T.since='';$('tSince').textContent='';tShow();document.querySelector('[data-act=tGo]').textContent='بدء';break;
-    case 'voice':startVoice(a);break;
-    case 'install':if(S.deferred){S.deferred.prompt();await S.deferred.userChoice;S.deferred=null;viewMe();}break;
-    case 'ai':aiGen();break;
-    case 'key':$('keyInput').value=LS.get('gemini_key','');$('keyDlg').showModal();break;
-    case 'skip':endWelcome();break;
-    case 'wnext':if(wi<SLIDES.length-1){wi++;paintW();}else endWelcome();break;
-  }
-});
-document.addEventListener('change',e=>{const c=e.target.closest('[data-kitem]');if(!c)return;const ids=[...document.querySelectorAll('[data-kitem]:checked')].map(x=>Number(x.dataset.kitem));LS.set('thawani-kit-'+S.kit,JSON.stringify(ids));const k=CHECKLISTS.find(x=>x.id===S.kit),p=Math.round(ids.length/k.items.length*100);$('kp').textContent=p+'%';$('kb').style.width=p+'%';});
-$('sheet').addEventListener('click',e=>{if(e.target===$('sheet'))closeSheet();});
+/* ---------- AI ---------- */
+$('keyBtn').onclick=()=>{$('keyInput').value=LS.get('gemini_key','');$('keyDlg').showModal();};
 $('keyDlg').addEventListener('close',()=>{if($('keyDlg').returnValue==='save'){LS.set('gemini_key',$('keyInput').value.trim());toast('تم حفظ المفتاح');}});
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape')closeSheet();
-  if(GD.id&&GD.mode==='steps'&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')){if(e.key==='ArrowLeft')go(1);if(e.key==='ArrowRight')go(-1);}
-});
-window.addEventListener('hashchange',route);
-window.addEventListener('online',updateNet);window.addEventListener('offline',updateNet);
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();S.deferred=e;});
-window.addEventListener('appinstalled',()=>{S.deferred=null;toast('تم تثبيت التطبيق');});
-if('speechSynthesis' in window)try{speechSynthesis.getVoices();}catch(e){}
-if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
-  navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{S.swReady=true;updateNet();}).catch(()=>{});
-}
+$('aiGo').onclick=async()=>{const sc=$('aiText').value.trim(),key=LS.get('gemini_key','');
+ if(!sc){toast('اكتب وصف الحالة أولاً');return;}if(!key){toast('أدخل مفتاح Gemini أولاً');$('keyBtn').click();return;}
+ const b=$('aiGo');b.disabled=true;b.textContent='جارٍ التوليد…';
+ const prompt=`أنت خبير سلامة وإسعاف في المملكة العربية السعودية. حوّل السيناريو التالي إلى بطاقة إرشادية بالعربية الفصحى المبسطة مبنية على إرشادات إسعاف معتمدة، وأعد JSON فقط بهذا الهيكل:
+{"cat":"first_aid|kids_elderly|home_safety|vehicle_road|weather_outdoor","title":"","phone":"911|997|998|937|996","level":"وصف قصير لمستوى الخطورة","lv":"c|d|w|t|p","golden":"القاعدة الأولى","steps":["4 إلى 5 خطوات مرتبة"],"avoid":["2-3 أخطاء"],"gear":["2-3 تجهيزات أو علامات خطر"]}
+lv: c حرج، d حرج جداً، w تحذير، t إجراء تقني، p وقائي. لا تذكر جرعات أدوية؛ وجّه إلى موظف الطوارئ.
+السيناريو: ${sc}`;
+ try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json'}})});
+  if(!r.ok)throw new Error('HTTP '+r.status);let o=JSON.parse((await r.json()).candidates[0].content.parts[0].text);if(Array.isArray(o))o=o[0];
+  if(!o.title||!Array.isArray(o.steps)||!o.steps.length)throw new Error('بنية غير صالحة');
+  const card=ext({id:'ai'+Date.now(),cat:CATS[o.cat]?o.cat:'first_aid',title:String(o.title),phone:['911','997','998','937','996'].includes(String(o.phone))?String(o.phone):'911',level:String(o.level||'بطاقة مولّدة بالذكاء الاصطناعي'),lv:LV[o.lv]?o.lv:'c',golden:String(o.golden||''),steps:o.steps.map(String),avoid:(o.avoid||[]).map(String),gear:(o.gear||[]).map(String)});
+  LIB.push(card);const sv=getJ('ai_cards',[]);sv.push(card);LS.set('ai_cards',JSON.stringify(sv));renderAll();openCard(card.id);toast('أُضيفت البطاقة. راجعها قبل الاعتماد عليها');
+ }catch(e){toast('تعذر التوليد: '+e.message);}finally{b.disabled=false;b.textContent='توليد البطاقة';}};
 
-/* ================= start ================= */
-applyTheme();applyScale();
-(function(){const app=$('app');const set=()=>{app.style.setProperty('--hh',$('hdr').offsetHeight+'px');app.style.setProperty('--nh',$('nav').offsetHeight+'px');};
-  if('ResizeObserver' in window){const ro=new ResizeObserver(set);ro.observe($('hdr'));ro.observe($('nav'));}window.addEventListener('resize',set);setTimeout(set,0);})();
-const qs=new URLSearchParams(location.search).get('card');
-if(qs&&byId(qs)&&!location.hash)location.hash='#/card/'+qs;
-if(!LS.get('welcomed','')&&!qs)showWelcome();
-route();
+/* ---------- global clicks ---------- */
+document.addEventListener('click',async e=>{
+ const cd=e.target.closest('[data-card]');if(cd){openCard(cd.dataset.card);return;}
+ const ct=e.target.closest('[data-cat]');if(ct){S.cat=ct.dataset.cat;renderCats();renderGrid();return;}
+ const pl=e.target.closest('[data-place]');if(pl){S.place=pl.dataset.place;renderCats();renderGrid();return;}
+ const kt=e.target.closest('[data-kit]');if(kt){S.kit=kt.dataset.kit;renderKit();return;}
+ if(e.target.closest('#kitReset')){LS.set('thawani-kit-'+S.kit,'[]');renderKit();return;}
+ const sc=e.target.closest('[data-scale]');if(sc){LS.set('scale',sc.dataset.scale);applyScale();return;}
+ if(e.target.closest('[data-close]')){closeModal();return;}
+ const a=e.target.closest('[data-act]');if(!a)return;const act=a.dataset.act,p=GD.id?byId(GD.id):null;
+ switch(act){
+  case 'mode':GD.mode=a.dataset.m;if(GD.mode==='over'){GD.talk=false;stopSpeak();}drawModal();break;
+  case 'next':go(1);break;case 'prev':go(-1);break;case 'restart':GD.idx=0;drawModal();break;
+  case 'speak':if(speaking){GD.talk=false;stopSpeak();}else{GD.talk=true;speak(guideText(p,Math.min(GD.idx,p.steps.length)));}break;
+  case 'tool':closeModal();$(a.dataset.t).scrollIntoView({behavior:'smooth'});break;
+  case 'copy':try{await navigator.clipboard.writeText(buildText());toast('تم نسخ النص');}catch(_){const ta=document.createElement('textarea');ta.value=buildText();document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('تم نسخ النص')}catch(__){toast('تعذر النسخ')}ta.remove();}break;
+  case 'share':navigator.share({title:p.title,text:buildText()}).catch(()=>{});break;
+  case 'print':window.print();break;
+  case 'png':try{toast('جارٍ إنشاء الصورة…');await loadH2C();const c=await html2canvas($('cardEl'),{scale:2,useCORS:true,backgroundColor:getComputedStyle(document.body).backgroundColor});const l=document.createElement('a');l.download=p.title.replace(/[\\/:*?"<>|()]/g,'').trim()+'.png';l.href=c.toDataURL('image/png');l.click();toast('تم حفظ الصورة');}catch(_){h2c=null;toast('حفظ الصورة يحتاج اتصالاً بالإنترنت مرة واحدة');}break;
+  case 'sharesite':shareSite();break;
+ }});
+document.addEventListener('change',e=>{const c=e.target.closest('[data-kitem]');if(!c)return;const ids=$$('[data-kitem]:checked').map(x=>Number(x.dataset.kitem));LS.set('thawani-kit-'+S.kit,JSON.stringify(ids));
+ const k=CHECKLISTS.find(x=>x.id===S.kit),pc=Math.round(ids.length/k.items.length*100);$('kp').textContent=pc+'%';$('kb').style.width=pc+'%';});
+$$('[data-fam]').forEach(i=>{i.value=LS.get('fam_'+i.dataset.fam,'');i.placeholder=FDEF[i.dataset.fam];i.addEventListener('input',()=>{LS.set('fam_'+i.dataset.fam,i.value);if(!$('modal').hidden&&GD.id&&GD.mode==='over')drawModal();});});
+
+/* ---------- PWA: status, install, SW, scroll spy ---------- */
+function updateNet(){const n=$('net'),off=!navigator.onLine;n.classList.toggle('off',off);n.querySelector('span').textContent=off?'تعمل بدون إنترنت':(S.swReady?'جاهز للعمل دون اتصال':'يعمل دون اتصال بعد الزيارة الأولى');}
+window.addEventListener('online',updateNet);window.addEventListener('offline',updateNet);
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();S.deferred=e;$('installBtn').hidden=false;});
+$('installBtn').onclick=async()=>{if(!S.deferred)return;S.deferred.prompt();await S.deferred.userChoice;S.deferred=null;$('installBtn').hidden=true;};
+window.addEventListener('appinstalled',()=>{$('installBtn').hidden=true;toast('تم تثبيت ثواني على جهازك.');});
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{S.swReady=true;updateNet();}).catch(()=>{});
+if('IntersectionObserver' in window){const ids=['home','browse','checklists'],io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){const id=en.target.id;$$('[data-spy]').forEach(a=>a.classList.toggle('cur',a.dataset.spy===id));$$('.mobile-nav a[href^="#"]').forEach(a=>a.classList.toggle('cur',a.getAttribute('href')==='#'+id));}});},{rootMargin:'-45% 0px -50% 0px'});ids.forEach(i=>{const el=$(i);if(el)io.observe(el);});}
+if('speechSynthesis' in window)try{speechSynthesis.getVoices();}catch(e){}
+
+/* ---------- start ---------- */
+applyTheme();applyScale();renderNums();renderRefs();renderAll();updateNet();tShow();cprDraw();
+const want=new URLSearchParams(location.search).get('card');if(want&&byId(want))openCard(want);
 })();
