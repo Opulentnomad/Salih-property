@@ -66,6 +66,18 @@ export default async function publicRoutes(app, { db }) {
     return { items: scored.slice(0, req.query.limit).map((x) => x.dto) };
   });
 
+  app.get('/calendar', {
+    schema: { querystring: { type: 'object', additionalProperties: false, properties: {
+      from: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' }, to: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' } } } },
+  }, async (req) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const from = req.query.from || today;
+    const to = req.query.to || new Date(Date.now() + 400 * 86400000).toISOString().slice(0, 10);
+    const items = db.prepare('SELECT * FROM saudi_events WHERE end_date>=? AND start_date<=? ORDER BY start_date, id').all(from, to)
+      .map((e) => ({ id: e.id, name: e.name_ar, kind: e.kind, start: e.start_date, end: e.end_date, hijri: e.hijri, note: e.note, confirmed: !!e.confirmed, source: e.source }));
+    return { items, disclaimer: 'تواريخ الأعياد محسوبة من تقويم أم القرى وقد تختلف يومًا أو أكثر عن الإعلان الرسمي. إجازات المدارس تُدخلها الإدارة بعد إعلان وزارة التعليم.' };
+  });
+
   app.get('/fx', async (req) => {
     const rows = db.prepare('SELECT quote, rate, fetched_at FROM fx_rates WHERE base=?').all((req.query.base || 'SAR').toUpperCase());
     return { base: (req.query.base || 'SAR').toUpperCase(), rates: Object.fromEntries(rows.map((r) => [r.quote, r.rate])), fetchedAt: rows[0]?.fetched_at ?? null };

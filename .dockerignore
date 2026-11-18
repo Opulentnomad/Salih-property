@@ -1,0 +1,8 @@
+**/node_modules
+**/.git
+backend/data/*.db*
+backend/data/backups
+.env
+designs
+docs
+preview.html

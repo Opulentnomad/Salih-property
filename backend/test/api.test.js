@@ -203,3 +203,42 @@ test('login is rate limited by default (brute-force protection)', async () => {
   for (let i = 0; i < 12; i++) last = (await strict.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'nobody@example.com', password: 'wrongpass1' } })).statusCode;
   assert.equal(last, 429);
 });
+
+import { computeEvents } from '../src/calendar.js';
+
+test('calendar: Umm al-Qura computed dates and fixed national days', () => {
+  const ev = (y, k) => computeEvents(y).find((e) => e.key === k);
+  assert.equal(ev(2027, 'ramadan-2027').start_date, '2027-02-08');
+  assert.equal(ev(2027, 'eid-fitr-2027').start_date, '2027-03-09');
+  assert.equal(ev(2027, 'eid-adha-2027').start_date, '2027-05-16');
+  assert.equal(ev(2026, 'eid-fitr-2026').start_date, '2026-03-20');
+  assert.equal(ev(2026, 'national-2026').start_date, '2026-09-23');
+  assert.equal(ev(2027, 'founding-2027').start_date, '2027-02-22');
+  assert.match(ev(2027, 'ramadan-2027').hijri, /رمضان/);
+  assert.ok(ev(2027, 'ramadan-2027').end_date >= '2027-03-07' && ev(2027, 'ramadan-2027').end_date <= '2027-03-09');
+});
+
+test('calendar API: range filter, admin add/edit/confirm/delete, validation', async () => {
+  const all = (await call('GET', '/api/calendar?from=2027-01-01&to=2027-12-31')).json;
+  const names = all.items.map((e) => e.name);
+  assert.ok(['شهر رمضان', 'عيد الفطر', 'عيد الأضحى', 'يوم التأسيس', 'اليوم الوطني'].every((n) => names.includes(n)));
+  assert.deepEqual(all.items.map((e) => e.start), [...all.items.map((e) => e.start)].sort());
+  assert.ok(all.disclaimer);
+  assert.equal((await call('GET', '/api/calendar?from=bad')).status, 400);
+  const u = await register('cal@example.com');
+  assert.equal((await call('POST', '/api/admin/calendar', { token: u.token, body: { name: 'إجازة', kind: 'school', start: '2027-06-01', end: '2027-08-20' } })).status, 403);
+  assert.equal((await call('POST', '/api/admin/calendar', { token: admin.token, body: { name: 'عكس', kind: 'school', start: '2027-06-10', end: '2027-06-01' } })).status, 400);
+  const c = await call('POST', '/api/admin/calendar', { token: admin.token, body: { name: 'إجازة الصيف', kind: 'school', start: '2027-06-10', end: '2027-08-28', note: 'حسب وزارة التعليم' } });
+  assert.equal(c.status, 201);
+  assert.ok((await call('GET', '/api/calendar?from=2027-07-01&to=2027-07-02')).json.items.some((e) => e.name === 'إجازة الصيف'));
+  assert.equal((await call('PUT', `/api/admin/calendar/${c.json.id}`, { token: admin.token, body: { confirmed: true, end: '2027-08-30' } })).status, 200);
+  const upd = (await call('GET', '/api/calendar?from=2027-08-29&to=2027-08-30')).json.items.find((e) => e.name === 'إجازة الصيف');
+  assert.equal(upd.confirmed, true);
+  assert.equal((await call('DELETE', `/api/admin/calendar/${c.json.id}`, { token: admin.token })).status, 204);
+  assert.equal((await call('DELETE', `/api/admin/calendar/${c.json.id}`, { token: admin.token })).status, 404);
+  // تأكيد حدث محسوب لا يُستبدل عند إعادة البذر
+  const ram = all.items.find((e) => e.name === 'شهر رمضان');
+  await call('PUT', `/api/admin/calendar/${ram.id}`, { token: admin.token, body: { start: '2027-02-09', confirmed: true } });
+  (await import('../src/calendar.js')).seedCalendar(db, [2027]);
+  assert.equal((await call('GET', '/api/calendar?from=2027-02-09&to=2027-02-09')).json.items.find((e) => e.name === 'شهر رمضان').start, '2027-02-09');
+});

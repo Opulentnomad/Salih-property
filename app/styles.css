@@ -83,3 +83,9 @@ a.chip{display:flex;align-items:center;gap:4px}
 .doc input{width:22px;height:22px;min-height:0;padding:0;flex:none;accent-color:var(--green);background:none}
 .doc.done span{color:var(--mu);text-decoration:line-through}
 .prog{height:6px;background:var(--chip);border-radius:3px;overflow:hidden;margin:4px 0 8px}.prog i{display:block;height:100%;width:var(--w);background:var(--green);border-radius:3px;margin-inline-start:0;transition:width .25s}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.cmp .ch{background:var(--paper);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start}.cmp .ch .code{font-size:34px}
+.cmp .cl{grid-column:1/-1;font-size:13px;font-weight:700;color:var(--mu);margin-top:8px}
+.cmp .cc{background:var(--paper);border-radius:12px;padding:10px 12px;font-size:15px;min-width:0;overflow-wrap:anywhere}
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}.mini span{font-size:10px;text-align:center;padding:3px 0;border-radius:5px;background:var(--chip);color:var(--mu)}.mini span.on{background:var(--green);color:#fff;font-weight:700}
+.actions .btn{font-size:14px;padding:0 10px}

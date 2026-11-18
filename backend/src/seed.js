@@ -6,6 +6,7 @@ import { openDb, tx } from './db.js';
 import { hashPassword } from './auth.js';
 import { importPassportIndex } from './import-passport-index.js';
 import { applyBestMonths } from './best-months.js';
+import { seedCalendar } from './calendar.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -42,6 +43,7 @@ export async function seed(db, { adminEmail, adminPassword, importOpen = true } 
   });
   const stats = importOpen ? importPassportIndex(db) : undefined;
   applyBestMonths(db);
+  seedCalendar(db);
   return stats;
 }
 

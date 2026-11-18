@@ -12,7 +12,8 @@ const db = openDb(':memory:');
 await seed(db);
 const base = loadClientData();
 const destinations = db.prepare('SELECT * FROM destinations ORDER BY rating DESC, id').all().map((d) => destDto(d, latestPublished(db, d.id)));
-const data = { ...base, regions: { ...base.regions }, destinations };
+const calendar = db.prepare('SELECT * FROM saudi_events ORDER BY start_date, id').all().map((e) => ({ id: e.id, name: e.name_ar, kind: e.kind, start: e.start_date, end: e.end_date, hijri: e.hijri, note: e.note, confirmed: !!e.confirmed }));
+const data = { ...base, regions: { ...base.regions }, destinations, calendar };
 const json = JSON.stringify(data).replace(/</g, '\\u003c');
 
 let html = readFileSync(join(app, 'index.html'), 'utf8');

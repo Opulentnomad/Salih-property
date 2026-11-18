@@ -76,6 +76,36 @@ export default async function adminRoutes(app, { db }) {
     return { id: req.params.id, months, seasons: seasonsFromMonths(months) };
   });
 
+  // تقويم المواسم (إجازات المدارس وتأكيد تواريخ الأعياد بعد الإعلان الرسمي)
+  const evBody = { type: 'object', additionalProperties: false, properties: {
+    name: { type: 'string', minLength: 2, maxLength: 80 }, kind: { enum: ['religious', 'national', 'school', 'custom'] },
+    start: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' }, end: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' },
+    note: { type: ['string', 'null'], maxLength: 200 }, confirmed: { type: 'boolean' } } };
+  const badRange = (s, e) => Number.isNaN(Date.parse(s)) || Number.isNaN(Date.parse(e)) || e < s;
+  app.post('/calendar', { preHandler: EDIT, schema: { body: { ...evBody, required: ['name', 'kind', 'start', 'end'] } } }, async (req, reply) => {
+    const b = req.body;
+    if (badRange(b.start, b.end)) return reply.code(400).send({ error: 'bad_range', message: 'تاريخ النهاية يجب أن يكون بعد البداية.' });
+    const r = db.prepare(`INSERT INTO saudi_events(name_ar,kind,start_date,end_date,note,source,confirmed) VALUES(?,?,?,?,?,'manual',?)`).run(b.name, b.kind, b.start, b.end, b.note ?? null, b.confirmed ? 1 : 0);
+    audit(db, uid(req), 'calendar.create', 'saudi_event', r.lastInsertRowid, { name: b.name });
+    return reply.code(201).send({ id: Number(r.lastInsertRowid) });
+  });
+  app.put('/calendar/:id', { preHandler: EDIT, schema: { body: evBody } }, async (req, reply) => {
+    const e = db.prepare('SELECT * FROM saudi_events WHERE id=?').get(req.params.id);
+    if (!e) return reply.code(404).send({ error: 'not_found' });
+    const b = req.body, start = b.start ?? e.start_date, end = b.end ?? e.end_date;
+    if (badRange(start, end)) return reply.code(400).send({ error: 'bad_range', message: 'تاريخ النهاية يجب أن يكون بعد البداية.' });
+    db.prepare('UPDATE saudi_events SET name_ar=?, kind=?, start_date=?, end_date=?, note=?, confirmed=?, source=? WHERE id=?')
+      .run(b.name ?? e.name_ar, b.kind ?? e.kind, start, end, b.note !== undefined ? b.note : e.note, b.confirmed === undefined ? e.confirmed : (b.confirmed ? 1 : 0), 'manual', e.id);
+    audit(db, uid(req), 'calendar.update', 'saudi_event', e.id, b);
+    return { id: e.id };
+  });
+  app.delete('/calendar/:id', { preHandler: REVIEW }, async (req, reply) => {
+    const r = db.prepare('DELETE FROM saudi_events WHERE id=?').run(req.params.id);
+    if (!r.changes) return reply.code(404).send({ error: 'not_found' });
+    audit(db, uid(req), 'calendar.delete', 'saudi_event', req.params.id);
+    return reply.code(204).send();
+  });
+
   app.get('/reviews', { preHandler: REVIEW, schema: { querystring: { type: 'object', properties: { status: { enum: ['pending', 'published', 'rejected'], default: 'pending' } } } } }, async (req) => ({
     items: db.prepare('SELECT * FROM reviews WHERE status=? ORDER BY id DESC LIMIT 200').all(req.query.status),
   }));

@@ -50,6 +50,12 @@ CREATE TABLE IF NOT EXISTS affiliate_links(
   id INTEGER PRIMARY KEY, destination_id TEXT REFERENCES destinations(id), partner TEXT NOT NULL,
   kind TEXT NOT NULL CHECK(kind IN('flights','hotels')), url_template TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1);
 CREATE TABLE IF NOT EXISTS affiliate_clicks(id INTEGER PRIMARY KEY, link_id INTEGER REFERENCES affiliate_links(id), user_id INTEGER, at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS saudi_events(
+  id INTEGER PRIMARY KEY, key TEXT UNIQUE, name_ar TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK(kind IN('religious','national','school','custom')),
+  start_date TEXT NOT NULL, end_date TEXT NOT NULL, hijri TEXT, note TEXT,
+  source TEXT NOT NULL DEFAULT 'manual', confirmed INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS idx_events_start ON saudi_events(start_date);
 CREATE TABLE IF NOT EXISTS audit_log(id INTEGER PRIMARY KEY, actor INTEGER, action TEXT NOT NULL, entity TEXT, entity_id TEXT, meta TEXT, at TEXT NOT NULL DEFAULT (datetime('now')));
 `;
 

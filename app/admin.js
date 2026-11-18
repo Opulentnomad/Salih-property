@@ -30,10 +30,10 @@ $('#out').onclick = () => { sessionStorage.clear(); token = null; login(); };
 
 function shell() {
   $('#out').hidden = false;
-  const tabs = [['dest', 'الوجهات'], ...(role !== 'editor' ? [['rev', 'المراجعات']] : []), ...(role === 'admin' ? [['aud', 'سجل التدقيق']] : [])];
+  const tabs = [['dest', 'الوجهات'], ['cal', 'التقويم'], ...(role !== 'editor' ? [['rev', 'المراجعات']] : []), ...(role === 'admin' ? [['aud', 'سجل التدقيق']] : [])];
   m.innerHTML = `<div class="tabs" role="tablist">${tabs.map(([k, v]) => `<button class="tab" role="tab" data-t="${k}" aria-selected="${k === tab}">${v}</button>`).join('')}</div><div id="body"></div>`;
   m.querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { tab = b.dataset.t; shell(); });
-  ({ dest: listDest, rev: listRev, aud: listAudit })[tab]().catch(fail);
+  ({ dest: listDest, cal: listCal, rev: listRev, aud: listAudit })[tab]().catch(fail);
 }
 const fail = (e) => { if (e.status === 401) { sessionStorage.clear(); token = null; return login('انتهت الجلسة. سجّل الدخول من جديد.'); } toast(e.message); };
 
@@ -79,6 +79,32 @@ async function edit(id) {
     try { await api('/admin/requirements/' + id, { method: 'PUT', body }); toast('حُفظت المسودة'); edit(id); } catch (e) { fail(e); }
   };
   m.querySelectorAll('[data-pub]').forEach((b) => b.onclick = async () => { try { const j = await api(`/admin/requirements/${b.dataset.pub}/publish`, { method: 'POST' }); toast('نُشر الإصدار. تغيّر: ' + (j.changed.map((k) => FN[k] || k).join('، ') || 'لا شيء')); edit(id); } catch (e) { fail(e); } });
+}
+
+const KINDS = { religious: 'ديني', national: 'وطني', school: 'مدارس', custom: 'أخرى' };
+async function listCal() {
+  const j = await api('/calendar?from=2025-01-01&to=2032-12-31');
+  $('#body').innerHTML = `<p class="mu">تواريخ الأعياد محسوبة من تقويم أم القرى. بعد الإعلان الرسمي عدّل التاريخ إن اختلف واضغط «مؤكد». أضف إجازات المدارس من إعلان وزارة التعليم.</p><button class="btn" id="ne" style="margin:8px 0 14px">＋ إضافة حدث</button>` +
+    j.items.map((e) => `<article class="slip"><div class="who"><span>${esc(KINDS[e.kind])} · ${e.confirmed ? '✓ مؤكد' : 'تقديري'}</span><span>${esc(e.start)}${e.end !== e.start ? ' → ' + esc(e.end) : ''}</span></div><b>${esc(e.name)}</b>${e.hijri ? `<span class="mu"> · ${esc(e.hijri)}</span>` : ''}<div class="actions"><button class="btn sm ghost" data-ce="${e.id}">تعديل</button></div></article>`).join('');
+  const byId = Object.fromEntries(j.items.map((e) => [e.id, e]));
+  $('#ne').onclick = () => editCal({ name: '', kind: 'school', start: '', end: '', note: '', confirmed: true });
+  m.querySelectorAll('[data-ce]').forEach((b) => b.onclick = () => editCal(byId[b.dataset.ce]));
+}
+function editCal(e) {
+  $('#body').innerHTML = `<h1>${e.id ? 'تعديل حدث' : 'حدث جديد'}</h1><form class="panel" id="cf">
+  <label for="cn">الاسم</label><input id="cn" required minlength="2" maxlength="80" value="${esc(e.name)}">
+  <label for="ck">النوع</label><select id="ck">${Object.entries(KINDS).map(([k, v]) => `<option value="${k}" ${e.kind === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+  <div class="two"><div><label for="cs">من</label><input id="cs" type="date" required value="${esc(e.start)}"></div><div><label for="ce">إلى</label><input id="ce" type="date" required value="${esc(e.end)}"></div></div>
+  <label for="cno">ملاحظة</label><input id="cno" maxlength="200" value="${esc(e.note || '')}">
+  <label class="doc"><input type="checkbox" id="cc" ${e.confirmed ? 'checked' : ''}><span>مؤكد رسميًا</span></label>
+  <div class="actions" style="margin-top:12px"><button class="btn">حفظ</button><button type="button" class="btn ghost" id="cb">رجوع</button>${e.id && role !== 'editor' ? '<button type="button" class="btn ghost" id="cd">حذف</button>' : ''}</div></form>`;
+  $('#cb').onclick = () => shell();
+  $('#cd')?.addEventListener('click', async () => { if (!confirm('حذف هذا الحدث؟')) return; try { await api('/admin/calendar/' + e.id, { method: 'DELETE' }); toast('حُذف الحدث'); shell(); } catch (er) { fail(er); } });
+  $('#cf').onsubmit = async (ev) => {
+    ev.preventDefault();
+    const body = { name: $('#cn').value.trim(), kind: $('#ck').value, start: $('#cs').value, end: $('#ce').value, note: $('#cno').value || null, confirmed: $('#cc').checked };
+    try { await api(e.id ? '/admin/calendar/' + e.id : '/admin/calendar', { method: e.id ? 'PUT' : 'POST', body }); toast('حُفظ الحدث'); shell(); } catch (er) { fail(er); }
+  };
 }
 
 async function listRev() {

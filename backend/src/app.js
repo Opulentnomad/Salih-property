@@ -41,6 +41,7 @@ export async function buildApp({ db, jwtSecret, staticDir, corsOrigin, logger = 
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
     reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    if (prod) reply.header('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
     if (!req.url.startsWith('/api')) reply.header('Content-Security-Policy', CSP);
   });
 
