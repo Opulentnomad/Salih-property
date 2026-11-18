@@ -1,0 +1,71 @@
+openapi: 3.1.0
+info: {title: Safarna API, version: 1.0.0, description: واجهة سفرنا — كل النصوص تدعم ?lang=ar|en}
+servers: [{url: https://api.safarna.example/v1}]
+security: [{bearer: []}]
+paths:
+  /destinations:
+    get:
+      summary: بحث وتصفية الوجهات
+      security: []
+      parameters:
+        - {name: q, in: query, schema: {type: string}}
+        - {name: region, in: query, schema: {type: string}}
+        - {name: visa, in: query, schema: {enum: [free, gcc_id, voa, evisa, eta, required]}}
+        - {name: budget, in: query, schema: {type: integer, minimum: 1, maximum: 3}}
+        - {name: season, in: query, schema: {enum: [winter, spring, summer, autumn]}}
+        - {name: cursor, in: query, schema: {type: string}}
+      responses: {'200': {description: OK, content: {application/json: {schema: {$ref: '#/components/schemas/DestinationPage'}}}}}
+  /destinations/{slug}:
+    get: {summary: تفاصيل وجهة, security: [], parameters: [{name: slug, in: path, required: true, schema: {type: string}}], responses: {'200': {description: OK}}}
+  /entry-requirements:
+    get:
+      summary: شروط الدخول (مع تاريخ التحقق والمصدر)
+      security: []
+      parameters:
+        - {name: destination, in: query, required: true, schema: {type: string, example: TR}}
+        - {name: passport, in: query, schema: {type: string, default: SA}}
+        - {name: residency, in: query, schema: {type: string}}
+      responses: {'200': {description: OK, content: {application/json: {schema: {$ref: '#/components/schemas/EntryRequirement'}}}}}
+  /recommendations: {get: {summary: وجهات مقترحة حسب التفضيلات, responses: {'200': {description: OK}}}}
+  /me/favorites: 
+    get: {summary: قائمة المفضلة, responses: {'200': {description: OK}}}
+    put: {summary: إضافة, requestBody: {content: {application/json: {schema: {type: object, properties: {destinationId: {type: string}}}}}}, responses: {'204': {description: تم}}}
+  /me/favorites/{id}: {delete: {parameters: [{name: id, in: path, required: true, schema: {type: string}}], responses: {'204': {description: تم}}}}
+  /trips:
+    get: {summary: رحلاتي, responses: {'200': {description: OK}}}
+    post: {summary: إنشاء رحلة, requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/Trip'}}}}, responses: {'201': {description: تم}}}
+  /trips/{id}: {put: {responses: {'200': {description: OK}}}, delete: {responses: {'204': {description: تم}}}, parameters: [{name: id, in: path, required: true, schema: {type: string}}]}
+  /destinations/{id}/reviews:
+    get: {security: [], responses: {'200': {description: OK}}, parameters: [{name: id, in: path, required: true, schema: {type: string}}]}
+    post: {summary: كتابة مراجعة (تمرّ بالإشراف), responses: {'202': {description: قيد المراجعة}}, parameters: [{name: id, in: path, required: true, schema: {type: string}}]}
+  /fx: {get: {summary: أسعار الصرف, security: [], parameters: [{name: base, in: query, schema: {default: SAR}}], responses: {'200': {description: OK}}}}
+  /alerts/subscriptions: {post: {summary: متابعة تغيّر شروط دولة, responses: {'201': {description: تم}}}}
+  /push/subscribe: {post: {summary: تسجيل Web Push, responses: {'204': {description: تم}}}}
+  /affiliate/{linkId}/click: {get: {summary: تتبّع ثم إعادة توجيه, security: [], responses: {'302': {description: تحويل}}}}
+  /auth/otp/request: {post: {security: [], responses: {'204': {description: أُرسل}}}}
+  /auth/otp/verify: {post: {security: [], responses: {'200': {description: JWT}}}}
+  /admin/requirements/{id}: {put: {summary: تحرير (مسودة), responses: {'200': {description: OK}}}, parameters: [{name: id, in: path, required: true, schema: {type: string}}]}
+  /admin/requirements/{id}/publish: {post: {summary: نشر بعد مراجعة (RBAC: reviewer), responses: {'200': {description: OK}}}, parameters: [{name: id, in: path, required: true, schema: {type: string}}]}
+  /webhooks/timatic: {post: {summary: استقبال تغييرات من المزوّد (توقيع HMAC), security: [], responses: {'202': {description: مقبول}}}}
+components:
+  securitySchemes: {bearer: {type: http, scheme: bearer, bearerFormat: JWT}}
+  schemas:
+    DestinationPage: {type: object, properties: {items: {type: array, items: {$ref: '#/components/schemas/Destination'}}, nextCursor: {type: string}}}
+    Destination: {type: object, properties: {id: {type: string}, slug: {type: string}, nameAr: {type: string}, city: {type: string}, rating: {type: number}, visa: {type: string}}}
+    EntryRequirement:
+      type: object
+      required: [visa, source, verifiedAt]
+      properties:
+        visa: {enum: [free, gcc_id, voa, evisa, eta, required, not_allowed]}
+        maxStayDays: {type: integer}
+        passportValidityMonths: {type: integer}
+        docs: {type: array, items: {type: string}}
+        vaccines: {type: array, items: {type: string}}
+        quarantine: {type: string}
+        embassies: {type: array, items: {type: object}}
+        source: {type: string}
+        sourceUrl: {type: string, format: uri}
+        verifiedAt: {type: string, format: date-time}
+        stale: {type: boolean, description: true إن تجاوز 30 يومًا}
+        disclaimer: {type: string}
+    Trip: {type: object, properties: {destinationId: {type: string}, startDate: {type: string, format: date}, days: {type: integer}, items: {type: array, items: {type: object}}}}
