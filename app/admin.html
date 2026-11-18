@@ -1,23 +1,23 @@
 <!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>لوحة إدارة سفرنا</title>
 <link rel="stylesheet" href="styles.css"></head><body>
 <header class="top"><div class="brand"><b>لوحة الإدارة (CMS)</b></div><a class="icon-btn" style="display:grid;place-items:center;text-decoration:none" href="index.html">التطبيق</a></header>
-<main id="m"></main>
+<main id="m" style="max-width:720px"></main>
 <script src="data.js"></script>
 <script>
 /* نموذج تجريبي: الدخول والتخزين محليان. في الإنتاج: SSO + RBAC + قاعدة بيانات + سجل تدقيق (انظر docs/). */
 const D=SAFARNA_DATA,m=document.getElementById('m'),K='sf_admin_overrides';
 const get=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch{return{}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function login(){m.innerHTML=`<div class="card body"><h1>تسجيل الدخول</h1><label for="p">رمز المحرر (تجريبي: admin)</label><input id="p" type="password"><button class="btn pri" style="margin-top:10px" id="go">دخول</button></div>`;
+function login(){m.innerHTML=`<div class="panel"><h1>تسجيل الدخول</h1><label for="p">رمز المحرر (تجريبي: admin)</label><input id="p" type="password"><button class="btn" style="margin-top:10px" id="go">دخول</button></div>`;
  go.onclick=()=>p.value==='admin'?list():alert('رمز غير صحيح')}
-function list(){const o=get();m.innerHTML=`<h1>الوجهات</h1><p class="mu">أي تعديل يُحفظ كنسخة «مسودة → منشور» ويظهر في التطبيق فورًا (محليًا).</p><div class="grid">${D.destinations.map(d=>`<div class="card body"><b>${d.emoji} ${d.ar}</b> ${o[d.id]?'<span class="pill warn">معدَّل</span>':''}<p class="mu">${D.visaLabels[d.req.visa].ar}</p><button class="btn sm" data-e="${d.id}">تحرير</button></div>`).join('')}</div>`;
+function list(){const o=get();m.innerHTML=`<h1>الوجهات</h1><p class="mu">أي تعديل يُحفظ كنسخة «مسودة → منشور» ويظهر في التطبيق فورًا (محليًا).</p><div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">${D.destinations.map(d=>`<div class="panel"><b>${d.emoji} ${d.ar}</b> ${o[d.id]?'<span class="pill">معدَّل</span>':''}<p class="mu">${D.visaLabels[d.req.visa].ar}</p><button class="btn sm" data-e="${d.id}">تحرير</button></div>`).join('')}</div>`;
  m.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>edit(b.dataset.e))}
 function edit(id){const d=D.destinations.find(x=>x.id===id),r={...d.req,...get()[id]};
- m.innerHTML=`<h1>تحرير ${d.ar}</h1><div class="card body"><label for="v">نوع الدخول</label><select id="v">${Object.entries(D.visaLabels).map(([k,v])=>`<option value="${k}" ${r.visa===k?'selected':''}>${v.ar}</option>`).join('')}</select>
+ m.innerHTML=`<h1>تحرير ${d.ar}</h1><div class="panel"><label for="v">نوع الدخول</label><select id="v">${Object.entries(D.visaLabels).map(([k,v])=>`<option value="${k}" ${r.visa===k?'selected':''}>${v.ar}</option>`).join('')}</select>
  <label for="st">أقصى مدة (يوم)</label><input id="st" type="number" value="${r.stay}"><label for="pp">صلاحية الجواز</label><input id="pp" value="${esc(r.passport)}">
  <label for="dc">المستندات (سطر لكل مستند)</label><textarea id="dc" rows="6">${esc(r.docs.join('\n'))}</textarea>
  <label for="vc">التطعيمات</label><input id="vc" value="${esc(r.vaccines)}"><label for="src">المصدر الرسمي</label><input id="src" value="${esc(r.source)}">
- <div class="row" style="margin-top:12px"><button class="btn pri" id="sv">نشر</button><button class="btn ghost" id="rs">استعادة الأصل</button><button class="btn ghost" id="bk">رجوع</button></div></div>`;
+ <div class="row" style="margin-top:12px"><button class="btn" id="sv">نشر</button><button class="btn ghost" id="rs">استعادة الأصل</button><button class="btn ghost" id="bk">رجوع</button></div></div>`;
  sv.onclick=()=>{const o=get();o[id]={visa:v.value,stay:+st.value,passport:pp.value,docs:dc.value.split('\n').map(s=>s.trim()).filter(Boolean),vaccines:vc.value,source:src.value,verified:new Date().toISOString().slice(0,10)};localStorage.setItem(K,JSON.stringify(o));list()};
  rs.onclick=()=>{const o=get();delete o[id];localStorage.setItem(K,JSON.stringify(o));list()};bk.onclick=list}
 login();
