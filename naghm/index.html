@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>نَغَم</title>
+<meta name="theme-color" content="#F3F3F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D0D13" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="نغم">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <main id="view" aria-live="polite"></main>
+  <div id="mini" hidden>
+    <div class="art" id="mArt"></div>
+    <button class="mtx" data-a="openplayer" aria-label="فتح المشغّل"><b id="mTitle"></b><small id="mArtist"></small></button>
+    <button class="mbtn" data-a="toggle" id="mPlay" aria-label="تشغيل أو إيقاف">▶</button>
+    <button class="mbtn" data-a="next" aria-label="التالي">⏭</button>
+    <i class="mprog"><i id="mFill"></i></i>
+  </div>
+  <nav id="tabs" aria-label="التنقل">
+    <button data-a="tab" data-t="home"><i class="ic ic-home"></i>الرئيسية</button>
+    <button data-a="tab" data-t="discover"><i class="ic ic-search"></i>اكتشف</button>
+    <button data-a="tab" data-t="library"><i class="ic ic-lib"></i>مكتبتي</button>
+  </nav>
+</div>
+
+<section id="player" hidden aria-label="المشغّل">
+  <div class="ph"><button data-a="closeplayer" aria-label="إغلاق">⌄</button><span id="pctx">يُشغَّل الآن</span><button data-a="menucur" aria-label="المزيد">⋯</button></div>
+  <div id="pstage">
+    <div id="pdisc"><img id="pimg" alt="" referrerpolicy="no-referrer"></div>
+    <div id="ytwrap" hidden><div id="ytbox"></div></div>
+  </div>
+  <div class="pinfo"><b id="ptitle"></b><div id="partist"></div><span id="psrc" class="src"></span></div>
+  <div id="pbar" data-a="seek" role="slider" aria-label="موضع التشغيل" tabindex="0"><i id="pfill"></i></div>
+  <div class="tm"><span id="pcur">0:00</span><span id="ptot">0:00</span></div>
+  <div class="ctl">
+    <button data-a="prev" aria-label="السابق">⏮</button>
+    <button class="pp" data-a="toggle" id="pPlay" aria-label="تشغيل أو إيقاف">▶</button>
+    <button data-a="next" aria-label="التالي">⏭</button>
+  </div>
+  <div class="pacts"><button data-a="favcur" id="pFav">♡ مفضلة</button><button data-a="addcur">＋ قائمة</button><a id="pLink" target="_blank" rel="noopener">فتح في المصدر</a></div>
+</section>
+
+<div id="sheetbg" hidden data-a="closesheet"></div>
+<div id="sheet" hidden role="dialog" aria-modal="true"></div>
+<div id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
