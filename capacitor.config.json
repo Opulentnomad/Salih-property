@@ -1,0 +1,12 @@
+{
+  "appId": "app.naghm.music",
+  "appName": "نغم",
+  "webDir": "naghm",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "naghm.app"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

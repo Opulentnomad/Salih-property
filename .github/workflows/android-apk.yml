@@ -1,0 +1,69 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['claude/**', main]
+    paths:
+      - 'naghm/**'
+      - 'package.json'
+      - 'capacitor.config.json'
+      - 'assets/**'
+      - 'android-signing/**'
+      - '.github/workflows/android-apk.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Create Android project
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Generate launcher icons
+        continue-on-error: true
+        run: npx @capacitor/assets generate --android --iconBackgroundColor '#7656F5' --iconBackgroundColorDark '#7656F5'
+
+      - name: Use fixed signing key (keeps updates installable)
+        run: |
+          mkdir -p ~/.android
+          cp android-signing/debug.keystore ~/.android/debug.keystore
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Name the APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk naghm.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: naghm-apk
+          path: naghm.apk
+
+      - name: Publish release with the APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="apk-${{ github.run_number }}"
+          gh release create "$TAG" naghm.apk --title "Naghm APK #${{ github.run_number }}" --notes "Debug-signed APK for personal install." --prerelease --target "${{ github.sha }}"
