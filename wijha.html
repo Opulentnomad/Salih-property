@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fbf6f8">
+<title>وجهة</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@600;700&display=swap">
+<style>
+:root{--bg:#fbf6f8;--ink:#26272d;--mute:#6f6b75;--blue:#2f5fd0;--rose:#e0457b;--heart:#e5304a;--card:#fff;--line:#ece4e9;
+  --f:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;--fh:"Readex Pro","IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:#e9e4ea;color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.5}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input,textarea{font:inherit;color:inherit}
+.phone{max-width:430px;margin:0 auto;min-height:100dvh;background:var(--bg);position:relative;overflow-x:hidden;box-shadow:0 0 60px rgba(60,40,80,.18)}
+.scr{padding:calc(14px + env(safe-area-inset-top,0px)) 16px 120px}
+h1,h2,h3{font-family:var(--fh);margin:0;line-height:1.3}
+.mute{color:var(--mute)}.sm{font-size:12px}
+.row{display:flex;align-items:center;gap:8px}.sb{justify-content:space-between}.col{display:flex;flex-direction:column;gap:12px}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.scroll{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none}.scroll::-webkit-scrollbar{display:none}
+.pill{display:inline-flex;align-items:center;white-space:nowrap;border-radius:999px;background:#fff;padding:7px 14px;font-size:13px;font-weight:500;box-shadow:0 3px 8px -4px rgba(60,40,80,.35)}
+.pill.on{background:var(--ink);color:#fff}
+.cbtn{color:var(--ink);width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 6px 14px -6px rgba(0,0,0,.35);flex:none}
+.cbtn svg{width:20px;height:20px}
+svg.i{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.pbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;border-radius:999px;background:var(--ink);color:#fff;font-weight:700;box-shadow:0 12px 22px -12px rgba(0,0,0,.6)}
+.pbtn[disabled]{opacity:.35}.pbtn.light{background:#fff;color:var(--ink)}
+.pbtn svg{width:20px;height:20px}
+.search{width:100%;height:46px;border-radius:999px;border:1px solid var(--line);background:#fff;padding:0 18px;outline:none}
+.ph{background-size:cover;background-position:center;background-color:var(--c1)}
+.reco{position:relative;height:240px;border-radius:28px;overflow:hidden;box-shadow:0 14px 28px -16px rgba(40,30,80,.55);cursor:pointer}
+.reco .scrim,.hero .scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent 60%)}
+.reco .top{position:absolute;top:12px;inset-inline:12px;display:flex;justify-content:space-between}
+.reco .bot{position:absolute;bottom:14px;inset-inline:16px;color:#fff;display:flex;flex-direction:column;gap:6px}
+.chip{background:rgba(255,255,255,.92);color:var(--ink);border-radius:999px;padding:3px 12px;font-size:12px;font-weight:600}
+.hbtn{width:32px;height:32px;border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--ink)}
+.hbtn svg{width:17px;height:17px}.hbtn.on{color:var(--heart)}.hbtn.on svg{fill:currentColor}
+.hero{position:relative;height:300px;margin:0 -16px}
+.hero.trip{height:280px}
+.hero .over{position:absolute;inset-inline:16px;color:#fff}
+.sheet{position:relative;background:var(--bg);border-radius:28px 28px 0 0;margin:-28px -16px 0;padding:14px 16px 120px}
+.bub{width:48px;height:48px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;line-height:1.1;flex:none}
+.bub b{font-family:var(--fh);font-size:17px}
+.b0{background:#e9e1fb;color:#3b2f78}.b1{background:#fbe8cc;color:#7a4a12}.b2{background:#d9ebfb;color:#1f4a78}
+.item{display:flex;gap:10px;align-items:center;background:#fff;border-radius:18px;padding:8px;box-shadow:0 8px 16px -12px rgba(60,40,80,.45);text-decoration:none;color:inherit}
+.thumb{width:76px;height:56px;border-radius:12px;flex:none}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;border-radius:16px;background:#fff;font-size:11px;box-shadow:0 4px 10px -6px rgba(60,40,80,.35)}
+.tab.on{background:var(--ink);color:#fff}.tab svg{width:20px;height:20px}
+.nav{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);width:min(394px,calc(100% - 32px));height:58px;border-radius:999px;background:var(--ink);display:flex;justify-content:space-around;align-items:center;box-shadow:0 14px 28px -10px rgba(0,0,0,.5);z-index:10}
+.nav button{display:flex;flex-direction:column;align-items:center;color:#9d99a6;font-size:10px;padding:4px 12px}
+.nav button.on{color:#fff}.nav svg{width:22px;height:22px}
+.fab{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);width:min(398px,calc(100% - 32px));z-index:10;display:flex;gap:10px}
+.info{background:#fff;border-radius:18px;padding:10px 12px;box-shadow:0 6px 14px -10px rgba(60,40,80,.45);flex:1}
+.info small{display:block;color:var(--mute);font-size:11px}
+.mas{column-count:2;column-gap:8px}
+.mi{position:relative;margin-bottom:8px;border-radius:20px;background-size:cover;background-position:center;background-color:#e8e2ea;box-shadow:0 8px 16px -12px rgba(60,40,80,.5);break-inside:avoid}
+.mi .hbtn{position:absolute;top:8px;inset-inline-start:8px;width:28px;height:28px;opacity:.9}
+.pchip{width:82px;flex:none;border-radius:18px;background:#fff;overflow:hidden;text-align:center;font-size:12px;font-weight:600;box-shadow:0 6px 14px -10px rgba(60,40,80,.5);padding-bottom:6px}
+.pchip .t{height:38px;margin-bottom:4px;display:grid;place-items:center}
+.pchip small{display:block;font-weight:400;color:var(--mute)}
+.pchip.on{background:var(--ink);color:#fff}.pchip.on small{color:#cfcbd6}
+.note{background:#fff;border-radius:18px;padding:12px 14px;box-shadow:0 6px 14px -10px rgba(60,40,80,.45)}
+.bar{height:8px;border-radius:99px;background:#e8e2ea;flex:1;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue)}
+.modal{position:fixed;inset:0;background:rgba(20,16,30,.45);display:grid;place-items:center;z-index:50;padding:20px}
+.modal>div{background:#fff;border-radius:24px;padding:20px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px}
+textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:10px;min-height:90px;outline:none}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 18px;border-radius:99px;z-index:60;font-size:13px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.lang{display:flex;justify-content:flex-end;gap:8px}
+a{color:var(--blue)}
+@media(prefers-reduced-motion:no-preference){.reco,.pill,.pbtn{transition:transform .15s}.reco:active,.pbtn:active{transform:scale(.985)}}
+</style>
+</head>
+<body>
+<div class="phone" id="app"></div>
+<script>
+"use strict";
+/* ================= البيانات ================= */
+const TAGS=[["beach","شواطئ","Beaches"],["quiet","هدوء","Quiet"],["photo","تصوير","Photography"],["food","مأكولات محلية","Local food"],["culture","ثقافة وتاريخ","Culture"],["family","عائلي","Family"],["adventure","مغامرة","Adventure"],["night","حياة ليلية","Nightlife"],["luxury","فخامة","Luxury"],["nature","طبيعة","Nature"]];
+const D=(id,ar,en,cAr,cEn,wiki,q,tags,price,bAr,bEn,blAr,blEn,c1,c2,pois)=>({id,ar,en,cAr,cEn,wiki,q,tags,price,bAr,bEn,blAr,blEn,c1,c2,pois:pois.map(p=>({id:p[0],ar:p[1],en:p[2],tag:p[3],slot:p[4],h:p[5]}))});
+const CAT=[
+D("santorini","سانتوريني","Santorini","اليونان","Greece","Santorini","Santorini Oia",{photo:1,beach:.7,quiet:.6,food:.6,culture:.5,luxury:.7,nature:.3},4200,"مايو – أكتوبر","May – Oct","قباب زرقاء وبيوت بيضاء على حافة بركان، وأشهر غروب في المتوسط.","Blue domes and white houses on a volcanic rim, with the Mediterranean's best sunsets.","#6f9bf0","#f6c4d8",[
+["oia_sunset","غروب قرية أويا","Oia sunset","photo",3,2],["fira","جولة في فيرا","Fira old town walk","culture",0,2.5],["red_beach","الشاطئ الأحمر","Red Beach","beach",2,2.5],["caldera","رحلة بحرية في الكالديرا","Caldera cruise","nature",1,4],["akrotiri","موقع أكروتيري الأثري","Akrotiri archaeological site","culture",0,2],["winery","تذوق النبيذ","Winery tasting","food",2,2],["imerovigli","ممشى فيرا إلى إيمروفيجلي","Fira to Imerovigli hike","adventure",0,3],["ammoudi","عشاء سمك في خليج عمودي","Seafood at Ammoudi Bay","food",3,2]]),
+D("mykonos","ميكونوس","Mykonos","اليونان","Greece","Mykonos","Mykonos",{beach:1,night:.9,luxury:.8,photo:.7,food:.6,quiet:.2},4800,"يونيو – سبتمبر","Jun – Sep","شواطئ ذهبية وأزقة بيضاء وحياة ليلية لا تنام.","Golden beaches, whitewashed lanes and a nightlife that never sleeps.","#7fb6e8","#f3ddc2",[
+["little_venice","ليتل فينيس","Little Venice","photo",3,2],["windmills","طواحين كاتو ميلي","Kato Mili windmills","photo",2,1],["paradise","شاطئ باراديس","Paradise Beach","beach",1,4],["super_paradise","شاطئ سوبر باراديس","Super Paradise Beach","night",2,3],["old_town_myk","أزقة مدينة ميكونوس","Mykonos Town alleys","culture",0,2.5],["delos","رحلة إلى جزيرة ديلوس","Delos island trip","culture",0,4],["psarou","غداء على شاطئ بسارو","Lunch at Psarou","food",1,2],["armenistis","منارة أرمينيستيس","Armenistis Lighthouse","quiet",3,1.5]]),
+D("istanbul","إسطنبول","Istanbul","تركيا","Türkiye","Istanbul","Istanbul Bosphorus",{culture:1,food:1,photo:.7,family:.6,night:.6,luxury:.3},3300,"أبريل – يونيو","Apr – Jun","مدينة بين قارتين: مساجد وأسواق ومضيق ومطبخ لا يُنسى.","A city on two continents: mosques, bazaars, the Bosphorus and unforgettable food.","#8fa8e6","#ffb98a",[
+["hagia","آيا صوفيا","Hagia Sophia","culture",0,2],["blue_mosque","المسجد الأزرق","Blue Mosque","culture",0,1.5],["grand_bazaar","البازار الكبير","Grand Bazaar","food",1,3],["bosphorus","رحلة البوسفور","Bosphorus cruise","nature",2,2],["galata","برج غلطة","Galata Tower","photo",3,1.5],["topkapi","قصر توب كابي","Topkapi Palace","culture",1,3],["spice","السوق المصري والتوابل","Spice Bazaar","food",1,2],["karakoy","مقاهي كاراكوي","Karaköy cafés","food",2,2]]),
+D("maldives","المالديف","Maldives","المالديف","Maldives","Maldives","Maldives island",{beach:1,quiet:1,luxury:1,nature:.8,photo:.7,family:.5,adventure:.5},9500,"نوفمبر – أبريل","Nov – Apr","جزر مرجانية ومياه فيروزية وفيلات فوق الماء.","Coral islands, turquoise lagoons and overwater villas.","#7fe4e2","#1b9ac4",[
+["snorkel","غطس سطحي في الشعاب","Reef snorkeling","adventure",0,2.5],["sandbank","رحلة إلى الجزيرة الرملية","Sandbank trip","beach",1,3],["dolphin","الدلافين عند الغروب","Sunset dolphin cruise","nature",3,2],["male","جولة في ماليه","Malé city tour","culture",1,3],["spa","سبا فوق الماء","Overwater spa","luxury",2,2],["dive","غوص مع الأسماك","Scuba dive","adventure",0,3],["maafushi","جزيرة محلية: ماافوشي","Maafushi local island","food",2,3],["glow","شاطئ المياه المضيئة","Glowing beach at night","photo",3,1.5]]),
+D("tbilisi","تبليسي","Tbilisi","جورجيا","Georgia","Tbilisi","Tbilisi",{culture:.9,food:.9,nature:.6,night:.6,quiet:.5,family:.5,adventure:.5},2600,"مايو – سبتمبر","May – Sep","عاصمة هادئة بحمامات كبريت وجبال قريبة ومطبخ شهي.","A relaxed capital with sulfur baths, nearby mountains and a delicious cuisine.","#a9c7f0","#e6d2c0",[
+["old_tbilisi","المدينة القديمة","Old Town","culture",0,3],["sulfur","حمامات الكبريت","Sulfur baths","quiet",2,2],["narikala","قلعة ناريكالا بالتلفريك","Narikala Fortress","photo",1,2],["khinkali","تذوّق الخينكالي","Khinkali tasting","food",1,1.5],["mtatsminda","حديقة متاتسميندا","Mtatsminda Park","family",2,3],["kazbegi","رحلة يوم إلى كازبيجي","Kazbegi day trip","adventure",0,9],["peace","جسر السلام","Bridge of Peace","photo",3,1],["wine_eve","أمسية نبيذ جورجي","Georgian wine evening","night",3,2.5]]),
+D("cappadocia","كابادوكيا","Cappadocia","تركيا","Türkiye","Cappadocia","Cappadocia balloons",{photo:1,adventure:.8,nature:.8,culture:.7,quiet:.6,luxury:.4},3200,"أبريل – أكتوبر","Apr – Oct","وديان صخرية ومناطيد عند الشروق وفنادق في الكهوف.","Rock valleys, sunrise balloons and cave hotels.","#f2a6a0","#ffd9a8",[
+["balloon","المنطاد عند الشروق","Sunrise balloon ride","photo",0,3],["goreme","متحف غوريمي المفتوح","Göreme Open-Air Museum","culture",1,2.5],["uchisar","قلعة أُوتشيسار","Uçhisar Castle","photo",3,1.5],["derinkuyu","المدينة تحت الأرض","Derinkuyu underground city","culture",1,2],["rose_valley","وادي الورد","Rose Valley hike","adventure",2,3],["atv","جولة دراجات رباعية","ATV tour","adventure",2,2],["avanos","ورشة الفخار في أفانوس","Avanos pottery workshop","culture",1,2],["cave_dinner","عشاء في مطعم كهفي","Cave restaurant dinner","food",3,2]]),
+D("barcelona","برشلونة","Barcelona","إسبانيا","Spain","Barcelona","Barcelona Sagrada Familia",{culture:.9,food:.9,night:.9,photo:.8,beach:.7,family:.6},5200,"مايو – سبتمبر","May – Sep","عمارة غاودي والبحر والتاباس في مدينة واحدة.","Gaudí's architecture, the sea and tapas in one city.","#8fc3ee","#ffd6a5",[
+["sagrada","ساغرادا فاميليا","Sagrada Família","culture",0,2.5],["park_guell","حديقة غويل","Park Güell","photo",1,2.5],["boqueria","سوق لا بوكيريا","La Boqueria market","food",1,1.5],["gothic","الحي القوطي","Gothic Quarter","culture",2,2.5],["barceloneta","شاطئ باركيلونيتا","Barceloneta Beach","beach",2,3],["casa_batllo","كاسا باتلو","Casa Batlló","culture",0,1.5],["bunkers","غروب من مخابئ الكارمل","Bunkers del Carmel sunset","photo",3,2],["tapas","جولة تاباس مسائية","Evening tapas crawl","night",3,3]]),
+D("alula","العُلا","AlUla","السعودية","Saudi Arabia","AlUla","AlUla Hegra",{culture:.9,nature:.9,photo:.9,quiet:.8,adventure:.7,luxury:.6},2800,"أكتوبر – مارس","Oct – Mar","حضارات قديمة وصخور شاهقة وسماء صافية للنجوم.","Ancient civilisations, towering sandstone and star-filled skies.","#f0b27a","#f8e0c0",[
+["hegra","الحِجر (مدائن صالح)","Hegra (Madain Salih)","culture",0,3],["elephant","جبل الفيل","Elephant Rock","photo",3,1.5],["alula_old","البلدة القديمة","AlUla Old Town","culture",1,2],["maraya","مرايا","Maraya","photo",2,1.5],["dadan","موقع دادان","Dadan","culture",0,2],["alula_balloon","منطاد العُلا","AlUla hot air balloon","adventure",0,2],["harrat","حرة عويرض","Harrat Uwayrid","nature",2,3],["stars","مراقبة النجوم","Desert stargazing","quiet",3,2.5]])
+];
+const dest=id=>CAT.find(d=>d.id===id);
+
+/* ================= الحالة ================= */
+const KEY="wijha.state.v1";
+let S=(()=>{try{return Object.assign({lang:"ar",onboarded:false,weights:{},budget:2,liked:[],hidden:[],favs:[],trips:[]},JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){return{lang:"ar",onboarded:false,weights:{},budget:2,liked:[],hidden:[],favs:[],trips:[]}}})();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const t=(ar,en)=>S.lang==="ar"?ar:en;
+const nm=d=>t(d.ar,d.en), cn=d=>t(d.cAr,d.cEn), pn=p=>t(p.ar,p.en);
+const tg=id=>TAGS.find(x=>x[0]===id), tl=id=>t(tg(id)[1],tg(id)[2]);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=()=>Math.floor(Date.now()/864e5);
+const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+
+/* ================= الصور من الإنترنت (ويكيبيديا + كومنز) ================= */
+const heroP={},galP={};
+const BAD=/map|logo|flag|coat|locator|diagram|plan|panorama of the|svg|chart|stamp/i;
+function getHero(d){
+  return heroP[d.id]||(heroP[d.id]=fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(d.wiki)).then(r=>r.ok?r.json():null).then(o=>{
+    if(!o)return null;
+    if(o.originalimage&&o.originalimage.width<=2400)return o.originalimage.source;
+    if(o.thumbnail)return o.thumbnail.source.replace(/\/\d+px-/,"/1000px-");
+    return null}).catch(()=>null));
+}
+function getGal(d){
+  return galP[d.id]||(galP[d.id]=fetch("https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrsearch="+encodeURIComponent(d.q+" filetype:bitmap")+"&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Csize%7Cmime&iiurlwidth=800").then(r=>r.json()).then(j=>{
+    const pages=Object.values((j.query&&j.query.pages)||{});
+    return pages.filter(p=>!BAD.test(p.title)&&p.imageinfo&&p.imageinfo[0].mime==="image/jpeg"&&p.imageinfo[0].width>=1200).sort((a,b)=>a.index-b.index).map(p=>p.imageinfo[0].thumburl).slice(0,20)}).catch(()=>[]));
+}
+function setBg(el,url){if(!url)return;const im=new Image();im.onload=()=>{el.style.backgroundImage=`url("${url}")`};im.src=url}
+function hydrate(root=document){
+  root.querySelectorAll("[data-hero]").forEach(el=>{const d=dest(el.dataset.hero);getHero(d).then(u=>u?setBg(el,u):getGal(d).then(g=>setBg(el,g[0])))});
+  root.querySelectorAll("[data-gal]").forEach(el=>{const d=dest(el.dataset.gal),i=+el.dataset.i||0;getGal(d).then(g=>{if(g.length)setBg(el,g[i%g.length]);else getHero(d).then(u=>setBg(el,u))})});
+}
+const grad=d=>`background-image:linear-gradient(180deg,${d.c1},${d.c2})`;
+const photo=(d,cls="",extra="")=>`<div class="ph ${cls}" data-hero="${d.id}" style="${grad(d)};${extra}"></div>`;
+
+/* ================= التوصية والمسار ================= */
+const budgetLimit=b=>b===1?3000:b===2?6000:1e9;
+function score(d){
+  const w=S.weights;let dot=0,nw=0,nd=0;
+  for(const k in d.tags){dot+=(w[k]||0)*d.tags[k];nd+=d.tags[k]**2}
+  for(const k in w)nw+=w[k]**2;
+  const cos=nw&&nd?dot/Math.sqrt(nw*nd):0,fits=d.price<=budgetLimit(S.budget);
+  const m=Math.min(98,Math.max(35,Math.round(50+46*cos+(fits?4:-14))));
+  const reasons=Object.keys(d.tags).map(k=>[k,(w[k]||0)*d.tags[k]]).filter(x=>x[1]>.15).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>({tag:x[0]}));
+  if(fits&&reasons.length<2)reasons.push({budget:1});
+  return{d,m,reasons};
+}
+function rank(q,tag){
+  q=(q||"").trim().toLowerCase();
+  return CAT.filter(d=>!S.hidden.includes(d.id)).filter(d=>!q||[d.ar,d.en,d.cAr,d.cEn].some(s=>s.toLowerCase().includes(q))).filter(d=>!tag||(d.tags[tag]||0)>=.5).map(score).sort((a,b)=>b.m-a.m);
+}
+const SLOT=[570,780,990,1110];
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let r=Math.imul(s^s>>>15,1|s);r=r+Math.imul(r^r>>>7,61|r)^r;return((r^r>>>14)>>>0)/4294967296}}
+function plan(d,days,seed){
+  const r=rng(seed),n=Math.min(d.pois.length,days*3);
+  const chosen=d.pois.map(p=>[p,(S.weights[p.tag]||0)+.3+r()*.45]).sort((a,b)=>b[1]-a[1]).slice(0,n).map(x=>x[0]).sort((a,b)=>a.slot-b.slot);
+  return chosen.map((p,i)=>({day:i%days,poi:p.id}));
+}
+function dayTimes(d,items){
+  let last=-1;
+  return items.map(it=>[it,d.pois.find(p=>p.id===it.poi)]).sort((a,b)=>a[1].slot-b[1].slot).map(([it,p])=>{let x=SLOT[p.slot];if(x<=last)x=last+90;last=x;return{it,p,time:x}});
+}
+const fmt=m=>String(Math.floor(m/60)%24).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+const loc=()=>S.lang==="ar"?"ar":"en";
+const mon=(ed,style="short")=>new Date(ed*864e5).toLocaleDateString(loc(),{month:style,timeZone:"UTC"});
+const dayN=ed=>new Date(ed*864e5).getUTCDate();
+function dateRange(tr){
+  const a=tr.start,b=tr.start+tr.days-1,ya=new Date(b*864e5).getUTCFullYear();
+  return mon(a,"long")===mon(b,"long")?`${dayN(a)} – ${dayN(b)} ${mon(a,"long")} ${ya}`:`${dayN(a)} ${mon(a,"long")} – ${dayN(b)} ${mon(b,"long")} ${ya}`;
+}
+const mapsUrl=(d,p)=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(p.en+", "+d.en);
+
+/* ================= أيقونات ================= */
+const IC={
+ back:'<path d="M5 12h14M13 6l6 6-6 6"/>',share:'<path d="M12 15V4M8 8l4-4 4 4M6 12v7h12v-7"/>',search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+ heart:'<path d="M12 20.5s-8-5-8-10.7A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.8c0 5.7-8 10.7-8 10.7z"/>',plus:'<path d="M12 5v14M5 12h14"/>',close:'<path d="M6 6l12 12M18 6L6 18"/>',
+ cal:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',book:'<path d="M12 6c-2-1.6-5-2-8-1.6v13c3-.4 6 0 8 1.6 2-1.6 5-2 8-1.6v-13C17 4 14 4.4 12 6zM12 6v13"/>',
+ img:'<rect x="3.5" y="4.5" width="17" height="15" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4.5 4 3 3-2.5 4.5 4"/>',pin:'<path d="M12 21s6-5.4 6-10.5A6 6 0 0 0 12 4.5a6 6 0 0 0-6 6C6 15.6 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.3"/>',
+ user:'<circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/>',check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',refresh:'<path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/>',compass:'<circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'
+};
+const ic=(n,flip)=>`<svg class="i" viewBox="0 0 24 24" ${flip?'style="transform:scaleX(-1)"':""}>${IC[n]}</svg>`;
+const backIc=()=>ic("back",S.lang==="en"?true:false);
+
+/* ================= التنقل والعرض ================= */
+let stack=[{n:"main"}],tab=0,ui={q:"",tag:null,sel:null,ttab:0,b:null,onb:[],onbBudget:2};
+const app=document.getElementById("app");
+function go(s){stack.push(s);render();scrollTo(0,0)}
+function back(){if(stack.length>1){stack.pop();render()}}
+function toast(msg){const e=document.createElement("div");e.className="toast";e.textContent=msg;document.body.appendChild(e);setTimeout(()=>e.remove(),1800)}
+function render(){
+  document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==="ar"?"rtl":"ltr";
+  if(!S.onboarded){app.innerHTML=vOnboard()}
+  else{const c=stack[stack.length-1];
+    app.innerHTML=c.n==="main"?vMain():c.n==="detail"?vDetail(c):c.n==="builder"?vBuilder(c):vTrip(c)}
+  hydrate(app);
+}
+const pillH=(txt,on,act,extra="")=>`<button class="pill ${on?"on":""}" data-a="${act}" ${extra}>${txt}</button>`;
+
+function vOnboard(){
+  return `<div class="scr col" style="gap:18px">
+  <div class="lang">${pillH("العربية",S.lang==="ar","lang",'data-v="ar"')}${pillH("English",S.lang==="en","lang",'data-v="en"')}</div>
+  <h1 style="font-size:30px">${t("أهلاً بك في وجهة","Welcome to Wijha")}</h1>
+  <p class="mute" style="margin:0">${t("اختر ما تحب، وسنقترح عليك وجهات ونبني لك مساراً يناسب ذوقك. يمكنك التعديل لاحقاً.","Pick what you love and we'll suggest destinations and build an itinerary that fits. You can change this later.")}</p>
+  <h3 style="font-size:17px">${t("ما الذي تحب؟ (3 على الأقل)","What do you like? (pick at least 3)")}</h3>
+  <div class="wrap">${TAGS.map(x=>pillH(t(x[1],x[2]),ui.onb.includes(x[0]),"onbtag",`data-v="${x[0]}"`)).join("")}</div>
+  <h3 style="font-size:17px">${t("ميزانية الرحلة","Trip budget")}</h3>
+  <div class="wrap">${[[1,"اقتصادية","Economy"],[2,"متوسطة","Mid-range"],[3,"مرتفعة","Premium"]].map(b=>pillH(t(b[1],b[2]),ui.onbBudget===b[0],"onbbudget",`data-v="${b[0]}"`)).join("")}</div>
+  <button class="pbtn" data-a="start" ${ui.onb.length<3?"disabled":""}>${ic("search")}${t("ابدأ الاستكشاف","Start exploring")}</button>
+  <p class="mute sm" style="text-align:center;margin:0">${t("بياناتك وتفضيلاتك تُحفظ على جهازك فقط.","Your data and preferences are stored on your device only.")}</p></div>`;
+}
+
+function vMain(){
+  const items=[[ "compass",t("استكشف","Explore")],["cal",t("رحلاتي","Trips")],["img",t("الصور","Photos")],["user",t("حسابي","Profile")]];
+  const body=tab===0?vHome():tab===1?vTrips():tab===2?vPhotosTab():vProfile();
+  return body+`<nav class="nav">${items.map((x,i)=>`<button class="${tab===i?"on":""}" data-a="tab" data-v="${i}">${ic(x[0])}${x[1]}</button>`).join("")}</nav>`;
+}
+
+function recoCard(sc){
+  const d=sc.d,liked=S.liked.includes(d.id);
+  const rs=sc.reasons.map(r=>r.budget?t("يناسب ميزانيتك","Fits your budget"):t("لأنك تحب "+tg(r.tag)[1],"You like "+tg(r.tag)[2]));
+  return `<div class="reco" data-a="open" data-v="${d.id}">${photo(d,"","position:absolute;inset:0")}<div class="scrim"></div>
+  <div class="top"><span class="chip">${t("تطابق "+sc.m+"٪",sc.m+"% match")}</span>
+   <span class="row"><button class="chip" data-a="dismiss" data-v="${d.id}">${t("ليس لي","Not for me")}</button><button class="hbtn ${liked?"on":""}" data-a="like" data-v="${d.id}" aria-label="like">${ic("heart")}</button></span></div>
+  <div class="bot"><div class="row sb" style="align-items:flex-end"><div><h2 style="font-size:22px">${nm(d)}</h2><span class="sm" style="opacity:.85">${cn(d)}</span></div><b style="font-size:13px">${t("من "+d.price+" ر.س","from SAR "+d.price)}</b></div>
+  <div class="wrap" style="gap:6px">${rs.map(r=>`<span class="chip" style="font-size:11px;padding:1px 10px;font-weight:500">${r}</span>`).join("")}</div></div></div>`;
+}
+function homeList(){
+  const r=rank(ui.q,ui.tag);
+  return r.map(recoCard).join("")||`<p class="mute">${t("لا توجد نتائج. جرّب كلمة أخرى.","No results. Try another word.")}</p>`;
+}
+function vHome(){
+  return `<div class="scr col" style="gap:14px"><div><div class="mute sm">${t("صباح الخير","Good morning")}</div><h1 style="font-size:26px">${t("إلى أين هذه المرة؟","Where to this time?")}</h1></div>
+  <input class="search" id="q" value="${esc(ui.q)}" placeholder="${t("ابحث عن وجهة أو دولة…","Search a destination or country…")}">
+  <div class="scroll">${pillH(t("الكل","All"),!ui.tag,"ftag",'data-v=""')}${TAGS.map(x=>pillH(t(x[1],x[2]),ui.tag===x[0],"ftag",`data-v="${x[0]}"`)).join("")}</div>
+  <h3 style="font-size:18px">${t("مقترحة لك","Recommended for you")}</h3><div class="col" style="gap:16px" id="list">${homeList()}</div></div>`;
+}
+
+function vDetail(c){
+  const d=dest(c.id);ui.days=ui.days||5;
+  return `<div class="scr" style="padding-top:0"><div class="hero">${photo(d,"","position:absolute;inset:0")}<div class="scrim" style="background:linear-gradient(to bottom,rgba(0,0,0,.25),transparent 40%,rgba(0,0,0,.6))"></div>
+   <div class="over" style="top:calc(14px + env(safe-area-inset-top,0px))"><button class="cbtn" data-a="back" aria-label="back">${backIc()}</button></div>
+   <div class="over" style="bottom:18px"><h1 style="font-size:32px">${nm(d)}</h1><div style="opacity:.9">${cn(d)}</div></div></div>
+  <div class="col" style="padding-top:16px;gap:16px"><p style="margin:0;font-size:16px">${t(d.blAr,d.blEn)}</p>
+  <div class="wrap">${Object.entries(d.tags).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>`<span class="pill">${tl(x[0])}</span>`).join("")}</div>
+  <div class="row">${[[t("يبدأ من","From"),t(d.price+" ر.س","SAR "+d.price)],[t("أفضل موسم","Best season"),t(d.bAr,d.bEn)],[t("أنشطة","Activities"),d.pois.length]].map(x=>`<div class="info"><small>${x[0]}</small><b style="font-size:14px">${x[1]}</b></div>`).join("")}</div>
+  <h3 style="font-size:18px">${t("صور من الوجهة","Photos")}</h3><div class="scroll">${[0,1,2,3,4,5].map(i=>`<div class="ph" data-gal="${d.id}" data-i="${i}" style="${grad(d)};width:170px;height:120px;border-radius:20px;flex:none"></div>`).join("")}</div>
+  <h3 style="font-size:18px">${t("ابنِ مسارك","Build your itinerary")}</h3>
+  <div class="wrap">${[3,5,7].map(n=>pillH(t(n+" أيام",n+" days"),ui.days===n,"days",`data-v="${n}"`)).join("")}</div>
+  <button class="pbtn" data-a="build" data-v="${d.id}">${ic("refresh")}${t("ولّد المسار","Generate itinerary")}</button></div></div>`;
+}
+
+function dayPlan(d,items,start,days,removable){
+  let h="";
+  for(let day=0;day<days;day++){
+    const di=dayTimes(d,items.filter(i=>i.day===day));
+    h+=`<div class="row" style="align-items:flex-start;gap:10px;margin-bottom:16px"><div class="bub b${day%3}">${mon(start+day)}<b>${dayN(start+day)}</b></div>
+    <div class="col" style="flex:1;gap:8px;min-width:0"><b>${t("اليوم "+(day+1),"Day "+(day+1))}</b>${di.length?"":`<span class="mute sm">${t("يوم حر","Free day")}</span>`}
+    ${di.map(x=>{const idx=d.pois.indexOf(x.p);return `<div class="item"><a href="${mapsUrl(d,x.p)}" target="_blank" rel="noopener" style="display:flex;gap:10px;align-items:center;flex:1;min-width:0;text-decoration:none;color:inherit">
+      <div style="flex:1;min-width:0"><div style="color:var(--blue);font-size:12px;font-weight:700">${fmt(x.time)}</div><div style="font-weight:700;font-size:14px">${pn(x.p)}</div><div class="mute" style="font-size:11px">${tl(x.p.tag)} · ${x.p.h}${t(" س"," h")}</div></div>
+      <div class="ph thumb" data-gal="${d.id}" data-i="${idx}" style="${grad(d)}"></div></a>${removable?`<button data-a="rm" data-v="${x.it.poi}" aria-label="remove" style="width:24px;height:24px;color:var(--mute)">${ic("close")}</button>`:""}</div>`}).join("")}</div></div>`;
+  }
+  return h;
+}
+
+function vBuilder(c){
+  const d=dest(c.id),b=ui.b;
+  return `<div class="scr col" style="gap:14px"><div class="row" style="gap:12px"><button class="cbtn" data-a="back">${backIc()}</button><div><h2 style="font-size:22px">${t("مسار "+d.ar,d.en+" itinerary")}</h2><span class="mute sm">${t("مُولَّد حسب اهتماماتك","Generated from your interests")}</span></div></div>
+  <div class="wrap">${[3,5,7].map(n=>pillH(t(n+" أيام",n+" days"),b.days===n,"bdays",`data-v="${n}"`)).join("")}</div>
+  <div class="wrap">${[[14,"بعد أسبوعين","In 2 weeks"],[30,"بعد شهر","In 1 month"],[60,"بعد شهرين","In 2 months"]].map(o=>pillH(t(o[1],o[2]),b.offset===o[0],"boff",`data-v="${o[0]}"`)).join("")}</div>
+  <div class="row"><span class="mute sm">${t("المسافرون","Travelers")}</span>${pillH("−",0,"trv",'data-v="-1"')}<b>${b.trav}</b>${pillH("+",0,"trv",'data-v="1"')}</div>
+  <div>${dayPlan(d,b.items,today()+b.offset,b.days,true)}</div></div>
+  <div class="fab"><button class="pbtn light" style="width:auto;padding:0 18px" data-a="shuffle">${t("غيّر الاقتراح","Reshuffle")}</button><button class="pbtn" data-a="savetrip">${ic("check")}${t("احفظ الرحلة","Save trip")}</button></div>`;
+}
+
+function vTrip(c){
+  const tr=S.trips.find(x=>x.id===c.id);if(!tr)return `<div class="scr">—</div>`;
+  const d=dest(tr.dest),end=tr.start+tr.days-1,td=today();
+  const st=tr.start>td?[t("قادمة","Upcoming"),"#5cc24a"]:td<=end?[t("جارية","Ongoing"),"#f2a23a"]:[t("منتهية","Completed"),"#9d99a6"];
+  const tabs=[["cal",t("المسار","Itinerary")],["book",t("اليوميات","Journal")],["img",t("الصور","Photos")],["pin",t("الخريطة","Map")]];
+  let body="";
+  if(ui.ttab===0)body=`<h3 style="font-size:18px;margin-bottom:10px">${t("خطة الرحلة","Trip plan")}</h3>${dayPlan(d,tr.items,tr.start,tr.days,false)}`;
+  else if(ui.ttab===1)body=tr.notes.length?tr.notes.slice().reverse().map(n=>`<div class="note" style="margin-bottom:10px"><div class="mute sm">${new Date(n.d*864e5).toISOString().slice(0,10)}</div>${esc(n.text)}</div>`).join(""):`<p class="mute">${t("لا توجد ذكريات بعد. اضغط «إضافة ذكرى».","No memories yet. Tap “Add memory”.")}</p>`;
+  else if(ui.ttab===2)body=`<div id="tgrid" data-grid="${d.id}"></div>`;
+  else body=d.pois.map(p=>`<a class="item" style="margin-bottom:10px;padding:14px" href="${mapsUrl(d,p)}" target="_blank" rel="noopener"><span style="color:var(--rose);width:22px">${ic("pin")}</span><b style="flex:1;font-weight:500">${pn(p)}</b><span style="color:var(--blue);font-size:12px">${t("افتح في الخرائط","Open in Maps")}</span></a>`).join("");
+  return `<div class="scr" style="padding-top:0"><div class="hero trip">${photo(d,"","position:absolute;inset:0")}<div class="scrim" style="background:linear-gradient(to bottom,rgba(0,0,0,.25),transparent 40%,rgba(0,0,0,.55))"></div>
+   <div class="over row sb" style="top:calc(14px + env(safe-area-inset-top,0px))"><button class="cbtn" data-a="back">${backIc()}</button><button class="cbtn" data-a="share" data-v="${tr.id}">${ic("share")}</button></div>
+   <div class="over" style="top:calc(70px + env(safe-area-inset-top,0px))"><span class="chip row" style="display:inline-flex;gap:6px"><i class="dot" style="background:${st[1]}"></i>${st[0]}</span></div>
+   <div class="over" style="bottom:46px"><h1 style="font-size:28px">${t("رحلة "+d.ar,d.en+" Escape")}</h1><div style="font-size:13px;opacity:.92">${dateRange(tr)} &nbsp;|&nbsp; ${t(tr.trav+" مسافرين",tr.trav+" travelers")}</div></div></div>
+  <div class="sheet"><div class="tabs">${tabs.map((x,i)=>`<button class="tab ${ui.ttab===i?"on":""}" data-a="ttab" data-v="${i}">${ic(x[0])}${x[1]}</button>`).join("")}</div><div style="margin-top:14px">${body}</div></div></div>
+  <div class="fab"><button class="pbtn" data-a="addmem" data-v="${tr.id}">${ic("plus")}${t("إضافة ذكرى","Add memory")}</button></div>`;
+}
+
+function masonry(urls){
+  const R=[.78,1.25,1,.9,1.15,.85];
+  return `<div class="mas">${urls.map((u,i)=>`<div class="mi" style="aspect-ratio:${R[i%6]};background-image:url('${u}')"><button class="hbtn ${S.favs.includes(u)?"on":""}" data-a="fav" data-u="${esc(u)}" aria-label="fav">${ic("heart")}</button></div>`).join("")}</div>`;
+}
+function vTrips(){
+  return `<div class="scr col" style="gap:14px"><h1 style="font-size:26px">${t("رحلاتي","My trips")}</h1>
+  ${S.trips.length?"":`<p class="mute">${t("لا توجد رحلات بعد. افتح وجهة من «استكشف» ثم اضغط «ولّد المسار».","No trips yet. Open a destination in Explore and tap “Generate itinerary”.")}</p>`}
+  ${S.trips.slice().reverse().map(tr=>{const d=dest(tr.dest);return `<div class="item" style="cursor:pointer;padding:10px" data-a="opentrip" data-v="${tr.id}">${photo(d,"","width:84px;height:84px;border-radius:16px;flex:none")}<div><b>${t("رحلة "+d.ar,d.en+" trip")}</b><div class="mute sm">${dateRange(tr)}</div><div class="mute sm">${t(tr.trav+" مسافرين · "+tr.items.length+" نشاطاً",tr.trav+" travelers · "+tr.items.length+" activities")}</div></div></div>`}).join("")}</div>`;
+}
+let photoData={};
+function vPhotosTab(){
+  const ids=[...new Set(S.trips.map(x=>x.dest))],ds=(ids.length?ids.map(dest):CAT.slice(0,4));
+  setTimeout(()=>loadPhotos(ds),0);
+  const total=Object.values(photoData).reduce((a,b)=>a+b.length,0);
+  return `<div class="scr col" style="gap:12px"><div><h1 style="font-size:26px">${t("صور الرحلة","Trip photos")}</h1><div class="mute sm" id="pcount">${t(total+" صورة من "+ds.length+" أماكن",total+" photos from "+ds.length+" places")}</div></div>
+  <div class="scroll"><div class="pchip ${!ui.sel?"on":""}" data-a="psel" data-v=""><div class="t">${ic("img")}</div>${t("الكل","All")}<small>${total}</small></div>
+  ${ds.map(d=>`<div class="pchip ${ui.sel===d.id?"on":""}" data-a="psel" data-v="${d.id}">${photo(d,"t")}${nm(d)}<small>${(photoData[d.id]||[]).length}</small></div>`).join("")}</div>
+  <div id="pgrid">${photoData._ready?"":`<p class="mute sm">${t("جارٍ تحميل الصور من الإنترنت…","Loading photos from the internet…")}</p>`}</div></div>`;
+}
+async function loadPhotos(ds){
+  for(const d of ds){if(!photoData[d.id]){photoData[d.id]=await getGal(d);photoData._ready=1;if(tab===2&&stack.length===1)paintPhotos(ds)}}
+  if(tab===2&&stack.length===1)paintPhotos(ds);
+}
+function paintPhotos(ds){
+  const g=document.getElementById("pgrid");if(!g)return;
+  const urls=ui.sel?(photoData[ui.sel]||[]):ds.flatMap(d=>photoData[d.id]||[]);
+  g.innerHTML=urls.length?masonry(urls):`<p class="mute sm">${t("لا توجد صور بعد.","No photos yet.")}</p>`;
+  const total=ds.reduce((a,d)=>a+(photoData[d.id]||[]).length,0),pc=document.getElementById("pcount");
+  if(pc)pc.textContent=t(total+" صورة من "+ds.length+" أماكن",total+" photos from "+ds.length+" places");
+}
+function vProfile(){
+  const top=Object.entries(S.weights).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  return `<div class="scr col" style="gap:16px"><h1 style="font-size:26px">${t("حسابي","Profile")}</h1>
+  <h3 style="font-size:17px">${t("اللغة","Language")}</h3><div class="wrap">${pillH("العربية",S.lang==="ar","lang",'data-v="ar"')}${pillH("English",S.lang==="en","lang",'data-v="en"')}</div>
+  <h3 style="font-size:17px">${t("الميزانية","Budget")}</h3><div class="wrap">${[[1,"اقتصادية","Economy"],[2,"متوسطة","Mid-range"],[3,"مرتفعة","Premium"]].map(b=>pillH(t(b[1],b[2]),S.budget===b[0],"budget",`data-v="${b[0]}"`)).join("")}</div>
+  <h3 style="font-size:17px">${t("اهتماماتي","My interests")}</h3><div class="wrap">${TAGS.map(x=>pillH(t(x[1],x[2]),(S.weights[x[0]]||0)>=.5,"ptag",`data-v="${x[0]}"`)).join("")}</div>
+  <h3 style="font-size:17px">${t("ما تعلّمه التطبيق منك","What the app learned")}</h3>
+  ${top.length?top.map(([k,w])=>`<div class="row"><span style="width:110px;font-size:13px">${tl(k)}</span><div class="bar"><i style="width:${Math.round(Math.min(1,w)*100)}%"></i></div></div>`).join(""):`<span class="mute sm">${t("لا توجد إشارات بعد.","No signals yet.")}</span>`}
+  <span class="mute sm">${t("يتحسن الترتيب كلما ضغطت قلباً أو «ليس لي».","Ranking improves each time you tap the heart or “Not for me”.")}</span>
+  ${S.hidden.length?pillH(t("إظهار الوجهات المخفية ("+S.hidden.length+")","Show hidden destinations ("+S.hidden.length+")"),0,"unhide"):""}
+  <h3 style="font-size:17px">${t("الخصوصية","Privacy")}</h3><p class="mute sm" style="margin:0">${t("تفضيلاتك ورحلاتك وذكرياتك محفوظة على هذا الجهاز فقط. الصور تُجلب من ويكيبيديا وويكيميديا كومنز ولا نرسل إليهما أي بيانات عنك.","Your preferences, trips and memories stay on this device. Photos are fetched from Wikipedia and Wikimedia Commons; no personal data is sent to them.")}</p>
+  ${pillH(t("إعادة ضبط كل شيء","Reset everything"),0,"reset")}</div>`;
+}
+
+/* ================= الأحداث ================= */
+function learn(d,delta){for(const k in d.tags)S.weights[k]=Math.min(1,Math.max(0,(S.weights[k]||0)+delta*d.tags[k]))}
+const A={
+ lang(v){S.lang=v;save();render()},
+ onbtag(v){ui.onb=ui.onb.includes(v)?ui.onb.filter(x=>x!==v):[...ui.onb,v];render()},
+ onbbudget(v){ui.onbBudget=+v;render()},
+ start(){S.weights=Object.fromEntries(ui.onb.map(k=>[k,.8]));S.budget=ui.onbBudget;S.onboarded=true;save();render()},
+ tab(v){tab=+v;render();scrollTo(0,0)},
+ ftag(v){ui.tag=v||null;render()},
+ open(v){ui.days=5;go({n:"detail",id:v})},
+ like(v){const d=dest(v);if(S.liked.includes(v))S.liked=S.liked.filter(x=>x!==v);else{S.liked.push(v);learn(d,.12)}save();document.getElementById("list").innerHTML=homeList();hydrate(app)},
+ dismiss(v){const d=dest(v);S.hidden.push(v);learn(d,-.08);save();document.getElementById("list").innerHTML=homeList();hydrate(app)},
+ back(){back()},
+ days(v){ui.days=+v;render()},
+ build(v){const d=dest(v);ui.b={days:ui.days||5,trav:2,offset:30,seed:1,items:[]};ui.b.items=plan(d,ui.b.days,ui.b.seed);go({n:"builder",id:v})},
+ bdays(v){const b=ui.b,d=dest(stack[stack.length-1].id);b.days=+v;b.items=plan(d,b.days,b.seed);render()},
+ boff(v){ui.b.offset=+v;render()},
+ trv(v){ui.b.trav=Math.min(10,Math.max(1,ui.b.trav+ +v));render()},
+ shuffle(){const b=ui.b,d=dest(stack[stack.length-1].id);b.seed++;b.items=plan(d,b.days,b.seed);render()},
+ rm(v){ui.b.items=ui.b.items.filter(i=>i.poi!==v);render()},
+ savetrip(){const c=stack[stack.length-1],b=ui.b,tr={id:uid(),dest:c.id,start:today()+b.offset,days:b.days,trav:b.trav,items:b.items,notes:[]};S.trips.push(tr);save();stack.splice(-2,2,{n:"trip",id:tr.id});ui.ttab=0;render();scrollTo(0,0)},
+ opentrip(v){ui.ttab=0;go({n:"trip",id:v})},
+ ttab(v){ui.ttab=+v;render();if(ui.ttab===2){const tr=S.trips.find(x=>x.id===stack[stack.length-1].id),d=dest(tr.dest);getGal(d).then(g=>{const e=document.getElementById("tgrid");if(e)e.innerHTML=g.length?masonry(g):`<p class="mute">${t("لا توجد صور.","No photos.")}</p>`})}},
+ share(v){const tr=S.trips.find(x=>x.id===v),d=dest(tr.dest),text=t(`رحلتي إلى ${d.ar}: ${dateRange(tr)} — خُطّطت في تطبيق وجهة`,`My trip to ${d.en}: ${dateRange(tr)} — planned with Wijha`);
+  if(navigator.share)navigator.share({text}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>toast(t("تم نسخ نص الرحلة","Trip text copied")),()=>toast(text))},
+ addmem(v){const m=document.createElement("div");m.className="modal";m.innerHTML=`<div><h3>${t("ذكرى جديدة","New memory")}</h3><textarea id="mem" placeholder="${t("ماذا حدث اليوم؟","What happened today?")}"></textarea><div class="row"><button class="pbtn light" style="border:1px solid var(--line)" data-a="mcancel">${t("إلغاء","Cancel")}</button><button class="pbtn" data-a="msave" data-v="${v}">${t("حفظ","Save")}</button></div></div>`;document.body.appendChild(m);document.getElementById("mem").focus()},
+ mcancel(){document.querySelector(".modal").remove()},
+ msave(v){const x=document.getElementById("mem").value.trim(),tr=S.trips.find(y=>y.id===v);if(x){tr.notes.push({text:x,d:today()});save()}document.querySelector(".modal").remove();ui.ttab=1;render()},
+ fav(v,el){const u=el.dataset.u;S.favs=S.favs.includes(u)?S.favs.filter(x=>x!==u):[...S.favs,u];save();el.classList.toggle("on")},
+ psel(v){ui.sel=v||null;render()},
+ budget(v){S.budget=+v;save();render()},
+ ptag(v){S.weights[v]=(S.weights[v]||0)>=.5?0:.8;save();render()},
+ unhide(){S.hidden=[];save();render()},
+ reset(){const l=S.lang;S={lang:l,onboarded:false,weights:{},budget:2,liked:[],hidden:[],favs:[],trips:[]};save();stack=[{n:"main"}];tab=0;ui.onb=[];render()}
+};
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-a]");if(!el||!A[el.dataset.a])return;
+  e.stopPropagation();A[el.dataset.a](el.dataset.v,el);
+});
+document.addEventListener("input",e=>{
+  if(e.target.id==="q"){ui.q=e.target.value;const l=document.getElementById("list");if(l){l.innerHTML=homeList();hydrate(l)}}
+});
+render();
+</script>
+</body>
+</html>
