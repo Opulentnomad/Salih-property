@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Naghm APK
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       - 'capacitor.config.json'
       - 'assets/**'
       - 'android-signing/**'
-      - '.github/workflows/android-apk.yml'
+      - '.github/workflows/naghm-apk.yml'
 
 permissions:
   contents: write
@@ -65,5 +65,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="apk-${{ github.run_number }}"
+          TAG="naghm-apk-${{ github.run_number }}"
           gh release create "$TAG" naghm.apk --title "Naghm APK #${{ github.run_number }}" --notes "Debug-signed APK for personal install." --prerelease --target "${{ github.sha }}"
