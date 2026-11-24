@@ -179,7 +179,7 @@ svg.stamp{mix-blend-mode:multiply;overflow:visible;display:block;opacity:.92}
 
 /* ---------- تنقّل ---------- */
 .nav{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);width:min(448px,calc(100% - 24px));height:62px;border-radius:999px;border:1px solid rgba(211,177,95,.55);background:rgba(8,32,26,.92);backdrop-filter:blur(8px);display:flex;justify-content:space-around;align-items:center;z-index:30}
-.nav button{display:grid;justify-items:center;color:#8da99a;font-size:11px;min-width:60px;min-height:48px;align-content:center;border-radius:999px}
+.nav button{display:grid;justify-items:center;color:#8da99a;font-size:11px;min-width:54px;min-height:48px;align-content:center;border-radius:999px}
 .nav button[aria-current="page"]{color:var(--gold-hi)}
 .fab{position:fixed;bottom:calc(86px + env(safe-area-inset-bottom,0px));inset-inline-end:max(16px,calc(50% - 224px));z-index:29;min-height:52px;border-radius:999px;background:var(--gold);color:#0e2b23;font-weight:700;padding:0 20px;display:flex;align-items:center;gap:8px;box-shadow:0 12px 22px -10px #000}
 .fab .ico{width:20px;height:20px}
@@ -196,6 +196,142 @@ svg.stamp{mix-blend-mode:multiply;overflow:visible;display:block;opacity:.92}
 .sheet .row-btn{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap}
 .ltr{direction:ltr;text-align:left}
 .toast{position:fixed;bottom:calc(150px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--gold);color:#0e2b23;border-radius:999px;padding:6px 18px;z-index:60;font-weight:600;font-size:14px}
+
+
+/* ================= المدونة ================= */
+.visa .vp{position:relative;width:86px;flex:none;background:linear-gradient(160deg,var(--cover-3),var(--cover)) center/cover no-repeat}
+.pc{width:100%;display:flex;gap:0;background:var(--paper);color:var(--ink);border-radius:18px;overflow:hidden;text-align:start;margin-bottom:10px;box-shadow:0 12px 18px -14px #000}
+.pc .cv{width:112px;flex:none;background:linear-gradient(160deg,var(--cover-3),var(--cover)) center/cover no-repeat;min-height:112px}
+.pc .in{padding:10px 14px;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pc h3{font-size:16px;line-height:1.45}
+.pc p{margin:0;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pc .mt{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin-top:auto;flex-wrap:wrap}
+.alb{column-count:2;column-gap:8px}
+.alb figure{margin:0 0 8px;break-inside:avoid;border-radius:14px;overflow:hidden;background:var(--cover-2);position:relative;cursor:pointer}
+.alb img{display:block;width:100%;height:auto}
+.alb figcaption{position:absolute;inset-inline:0;bottom:0;padding:16px 8px 6px;font-size:11.5px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.65))}
+
+/* نافذة التدوينة (قراءة وتحرير) */
+.ovw{position:fixed;inset:0;z-index:45;overflow:auto;background:var(--board);overscroll-behavior:contain}
+.ovw>.app{min-height:100%;padding-top:calc(18px + env(safe-area-inset-top,0px))}
+.edbar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--cover);margin:-18px -16px 12px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;border-bottom:1px solid rgba(211,177,95,.35)}
+.edbar b{font-family:var(--f-d);color:var(--gold-hi)}
+.edbar .btn{border-color:rgba(211,177,95,.6);color:var(--gold-hi)}
+.edbar .btn.gold{color:#0e2b23;background:var(--gold);border-color:var(--gold)}
+.fld{display:grid;gap:3px;font-size:13px;font-weight:600;color:#a9c0b3;margin-bottom:10px}
+.fld input,.fld select,.fld textarea{width:100%;min-height:46px;border-radius:12px;border:1.5px solid rgba(211,177,95,.4);background:rgba(0,0,0,.25);color:#f2f6f2;padding:0 12px;font-weight:400}
+.fld textarea{padding:10px 12px;min-height:90px;line-height:1.8;resize:none;font-size:15px}
+.fld.big input{font-family:var(--f-d);font-size:22px;font-weight:700;min-height:56px;color:var(--gold-hi)}
+.two2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tgs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tgs button{min-height:36px;border-radius:999px;border:1px solid rgba(211,177,95,.5);padding:0 12px;color:var(--gold);font-size:13px}
+.tgs button[aria-pressed="true"]{background:var(--gold);color:#0e2b23;border-color:var(--gold);font-weight:700}
+.bk{background:var(--paper);color:var(--ink);border-radius:18px;padding:12px;margin-bottom:12px;display:grid;gap:10px;box-shadow:0 10px 16px -14px #000}
+.bkh{display:flex;justify-content:space-between;align-items:center}
+.bkh>span{font-family:var(--f-d);font-size:13px;color:var(--cover)}
+.bkh div{display:flex;gap:4px}
+.ib{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--ink);background:#fff}
+.ib:disabled{opacity:.35}
+.ib .ico{width:16px;height:16px}
+.rt90 .ico{transform:rotate(90deg)}.rt-90 .ico{transform:rotate(-90deg)}
+.bk input,.bk select,.bk textarea{width:100%;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--ink);padding:0 10px;min-height:44px}
+.bk textarea{padding:8px 10px;line-height:1.8;resize:none;min-height:80px}
+.bk .two2{gap:8px}
+.stars{display:flex;gap:4px}
+.stars button{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);font-family:var(--f-c);font-weight:700;font-size:18px;background:#fff}
+.stars button[aria-pressed="true"]{background:var(--cover);color:var(--gold-hi);border-color:var(--cover)}
+.tpls{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tpls button{display:grid;justify-items:center;gap:2px;border:1.5px solid var(--line);border-radius:12px;padding:6px 2px;font-size:11px;background:#fff;color:var(--ink);min-height:56px}
+.tpls button[aria-pressed="true"]{border-color:var(--cover);background:var(--cover);color:var(--gold-hi)}
+.tpls svg{width:38px;height:26px;fill:currentColor;opacity:.85}
+.pths{display:grid;gap:8px}
+.pth{display:grid;grid-template-columns:64px 1fr auto;gap:8px;align-items:center}
+.pth img{width:64px;height:48px;object-fit:cover;border-radius:8px;display:block;background:#ccd}
+.pth .ctl{display:flex;gap:2px}
+.pth .ib{width:36px;height:36px}
+.addbar{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;flex-wrap:wrap;background:rgba(8,32,26,.95);border:1px solid rgba(211,177,95,.5);border-radius:22px;padding:8px;margin-top:10px;z-index:4}
+.addbar button{min-height:40px;border-radius:999px;padding:0 12px;color:var(--gold-hi);border:1px solid rgba(211,177,95,.4);font-size:13px;font-weight:600}
+.addbar .ico{width:16px;height:16px}
+.addbar button:first-child{background:var(--gold);color:#0e2b23;border-color:var(--gold)}
+.prev{border:1.5px dashed var(--line);border-radius:12px;padding:8px;background:#0f3a30}
+.prev .phg{margin:0}
+
+/* قراءة */
+.pr-hero{position:relative;height:290px;margin:-18px -16px 0;background:linear-gradient(160deg,var(--cover-3),var(--cover)) center/cover no-repeat;border-radius:0 0 28px 28px;overflow:hidden;color:#fff}
+.pr-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(5,22,18,.9),rgba(5,22,18,.15) 60%,rgba(5,22,18,.35))}
+.pr-hero>*{position:absolute;z-index:1}
+.pr-top{top:calc(10px + env(safe-area-inset-top,0px));inset-inline:14px;display:flex;justify-content:space-between;gap:8px}
+.pr-top .btn{background:rgba(8,32,26,.7);color:var(--gold-hi);border-color:rgba(211,177,95,.6)}
+.pr-ttl{bottom:16px;inset-inline:18px}
+.pr-ttl h1{font-size:28px;line-height:1.35;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.5)}
+.pr-ttl small{display:flex;gap:8px;align-items:center;color:#dfe9e1;margin-top:4px;flex-wrap:wrap}
+.fsum{background:var(--paper);color:var(--ink);border-radius:16px;padding:10px 14px;margin:14px 0;display:grid;gap:4px;font-size:13px}
+.fsum .l{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fsum b{font-family:var(--f-c);font-size:17px;letter-spacing:.03em;direction:ltr}
+.fsum small{color:var(--muted)}
+.b-h{font-family:var(--f-d);font-size:21px;line-height:1.5;color:var(--gold-hi);margin:26px 0 4px}
+.b-p{font-size:16.5px;line-height:2;color:#e6efe8;white-space:pre-wrap;margin:8px 0;max-width:38em}
+.b-q{margin:18px 0;border-inline-start:3px solid var(--gold);padding:2px 14px;font-family:var(--f-d);font-size:18px;line-height:1.8;color:var(--gold-hi);white-space:pre-wrap}
+.b-tip{margin:16px 0;background:rgba(211,177,95,.12);border:1.5px dashed rgba(211,177,95,.6);border-radius:16px;padding:12px 14px;white-space:pre-wrap;line-height:1.9}
+.b-tip b{display:block;font-family:var(--f-d);color:var(--gold);font-size:13px;margin-bottom:2px}
+.b-place{margin:16px 0;background:var(--paper);color:var(--ink);border-radius:18px;padding:12px 14px;display:grid;gap:4px;box-shadow:0 12px 18px -14px #000}
+.b-place h3{font-size:17px}
+.b-place .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.b-place .r .chip{background:var(--cover);color:var(--gold-hi)}
+.b-place .r .chip::before{display:none}
+.b-place .st5{font-family:var(--f-c);font-weight:700;font-size:18px;color:var(--cover);letter-spacing:.02em}
+.b-place p{margin:0;font-size:14px;white-space:pre-wrap;line-height:1.85}
+.pr-tags{display:flex;gap:6px;flex-wrap:wrap;margin:22px 0 6px}
+.pr-tags span{border:1px solid rgba(211,177,95,.5);color:var(--gold);border-radius:999px;padding:0 12px;font-size:12.5px}
+.cr{font-size:11.5px;color:#92aa9d;margin:6px 0 0}
+.rd-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.rd-act .btn{color:var(--gold-hi);border-color:rgba(211,177,95,.6)}
+.rd-act .btn.bad{color:#f1a39c;border-color:#c77}
+
+/* قوالب الصور */
+.phg{display:grid;gap:6px;margin:14px 0}
+.phg figure{margin:0;position:relative;overflow:hidden;border-radius:12px;background:#0e342b;cursor:zoom-in}
+.phg img{width:100%;height:100%;object-fit:cover;display:block}
+.phg figcaption{position:absolute;inset-inline:0;bottom:0;padding:18px 10px 7px;font-size:12px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.7));line-height:1.5}
+.phg.single{grid-template-columns:1fr}.phg.single figure{aspect-ratio:4/3}
+.phg.duo{grid-template-columns:1fr 1fr}.phg.duo figure{aspect-ratio:3/4}
+.phg.trio{grid-template-columns:1.25fr 1fr;grid-template-rows:1fr 1fr;aspect-ratio:4/3}
+.phg.trio figure:first-child{grid-row:1/3}
+.phg.grid{grid-template-columns:1fr 1fr}.phg.grid figure{aspect-ratio:1}
+.phg.mosaic{grid-template-columns:repeat(3,1fr);grid-auto-rows:88px;grid-auto-flow:dense}
+.phg.mosaic figure:nth-child(5n+1){grid-column:span 2;grid-row:span 2}
+.phg.mosaic figure:nth-child(5n+3){grid-row:span 2}
+.phg.mosaic figure:nth-child(5n+5){grid-column:span 2}
+.phg.polaroid{display:flex;flex-wrap:wrap;justify-content:center;gap:0;padding:6px 0}
+.phg.polaroid figure{width:47%;margin:8px 1.5%;background:#fbf9f1;padding:7px 7px 34px;border-radius:3px;box-shadow:0 10px 18px -8px rgba(0,0,0,.6);transform:rotate(var(--r,-2deg));overflow:visible}
+.phg.polaroid figure:nth-child(4n+1){--r:-3deg}.phg.polaroid figure:nth-child(4n+2){--r:2.5deg;margin-top:20px}.phg.polaroid figure:nth-child(4n+3){--r:1.5deg}.phg.polaroid figure:nth-child(4n+4){--r:-2.5deg;margin-top:20px}
+.phg.polaroid img{aspect-ratio:1;height:auto;border-radius:1px}
+.phg.polaroid figcaption{background:none;color:#37423c;font-size:12px;text-align:center;padding:0 6px;bottom:8px;font-weight:600}
+.phg.strip{display:flex;overflow-x:auto;gap:8px;background:#0b0b0a;padding:20px 10px;border-radius:8px;scroll-snap-type:x proximity;position:relative}
+.phg.strip figure{flex:none;width:190px;aspect-ratio:3/2;border-radius:3px;scroll-snap-align:start}
+.phg.strip::before,.phg.strip::after{content:"";position:absolute;inset-inline:0;height:8px;background:repeating-linear-gradient(90deg,#3b3b36 0 8px,transparent 8px 16px);opacity:.9}
+.phg.strip::before{top:6px}.phg.strip::after{bottom:6px}
+
+/* عارض الصور */
+.lb{position:fixed;inset:0;z-index:70;background:rgba(2,10,8,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:56px 12px calc(20px + env(safe-area-inset-bottom,0px))}
+.lb img{max-width:100%;max-height:72dvh;object-fit:contain;border-radius:8px}
+.lb .lbc{color:#dfe9e1;font-size:14px;text-align:center;max-width:34em;min-height:44px}
+.lb .lbc small{display:block;color:#92aa9d;font-size:11.5px}
+.lb .x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));inset-inline-end:14px}
+.lb .nv{display:flex;gap:10px;align-items:center;color:#dfe9e1}
+.lb .nv button{width:48px;height:48px;border-radius:50%;border:1.5px solid rgba(211,177,95,.6);color:var(--gold-hi);display:grid;place-items:center}
+
+/* منتقي صور الإنترنت */
+.pk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:44dvh;overflow:auto}
+.pk button{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#cdd5c4;padding:0}
+.pk img{width:100%;height:100%;object-fit:cover;display:block}
+.pk button[aria-pressed="true"]{outline:4px solid var(--cover);outline-offset:-4px}
+.pk button[aria-pressed="true"]::after{content:"✓";position:absolute;top:4px;inset-inline-end:4px;width:24px;height:24px;border-radius:50%;background:var(--cover);color:var(--gold-hi);display:grid;place-items:center;font-size:14px}
+.stg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stg button{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:10px;text-align:start;min-height:60px}
+.stg button b{display:block;font-family:var(--f-d);font-size:14px;color:var(--cover)}
+.stg button small{color:var(--muted);font-size:12px;line-height:1.4;display:block}
+.stg button[aria-pressed="true"]{border-color:var(--cover);background:#e3efe3}
 
 @media (prefers-reduced-motion:no-preference){
   .flip i{animation:fl .7s calc(var(--d)*70ms) cubic-bezier(.3,.9,.3,1) both;transform-origin:50% 50%}
@@ -220,7 +356,8 @@ svg.stamp{mix-blend-mode:multiply;overflow:visible;display:block;opacity:.92}
 </defs></svg>
 
 <div class="app" id="app" dir="rtl" lang="ar"></div>
-<div id="layer"></div>
+<div id="layer"></div><div id="ov"></div><div id="lb"></div><input type="file" id="fi" accept="image/*" multiple hidden>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1zM14 7l3 3"/></symbol></defs></svg>
 
 <script>
 "use strict";
@@ -395,7 +532,7 @@ function groups(list,desc){
   const home=AP[S.home]?AP[S.home].cc:"sa";
   return arr.map(([n,fs])=>{
     const ccs=[...new Set(fs.map(f=>AP[f.to].cc))].filter(c=>c!==home),tk=fs.reduce((a,f)=>a+km(f.from,f.to),0);
-    return `<section class="trip"><div class="trip-h">${ccs.map(c=>flag(c,24,16)).join("")}<b>${esc(n)}</b><small>${fs.length} ${fs.length>1?"رحلات":"رحلة"} · ${num(tk)} كم</small></div>${fs.map(frow).join("")}</section>`;
+    return `<section class="trip"><div class="trip-h">${ccs.map(c=>flag(c,24,16)).join("")}<b>${esc(n)}</b><small>${fs.length} ${fs.length>1?"رحلات":"رحلة"} · ${num(tk)} كم</small><button class="btn sm" style="margin-inline-start:auto;min-height:32px;padding:0 12px;color:var(--gold-hi);border-color:rgba(211,177,95,.6)" data-a="postfor" data-v="${encodeURIComponent(n)}">${ico("pen")}تدوينة</button></div>${fs.map(frow).join("")}</section>`;
   }).join("");
 }
 function vFlights(){
@@ -412,7 +549,7 @@ function vFlights(){
 }
 function vExplore(){
   const m=ui.month;
-  const cards=BM[m].map(([k,why,t])=>{const p=P[k];return `<article class="visa"><div class="main"><div class="nm">${p[0]}</div><div class="ct">${flag(p[1],22,15)}<span>${p[2]}</span></div><div class="rs">${why}</div><div><button class="btn sm" data-a="plan" data-v="${k}">${ico("plane")}خطّط رحلة</button></div></div><div class="side"><b>${t}°</b><span>تقريباً</span></div></article>`}).join("");
+  const cards=BM[m].map(([k,why,t])=>{const p=P[k];return `<article class="visa"><div class="vp" data-wp="${k}" role="img" aria-label="${p[0]}"></div><div class="main"><div class="nm">${p[0]}</div><div class="ct">${flag(p[1],22,15)}<span>${p[2]}</span></div><div class="rs">${why}</div><div><button class="btn sm" data-a="plan" data-v="${k}">${ico("plane")}خطّط رحلة</button></div></div><div class="side"><b>${t}°</b><span>تقريباً</span></div></article>`}).join("");
   return `<h1 class="ttl">وجهات ${MONTHS[m]}</h1><p class="sub">${m===new Date().getMonth()?"أفضل وجهات هذا الشهر":"أفضل وجهات الشهر المختار"}. لا حجوزات هنا، فقط أفكار لسفرك القادم.</p>
   <div class="ribbon" role="group" aria-label="اختيار الشهر">${MONTHS.map((n,i)=>`<button data-a="month" data-v="${i}" aria-pressed="${i===m}">${n}</button>`).join("")}</div>${cards}<p class="note">درجات الحرارة تقريبية وتتغير من سنة لأخرى.</p>`;
 }
@@ -463,12 +600,13 @@ function vPassport(){
   <div class="sm-box"><b>عن تتبّع الرحلات.</b> تُدخل حالة الرحلة (في الموعد، متأخرة، ملغاة) والبوابة والمقعد يدوياً. التتبع الحي من المطارات يحتاج ربط التطبيق بخدمة بيانات رحلات عبر خادم ومفتاح API. الأوقات والمدة والمسافات هنا تقديرية.
    <div class="btns"><button class="btn sm" data-a="clear">${ui.confirm==="clear"?"اضغط للتأكيد: حذف كل الرحلات":"حذف كل الرحلات"}</button><button class="btn sm" data-a="demo">${ui.confirm==="demo"?"اضغط للتأكيد: استبدال ببيانات تجريبية":"استعادة البيانات التجريبية"}</button></div></div>`;
 }
-const TABS=[["flights","plane","رحلاتي"],["explore","compass","اقتراحات"],["stats","chart","إحصاءات"],["passport","book","جوازي"]];
+const TABS=[["flights","plane","رحلاتي"],["journal","pen","مدونتي"],["explore","compass","اقتراحات"],["stats","chart","إحصاءات"],["passport","book","جوازي"]];
 function render(keep){
   const y=scrollY;
-  const body={flights:vFlights,explore:vExplore,stats:vStats,passport:vPassport}[ui.tab]();
+  const body={flights:vFlights,journal:vJournal,explore:vExplore,stats:vStats,passport:vPassport}[ui.tab]();
   $("#app").innerHTML=body+`<nav class="nav" aria-label="التنقل">${TABS.map(t=>`<button data-a="tab" data-v="${t[0]}" ${ui.tab===t[0]?'aria-current="page"':""}>${ico(t[1])}${t[2]}</button>`).join("")}</nav>`;
   if(keep)scrollTo(0,y);
+  hydrateWiki();
   const r=$(".ribbon button[aria-pressed=true]");if(r)r.parentNode.scrollLeft=r.offsetLeft-r.parentNode.clientWidth/2;
   if(ui.first){setTimeout(()=>{ui.first=false},1200)}
 }
@@ -531,6 +669,301 @@ const A={
  clear(){if(ui.confirm==="clear"){S={name:S.name,home:S.home,sample:false,flights:[]};ui.confirm="";save();toast("حُذفت كل الرحلات")}else{ui.confirm="clear";setTimeout(()=>{if(ui.confirm==="clear"){ui.confirm="";render(1)}},4000)}render(1)},
  demo(){if(ui.confirm==="demo"){S=Object.assign(seed(),{name:S.name});ui.confirm="";save();toast("عادت البيانات التجريبية")}else{ui.confirm="demo";setTimeout(()=>{if(ui.confirm==="demo"){ui.confirm="";render(1)}},4000)}render(1)}
 };
+/* ================= المدونة والصور ================= */
+const PKEY="wijha.posts.v1",SKEY="wijha.posts.seeded";
+let POSTS=[],MEDIA={},ED=null,LBX=null,PK=null,pending=null,READ=null;
+const WIKI_AP={RUH:"Riyadh",JED:"Jeddah",DMM:"Dammam",MED:"Medina",AHB:"Abha",ULH:"AlUla",DXB:"Dubai",AUH:"Abu Dhabi",DOH:"Doha",KWI:"Kuwait City",BAH:"Manama",MCT:"Muscat",SLL:"Salalah",CAI:"Cairo",LXR:"Luxor",AMM:"Amman",BEY:"Beirut",IST:"Istanbul",SAW:"Istanbul",ASR:"Cappadocia",TZX:"Trabzon",ATH:"Athens",JTR:"Santorini",JMK:"Mykonos",FCO:"Rome",MXP:"Milan",CDG:"Paris",LHR:"London",BCN:"Barcelona",MAD:"Madrid",FRA:"Frankfurt",AMS:"Amsterdam",VIE:"Vienna",ZRH:"Zurich",LIS:"Lisbon",CMN:"Casablanca",TBS:"Tbilisi",KIX:"Kyoto",HND:"Tokyo",NRT:"Tokyo",MLE:"Maldives",SIN:"Singapore",BKK:"Bangkok",KUL:"Kuala Lumpur",JFK:"New York City",LAX:"Los Angeles"};
+const PLACE_WIKI={mv:"Maldives",alula:"AlUla",luxor:"Luxor",dubai:"Dubai",istanbul:"Istanbul",cappa:"Cappadocia",santorini:"Santorini",tbilisi:"Tbilisi",rome:"Rome",paris:"Paris",barcelona:"Barcelona",kyoto:"Kyoto",salalah:"Salalah",abha:"Abha",trabzon:"Trabzon"};
+const TPL=[["single","صورة كبيرة"],["duo","صورتان"],["trio","ثلاث صور"],["grid","شبكة"],["mosaic","كولاج"],["polaroid","بولارويد"],["strip","شريط فيلم"]];
+const KINDS=["معلم","مطعم","مقهى","فندق","شاطئ","سوق","نشاط","متحف"];
+const PTAGS=["شواطئ","هدوء","تصوير","مأكولات محلية","ثقافة","عائلي","مغامرة","تسوّق"];
+const tplIcon=k=>{const R=(x,y,w,h,r="")=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" ${r}/>`;
+ const m={single:R(2,2,36,24),duo:R(2,2,17,24)+R(21,2,17,24),trio:R(2,2,21,24)+R(25,2,13,11)+R(25,15,13,11),grid:R(2,2,17,11)+R(21,2,17,11)+R(2,15,17,11)+R(21,15,17,11),mosaic:R(2,2,24,16)+R(28,2,10,7)+R(28,11,10,15)+R(2,20,10,6)+R(14,20,12,6),polaroid:R(3,4,16,19,'transform="rotate(-8 11 13)"')+R(21,5,16,19,'transform="rotate(7 29 14)"'),strip:R(1,5,38,18)};
+ return `<svg viewBox="0 0 40 28" aria-hidden="true">${m[k]}</svg>`};
+const mediaURL=id=>MEDIA[id]?MEDIA[id].url:"";
+
+/* --- تخزين الصور في IndexedDB --- */
+const idb=()=>new Promise((res,rej)=>{try{const r=indexedDB.open("wijha-media",1);r.onupgradeneeded=()=>r.result.createObjectStore("p",{keyPath:"id"});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
+const tx=async(mode,fn)=>{const d=await idb();return new Promise((res,rej)=>{const t=d.transaction("p",mode),o=fn(t.objectStore("p"));t.oncomplete=()=>res(o&&o.result);t.onerror=()=>rej(t.error)})};
+const putPhoto=r=>tx("readwrite",s=>s.put(r)).catch(()=>toast("تعذّر حفظ الصورة على الجهاز"));
+const delPhoto=id=>tx("readwrite",s=>s.delete(id)).catch(()=>{});
+async function loadMedia(){try{const all=await tx("readonly",s=>s.getAll())||[];all.forEach(r=>regMedia(r))}catch(e){}}
+function regMedia(r){MEDIA[r.id]={url:r.remote||URL.createObjectURL(r.blob),credit:r.credit||"",w:r.w,h:r.h}}
+const rid=()=>"m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+async function compress(file){
+  const bmp=await createImageBitmap(file),s=Math.min(1,1600/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");
+  c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  return new Promise(r=>c.toBlob(b=>r({blob:b,w:c.width,h:c.height}),"image/jpeg",.82));
+}
+function gc(){
+  const used=new Set();POSTS.forEach(p=>{if(p.cover)used.add(p.cover);p.blocks.forEach(b=>b.t==="ph"&&b.items.forEach(i=>used.add(i.id)))});
+  Object.keys(MEDIA).forEach(id=>{if(!used.has(id)){try{URL.revokeObjectURL(MEDIA[id].url)}catch(e){}delete MEDIA[id];delPhoto(id)}});
+}
+const savePosts=()=>{try{localStorage.setItem(PKEY,JSON.stringify(POSTS))}catch(e){toast("مساحة المتصفح ممتلئة")}};
+
+/* --- صور تجريبية مرسومة --- */
+function genImg(i){return new Promise(res=>{
+  const c=document.createElement("canvas");c.width=1200;c.height=800;const g=c.getContext("2d");
+  const P=[["#f6a57a","#f7d7a0","#2f4f7f"],["#7fa7f2","#cfe4f6","#2d4ca3"],["#2b3a67","#f0a060","#1a2440"],["#9ad4c8","#f5efd2","#2c7a7b"],["#e8b4c8","#ffd7a8","#5b3a8c"],["#f0c36a","#f7e7b4","#7a4a2a"]][i%6];
+  const gr=g.createLinearGradient(0,0,0,800);gr.addColorStop(0,P[0]);gr.addColorStop(.72,P[1]);g.fillStyle=gr;g.fillRect(0,0,1200,800);
+  g.fillStyle=P[1];g.beginPath();g.arc(260+i*130,250,74,0,7);g.fill();
+  g.fillStyle=P[2];g.globalAlpha=.55;g.beginPath();g.moveTo(0,800);g.lineTo(0,540);for(let x=0;x<=1200;x+=40)g.lineTo(x,500+Math.sin(x/120+i)*50);g.lineTo(1200,800);g.fill();g.globalAlpha=1;
+  g.fillStyle=P[2];
+  if(i%3===0){for(let k=0;k<3;k++){const x=420+k*190;g.fillRect(x-60,560,120,240);g.beginPath();g.arc(x,560,60,Math.PI,0);g.fill();g.fillRect(x-4,470,8,40)}}
+  else if(i%3===1){for(let k=0;k<2;k++){const x=520+k*260;g.beginPath();g.moveTo(x,360);g.lineTo(x,700);g.lineTo(x+170,700);g.fill();g.fillRect(x-60,700,260,20)}}
+  else{for(let k=0;k<2;k++){const x=300+k*560;g.fillRect(x,330,40,470);g.beginPath();g.moveTo(x-6,330);g.lineTo(x+20,250);g.lineTo(x+46,330);g.fill()}g.beginPath();g.arc(600,720,150,Math.PI,0);g.fill()}
+  c.toBlob(b=>res({blob:b,w:1200,h:800}),"image/jpeg",.85)})}
+async function seedPosts(){
+  if(localStorage.getItem(SKEY))return;
+  try{
+    const ids=[];
+    for(let i=0;i<6;i++){const r=await genImg(i),id="mdemo"+i;const rec={id,blob:r.blob,w:r.w,h:r.h,credit:"صورة تجريبية مرسومة"};await putPhoto(rec);regMedia(rec);ids.push(id)}
+    const ph=(tpl,a,caps=[])=>({t:"ph",tpl,items:a.map((i,j)=>({id:ids[i],cap:caps[j]||""}))});
+    POSTS=[{id:"p_demo",sample:true,title:"أربعة أيام في إسطنبول",trip:"إسطنبول 2024",date:"2024-04-12",tags:["ثقافة","مأكولات محلية","تصوير"],cover:ids[2],blocks:[
+      {t:"p",text:"وصلنا قبل الفجر وكانت المدينة لا تزال نائمة. هذه التدوينة تجريبية، اكتب فوقها أو احذفها وأضف تدوينتك."},
+      ph("trio",[0,1,2],["الصباح الأول","","غروب على البوسفور"]),
+      {t:"h",text:"أين أكلنا"},
+      {t:"place",name:"مطعم السمك عند الجسر",kind:"مطعم",rate:5,cost:"≈ 180 ل.ت للشخص",note:"احجز قبل الغروب. طلبنا السمك المشوي مع سلطة الراكي."},
+      ph("polaroid",[3,4,5],["جلسة الشاي","أزقة قديمة","الليلة الأخيرة"]),
+      {t:"q",text:"أجمل ما في المدينة أنك تضيع فيها ثم تجد نفسك في مكان أجمل."},
+      {t:"tip",text:"اشترِ بطاقة النقل من أول يوم، فهي توفر وقتاً ومالاً."},
+      ph("strip",[1,3,5,0,2])]}];
+    savePosts();localStorage.setItem(SKEY,"1");
+  }catch(e){}
+}
+async function bootJournal(){
+  try{POSTS=JSON.parse(localStorage.getItem(PKEY)||"[]")}catch(e){POSTS=[]}
+  await loadMedia();await seedPosts();render(1);
+}
+
+/* --- عرض --- */
+const coverOf=p=>{const id=p.cover||(()=>{for(const b of p.blocks)if(b.t==="ph"&&b.items.length)return b.items[0].id;return""})();return id&&MEDIA[id]?MEDIA[id].url:""};
+const photosOf=p=>p.blocks.filter(b=>b.t==="ph").flatMap(b=>b.items.map(i=>({id:i.id,cap:i.cap,pid:p.id})));
+const bg=u=>u?`style="background-image:url('${u}')"`:"";
+function phHTML(b,U=mediaURL,lb=true){
+  if(!b.items.length)return `<p class="cr" style="margin:10px 0">لا توجد صور في هذا القالب بعد.</p>`;
+  return `<div class="phg ${b.tpl}">${b.items.map(i=>`<figure ${lb?`data-a="lb" data-id="${i.id}"`:""}><img src="${U(i.id)}" alt="${esc(i.cap)}" loading="lazy">${i.cap?`<figcaption>${esc(i.cap)}</figcaption>`:""}</figure>`).join("")}</div>`;
+}
+function tripSummary(name){
+  const fs=S.flights.filter(f=>f.trip===name).sort((a,b)=>depDate(a)-depDate(b));if(!fs.length)return"";
+  const home=AP[S.home]?AP[S.home].cc:"sa",ccs=[...new Set(fs.map(f=>AP[f.to].cc))].filter(c=>c!==home),tk=fs.reduce((a,f)=>a+km(f.from,f.to),0);
+  return `<div class="fsum"><div class="l">${ccs.map(c=>flag(c,22,15)).join("")}<small>${fs.length} ${fs.length>1?"رحلات":"رحلة"} · ${num(tk)} كم</small></div>${fs.map(f=>`<div class="l"><b>${f.from} → ${f.to}</b><small>${esc(f.no)}${airline(f.no)?" · "+airline(f.no):""} · ${new Date(f.date).getDate()} ${MONTHS[new Date(f.date).getMonth()]}</small></div>`).join("")}</div>`;
+}
+function blockHTML(b,U){
+  if(b.t==="h")return b.text?`<h2 class="b-h">${esc(b.text)}</h2>`:"";
+  if(b.t==="p")return b.text?`<p class="b-p">${esc(b.text)}</p>`:"";
+  if(b.t==="q")return b.text?`<blockquote class="b-q">${esc(b.text)}</blockquote>`:"";
+  if(b.t==="tip")return b.text?`<div class="b-tip"><b>نصيحة</b>${esc(b.text)}</div>`:"";
+  if(b.t==="place")return `<div class="b-place"><h3>${esc(b.name||"مكان")}</h3><div class="r">${b.kind?`<span class="chip">${esc(b.kind)}</span>`:""}${b.rate?`<span class="st5" aria-label="التقييم ${b.rate} من 5">${"★".repeat(b.rate)}${"☆".repeat(5-b.rate)}</span>`:""}${b.cost?`<span>${esc(b.cost)}</span>`:""}</div>${b.note?`<p>${esc(b.note)}</p>`:""}</div>`;
+  if(b.t==="ph")return phHTML(b,U,U===mediaURL);
+  return "";
+}
+function postBody(p,U,withUi){
+  const cv=(()=>{const id=p.cover||(p.blocks.find(b=>b.t==="ph"&&b.items.length)||{items:[{}]}).items[0].id;return id?U(id):""})();
+  const d=p.date?new Date(p.date):null,credits=[...new Set(photosOf(p).map(x=>MEDIA[x.id]&&MEDIA[x.id].credit).filter(Boolean))];
+  return `<div class="pr-hero" ${bg(cv)}>${withUi?`<div class="pr-top"><button class="btn sm" data-a="rdclose">${ico("arr")}رجوع</button><button class="btn sm" data-a="edit-post" data-id="${p.id}">تعديل</button></div>`:""}<div class="pr-ttl"><h1>${esc(p.title||"بدون عنوان")}</h1><small>${d?`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`:""}${p.trip?`<span>· ${esc(p.trip)}</span>`:""}</small></div></div>
+  ${p.trip?tripSummary(p.trip):""}${p.blocks.map(b=>blockHTML(b,U)).join("")}
+  ${p.tags&&p.tags.length?`<div class="pr-tags">${p.tags.map(t=>`<span>${esc(t)}</span>`).join("")}</div>`:""}
+  ${credits.length?`<p class="cr">الصور: ${credits.map(esc).join(" · ")}</p>`:""}`;
+}
+function openPost(id){
+  const p=POSTS.find(x=>x.id===id);if(!p)return;
+  READ=id;document.body.style.overflow="hidden";
+  $("#ov").innerHTML=`<div class="ovw" id="ovw"><div class="app"><article>${postBody(p,mediaURL,true)}
+   <div class="rd-act"><button class="btn sm" data-a="export" data-id="${p.id}">تصدير كصفحة HTML</button><button class="btn sm" data-a="share-post" data-id="${p.id}">مشاركة النص</button><button class="btn sm bad" data-a="del-post" data-id="${p.id}">حذف التدوينة</button></div></article></div></div>`;
+  $("#ovw").focus&&$("#ovw").scrollTo(0,0);
+}
+const closeOv=()=>{$("#ov").innerHTML="";document.body.style.overflow="";ED=null};
+
+function vJournal(){
+  const seg=ui.jseg||"posts",ps=POSTS.slice().sort((a,b)=>(b.date||"")>(a.date||"")?1:-1),nPh=ps.reduce((a,p)=>a+photosOf(p).length,0);
+  let h=`<h1 class="ttl">مدونتي</h1><p class="sub">${ps.length} ${ps.length===1?"تدوينة":"تدوينات"} · ${nPh} صورة. اكتب عن رحلاتك وأضف صورك.</p>
+  <div class="seg" role="group" aria-label="العرض"><button data-a="jseg" data-v="posts" aria-pressed="${seg==="posts"}">التدوينات</button><button data-a="jseg" data-v="album" aria-pressed="${seg==="album"}">الألبوم</button></div>`;
+  if(seg==="posts"){
+    h+=ps.length?`<div style="margin-top:14px">${ps.map(p=>{const ex=(p.blocks.find(b=>b.t==="p"&&b.text)||{}).text||"",d=p.date?new Date(p.date):null,n=photosOf(p).length;return `<button class="pc" data-a="openpost" data-id="${p.id}"><div class="cv" ${bg(coverOf(p))}></div><div class="in"><h3>${esc(p.title||"بدون عنوان")}</h3><p>${esc(ex)}</p><div class="mt">${d?`<span>${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}</span>`:""}<span>${n} صورة</span>${p.trip?`<span>${esc(p.trip)}</span>`:""}</div></div></button>`}).join("")}</div>`
+    :`<div class="empty" style="margin-top:14px"><h3>لا توجد تدوينات بعد</h3><p>ابدأ بتدوينة عن رحلتك: نصوص، أماكن زرتها، وصور بقوالب جاهزة.</p><button class="btn gold" data-a="newpost">${ico("plus")}تدوينة جديدة</button></div>`;
+  }else{
+    const all=ps.flatMap(p=>photosOf(p));
+    h+=all.length?`<div class="alb" style="margin-top:14px">${all.map((x,i)=>`<figure data-a="lb-album" data-i="${i}"><img src="${mediaURL(x.id)}" alt="${esc(x.cap)}" loading="lazy">${x.cap?`<figcaption>${esc(x.cap)}</figcaption>`:""}</figure>`).join("")}</div>`:`<div class="empty" style="margin-top:14px"><h3>الألبوم فارغ</h3><p>الصور التي تضيفها في تدويناتك تظهر هنا.</p></div>`;
+  }
+  return h+`<button class="fab" data-a="newpost">${ico("plus")}تدوينة جديدة</button>`;
+}
+
+/* --- عارض الصور --- */
+function openLB(list,i){LBX={list,i};lbRender()}
+function lbRender(){
+  const x=LBX.list[LBX.i],m=MEDIA[x.id]||{};
+  $("#lb").innerHTML=`<div class="lb" role="dialog" aria-modal="true" aria-label="عرض الصورة"><button class="ib x" data-a="lbx" aria-label="إغلاق">${ico("close")}</button><img src="${mediaURL(x.id)}" alt="${esc(x.cap)}"><div class="lbc">${esc(x.cap)}${m.credit?`<small>${esc(m.credit)}</small>`:""}</div><div class="nv"><button data-a="lbn" data-v="1" aria-label="التالية">${ico("arr")}</button><span>${LBX.i+1} / ${LBX.list.length}</span><button data-a="lbn" data-v="-1" aria-label="السابقة" style="transform:scaleX(-1)">${ico("arr")}</button></div></div>`;
+}
+const lbClose=()=>{$("#lb").innerHTML="";LBX=null};
+
+/* --- المحرر --- */
+function starter(k){
+  const ph=t=>({t:"ph",tpl:t,items:[]}),p=()=>({t:"p",text:""});
+  return {blank:[p()],day:[{t:"h",text:"الصباح"},p(),ph("trio"),{t:"h",text:"بعد الظهر"},p(),ph("duo"),{t:"place",name:"",kind:"مطعم",rate:0,cost:"",note:""},{t:"tip",text:""}],guide:[{t:"h",text:"دليل المكان"},{t:"place",name:"",kind:"معلم",rate:0,cost:"",note:""},ph("single"),{t:"place",name:"",kind:"مطعم",rate:0,cost:"",note:""},{t:"tip",text:""}],album:[ph("mosaic"),ph("polaroid"),{t:"q",text:""}]}[k]||[p()];
+}
+function newPost(trip,k){
+  const fs=S.flights.filter(f=>f.trip===trip).sort((a,b)=>depDate(a)-depDate(b));
+  return {id:"p"+Date.now().toString(36),title:trip||"",trip:trip||"",date:fs[0]?fs[0].date:ymd(new Date()),tags:[],cover:"",blocks:starter(k)};
+}
+function openEditor(p,isNew){ED={p:JSON.parse(JSON.stringify(p)),isNew};document.body.style.overflow="hidden";edRender(0)}
+function edRender(keep=1){
+  const w=$("#ovw"),y=keep&&w?w.scrollTop:0;
+  $("#ov").innerHTML=edHTML();
+  if(keep)$("#ovw").scrollTop=y;
+  document.querySelectorAll("#ov textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(t.scrollHeight,t.classList.contains("sm")?80:90)+"px"});
+}
+function edBlock(b,i,n){
+  const bar=`<div class="bkh"><span>${{h:"عنوان",p:"فقرة",q:"اقتباس",tip:"نصيحة",place:"مكان",ph:"صور"}[b.t]}</span><div><button class="ib rt-90" data-a="bmv" data-i="${i}" data-v="-1" aria-label="أعلى" ${i===0?"disabled":""}>${ico("arr")}</button><button class="ib rt90" data-a="bmv" data-i="${i}" data-v="1" aria-label="أسفل" ${i===n-1?"disabled":""}>${ico("arr")}</button><button class="ib" data-a="bdel" data-i="${i}" aria-label="حذف الكتلة">${ico("close")}</button></div></div>`;
+  let body="";
+  if(b.t==="h")body=`<input data-bi="${i}" data-k="text" value="${esc(b.text)}" placeholder="عنوان القسم" maxlength="80">`;
+  else if(b.t==="p"||b.t==="q"||b.t==="tip")body=`<textarea data-bi="${i}" data-k="text" placeholder="${{p:"اكتب هنا ما حدث، ما شعرت به، ما رأيته…",q:"عبارة لا تنساها",tip:"نصيحة لمن يزور المكان"}[b.t]}">${esc(b.text)}</textarea>`;
+  else if(b.t==="place")body=`<input data-bi="${i}" data-k="name" value="${esc(b.name)}" placeholder="اسم المكان" maxlength="60"><div class="two2"><select data-bi="${i}" data-k="kind" aria-label="النوع">${KINDS.map(k=>`<option ${k===b.kind?"selected":""}>${k}</option>`).join("")}</select><input data-bi="${i}" data-k="cost" value="${esc(b.cost)}" placeholder="التكلفة (اختياري)" maxlength="40"></div><div class="stars" role="group" aria-label="التقييم">${[1,2,3,4,5].map(s=>`<button data-a="rate" data-i="${i}" data-v="${s}" aria-pressed="${b.rate===s}" aria-label="${s} من 5">${s}</button>`).join("")}</div><textarea data-bi="${i}" data-k="note" placeholder="ملاحظاتك عن المكان">${esc(b.note)}</textarea>`;
+  else body=`<div class="tpls" role="group" aria-label="قالب العرض">${TPL.map(([k,l])=>`<button data-a="tpl" data-i="${i}" data-v="${k}" aria-pressed="${b.tpl===k}">${tplIcon(k)}${l}</button>`).join("")}</div>
+   <div class="pths">${b.items.map((it,j)=>`<div class="pth"><img src="${mediaURL(it.id)}" alt=""><input data-bi="${i}" data-pj="${j}" value="${esc(it.cap)}" placeholder="تعليق على الصورة" maxlength="80"><div class="ctl"><button class="ib" data-a="pmv" data-i="${i}" data-j="${j}" data-v="-1" aria-label="قبل" ${j===0?"disabled":""} style="transform:scaleX(-1)">${ico("arr")}</button><button class="ib" data-a="pmv" data-i="${i}" data-j="${j}" data-v="1" aria-label="بعد" ${j===b.items.length-1?"disabled":""}>${ico("arr")}</button><button class="ib" data-a="pdel" data-i="${i}" data-j="${j}" aria-label="إزالة الصورة">${ico("close")}</button></div></div>`).join("")}</div>
+   <div class="btns"><button class="btn sm" data-a="padd" data-i="${i}">${ico("plus")}من جهازي</button><button class="btn sm" data-a="pnet" data-i="${i}">${ico("compass")}من الإنترنت</button></div>
+   <div class="prev">${phHTML(b,mediaURL,false)}</div>`;
+  return `<section class="bk">${bar}${body}</section>`;
+}
+function edHTML(){
+  const p=ED.p,trips=[...new Set(S.flights.map(f=>f.trip))];
+  return `<div class="ovw" id="ovw"><div class="app"><div class="edbar"><button class="btn sm" data-a="edcancel">إلغاء</button><b>${ED.isNew?"تدوينة جديدة":"تعديل التدوينة"}</b><button class="btn gold sm" data-a="edsave">حفظ</button></div>
+   <label class="fld big">العنوان<input data-f="title" value="${esc(p.title)}" placeholder="عنوان التدوينة" maxlength="80"></label>
+   <div class="two2"><label class="fld">الرحلة<select data-f="trip"><option value="">بدون رحلة</option>${trips.map(t=>`<option ${t===p.trip?"selected":""}>${esc(t)}</option>`).join("")}</select></label><label class="fld">التاريخ<input type="date" data-f="date" value="${p.date||""}" style="direction:ltr;text-align:left"></label></div>
+   <div class="tgs" role="group" aria-label="الوسوم">${PTAGS.map(t=>`<button data-a="ptag" data-v="${t}" aria-pressed="${p.tags.includes(t)}">${t}</button>`).join("")}</div>
+   ${p.blocks.map((b,i)=>edBlock(b,i,p.blocks.length)).join("")}
+   <div class="addbar" role="group" aria-label="إضافة كتلة"><button data-a="badd" data-v="p">${ico("plus")} فقرة</button><button data-a="badd" data-v="ph">صور</button><button data-a="badd" data-v="h">عنوان</button><button data-a="badd" data-v="place">مكان</button><button data-a="badd" data-v="tip">نصيحة</button><button data-a="badd" data-v="q">اقتباس</button></div></div></div>`;
+}
+const NEWB={p:()=>({t:"p",text:""}),h:()=>({t:"h",text:""}),q:()=>({t:"q",text:""}),tip:()=>({t:"tip",text:""}),place:()=>({t:"place",name:"",kind:"معلم",rate:0,cost:"",note:""}),ph:()=>({t:"ph",tpl:"duo",items:[]})};
+async function addFiles(bi,files){
+  const b=ED.p.blocks[bi];if(!b||!files.length)return;
+  toast(`جارٍ إضافة ${files.length} ${files.length>1?"صور":"صورة"}…`);let ok=0;
+  for(const f of files){try{const r=await compress(f),rec={id:rid(),blob:r.blob,w:r.w,h:r.h,credit:""};await putPhoto(rec);regMedia(rec);b.items.push({id:rec.id,cap:""});ok++}catch(e){}}
+  if(ok&&b.tpl==="single"&&b.items.length>1)b.tpl=b.items.length===2?"duo":b.items.length===3?"trio":"grid";
+  edRender();toast(ok?`أُضيفت ${ok} ${ok>1?"صور":"صورة"}`:"تعذّر قراءة الصور. استخدم JPG أو PNG.");
+}
+function saveEditor(){
+  const p=ED.p;if(!p.title.trim()){toast("اكتب عنواناً للتدوينة");return}
+  p.sample=false;
+  const i=POSTS.findIndex(x=>x.id===p.id);if(i>=0)POSTS[i]=p;else POSTS.push(p);
+  savePosts();gc();const id=p.id;closeOv();ui.tab="journal";ui.jseg="posts";render();openPost(id);toast("حُفظت التدوينة");
+}
+
+/* --- منتقي صور الإنترنت (ويكيميديا كومنز) --- */
+function tripDest(name){
+  const fs=S.flights.filter(f=>f.trip===name).sort((a,b)=>depDate(a)-depDate(b)),home=AP[S.home]?AP[S.home].cc:"sa";
+  const f=fs.find(x=>AP[x.to].cc!==home)||fs[0];return f?(WIKI_AP[f.to]||AP[f.to].city):"";
+}
+async function commonsSearch(q){
+  const r=await fetch("https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrsearch="+encodeURIComponent(q+" filetype:bitmap")+"&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Csize%7Cmime%7Cextmetadata&iiurlwidth=1000");
+  const j=await r.json(),pages=Object.values((j.query&&j.query.pages)||{});
+  const strip=h=>String(h||"").replace(/<[^>]*>/g,"").replace(/\s+/g," ").trim();
+  return pages.filter(p=>!/map|logo|flag|coat|locator|diagram|plan|svg|chart|stamp/i.test(p.title)&&p.imageinfo&&p.imageinfo[0].mime==="image/jpeg"&&p.imageinfo[0].width>=1200).sort((a,b)=>a.index-b.index).slice(0,24).map(p=>{const i=p.imageinfo[0],m=i.extmetadata||{};return {url:i.thumburl,credit:[strip(m.Artist&&m.Artist.value),strip(m.LicenseShortName&&m.LicenseShortName.value)].filter(Boolean).join(" · ")||"ويكيميديا كومنز"}});
+}
+async function pkSearch(){
+  PK.loading=true;PK.err="";pkRender();
+  try{PK.list=await commonsSearch(PK.q);if(!PK.list.length)PK.err="لا توجد نتائج. جرّب كلمة إنجليزية، مثل Istanbul."}catch(e){PK.list=[];PK.err="تعذّر الاتصال بالإنترنت. تأكد من الاتصال ثم أعد المحاولة."}
+  PK.loading=false;pkRender();
+}
+function pkRender(){
+  $("#layer").innerHTML=`<div class="veil" data-a="pkveil"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pkh"><h2 id="pkh">صور من الإنترنت</h2>
+   <div style="display:flex;gap:8px"><input id="pkq" class="ltr" value="${esc(PK.q)}" placeholder="Istanbul" aria-label="بحث"><button class="btn dark sm" data-a="pksearch" style="flex:none">بحث</button></div>
+   <p class="hint" style="margin:0;font-size:12px;color:var(--muted)">من ويكيميديا كومنز. يُحفظ اسم المصور والترخيص مع الصورة.</p>
+   ${PK.loading?`<p class="hint">جارٍ التحميل…</p>`:""}<div class="err" role="alert">${esc(PK.err||"")}</div>
+   <div class="pk">${PK.list.map((x,i)=>`<button data-a="pkpick" data-i="${i}" aria-pressed="${PK.sel.has(i)}" aria-label="صورة ${i+1}"><img src="${x.url}" alt="" loading="lazy"></button>`).join("")}</div>
+   <div class="row-btn"><button class="btn gold" data-a="pkadd" ${PK.sel.size?"":"disabled"}>أضف ${PK.sel.size?`(${PK.sel.size})`:""}</button><button class="btn" data-a="close">إلغاء</button></div></div></div>`;
+}
+async function pkAdd(){
+  const b=ED.p.blocks[PK.bi],chosen=[...PK.sel].map(i=>PK.list[i]);$("#layer").innerHTML="";toast("جارٍ إضافة الصور…");
+  for(const x of chosen){
+    const id=rid();let rec;
+    try{const r=await fetch(x.url);if(!r.ok)throw 0;const blob=await r.blob();rec={id,blob,credit:x.credit}}catch(e){rec={id,remote:x.url,credit:x.credit}}
+    await putPhoto(rec);regMedia(rec);b.items.push({id,cap:""});
+  }
+  edRender();toast("أُضيفت الصور");
+}
+
+/* --- تصدير تدوينة كصفحة --- */
+function blobToData(b){return new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)})}
+async function exportPost(id){
+  const p=POSTS.find(x=>x.id===id);toast("جارٍ تجهيز الملف…");
+  const U={};
+  for(const x of photosOf(p).concat(p.cover?[{id:p.cover}]:[])){
+    if(U[x.id])continue;const m=MEDIA[x.id];if(!m){U[x.id]="";continue}
+    try{if(m.url.startsWith("blob:")){const b=await (await fetch(m.url)).blob();U[x.id]=await blobToData(b)}else U[x.id]=m.url}catch(e){U[x.id]=m.url}
+  }
+  const css=document.querySelector("style").textContent;
+  const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(p.title)}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap"><style>${css}</style></head><body><div class="app"><article>${postBody(p,id=>U[id]||"",false)}<p class="cr" style="margin-top:28px">كُتبت في تطبيق وجهة</p></article></div></body></html>`;
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download="wijha-"+(p.date||"post")+"-"+p.id.slice(-4)+".html";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+}
+
+/* --- صور الوجهات في الاقتراحات --- */
+const WPC={};
+async function wikiThumb(k){
+  if(WPC[k]!==undefined)return WPC[k];
+  try{const r=await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(PLACE_WIKI[k]));const o=await r.json();WPC[k]=(o.thumbnail&&o.thumbnail.source.replace(/\/\d+px-/,"/400px-"))||""}catch(e){WPC[k]=""}
+  return WPC[k];
+}
+function hydrateWiki(){document.querySelectorAll("[data-wp]").forEach(el=>wikiThumb(el.dataset.wp).then(u=>{if(u){const im=new Image();im.onload=()=>{el.style.backgroundImage=`url("${u}")`};im.src=u}}))}
+
+/* --- أحداث المدونة --- */
+function newPostSheet(trip){
+  const trips=[...new Set(S.flights.map(f=>f.trip))];pending={trip:trip||"",k:"blank"};
+  $("#layer").innerHTML=`<div class="veil" data-a="veil"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="npt"><h2 id="npt">تدوينة جديدة</h2>
+   <label>عن أي رحلة؟<select id="np-trip"><option value="">بدون رحلة</option>${trips.map(t=>`<option ${t===pending.trip?"selected":""}>${esc(t)}</option>`).join("")}</select></label>
+   <div><div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">ابدأ بقالب</div><div class="stg" role="group" aria-label="قالب البداية">${[["blank","فارغة","ابدأ بفقرة واحدة"],["day","يوميات يوم","صباح، بعد الظهر، صور، مكان، نصيحة"],["guide","دليل مكان","أماكن وصورة ونصيحة"],["album","ألبوم صور","كولاج وبولارويد واقتباس"]].map(([k,t,d])=>`<button data-a="stk" data-v="${k}" aria-pressed="${k==="blank"}"><b>${t}</b><small>${d}</small></button>`).join("")}</div></div>
+   <div class="row-btn"><button class="btn gold" data-a="npgo">ابدأ الكتابة</button><button class="btn" data-a="close">إلغاء</button></div></div></div>`;
+}
+Object.assign(A,{
+ jseg(v){ui.jseg=v;render(1)},
+ newpost(){newPostSheet("")},
+ postfor(v){newPostSheet(decodeURIComponent(v))},
+ stk(v){pending.k=v;document.querySelectorAll('[data-a="stk"]').forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v))},
+ npgo(){const t=$("#np-trip").value;$("#layer").innerHTML="";openEditor(newPost(t,pending.k),true)},
+ openpost(v,el){openPost(el.dataset.id)},
+ rdclose(){closeOv()},
+ "edit-post"(v,el){const p=POSTS.find(x=>x.id===el.dataset.id);closeOv();openEditor(p,false)},
+ "del-post"(v,el){if(el.dataset.sure){POSTS=POSTS.filter(x=>x.id!==el.dataset.id);savePosts();gc();closeOv();render(1);toast("حُذفت التدوينة")}else{el.dataset.sure=1;el.textContent="اضغط للتأكيد"}},
+ "share-post"(v,el){const p=POSTS.find(x=>x.id===el.dataset.id),text=p.title+"\n\n"+p.blocks.filter(b=>b.text).map(b=>b.text).join("\n\n");if(navigator.share)navigator.share({title:p.title,text}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>toast("تم نسخ النص"),()=>toast("تعذّر النسخ"))},
+ export(v,el){exportPost(el.dataset.id)},
+ edcancel(){closeOv();ui.tab=ui.tab;render(1)},
+ edsave(){saveEditor()},
+ badd(v){ED.p.blocks.push(NEWB[v]());edRender();const w=$("#ovw");w.scrollTo(0,w.scrollHeight)},
+ bdel(v,el){ED.p.blocks.splice(+el.dataset.i,1);edRender()},
+ bmv(v,el){const i=+el.dataset.i,j=i+ +el.dataset.v,a=ED.p.blocks;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];edRender()},
+ tpl(v,el){ED.p.blocks[+el.dataset.i].tpl=v;edRender()},
+ rate(v,el){const b=ED.p.blocks[+el.dataset.i];b.rate=b.rate===+v?0:+v;edRender()},
+ ptag(v){const t=ED.p.tags,i=t.indexOf(v);i>=0?t.splice(i,1):t.push(v);edRender()},
+ padd(v,el){pending={bi:+el.dataset.i};$("#fi").value="";$("#fi").click()},
+ pdel(v,el){ED.p.blocks[+el.dataset.i].items.splice(+el.dataset.j,1);edRender()},
+ pmv(v,el){const a=ED.p.blocks[+el.dataset.i].items,i=+el.dataset.j,j=i+ +el.dataset.v;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];edRender()},
+ pnet(v,el){const bi=+el.dataset.i;PK={bi,q:tripDest(ED.p.trip)||"",list:[],sel:new Set(),loading:false,err:""};pkRender();if(PK.q)pkSearch()},
+ pksearch(){PK.q=$("#pkq").value.trim();PK.sel=new Set();if(PK.q)pkSearch()},
+ pkpick(v,el){const i=+el.dataset.i;PK.sel.has(i)?PK.sel.delete(i):PK.sel.add(i);const keep=$(".pk").scrollTop;pkRender();$(".pk").scrollTop=keep},
+ pkadd(){pkAdd()},
+ pkveil(v,el,e){if(e.target===el)$("#layer").innerHTML=""},
+ lb(v,el){const post=POSTS.find(x=>x.id===READ);if(!post)return;const list=photosOf(post);openLB(list,Math.max(0,list.findIndex(x=>x.id===el.dataset.id)))},
+ "lb-album"(v,el){const all=POSTS.slice().sort((a,b)=>(b.date||"")>(a.date||"")?1:-1).flatMap(p=>photosOf(p));openLB(all,+el.dataset.i)},
+ lbx(){lbClose()},
+ lbn(v){LBX.i=(LBX.i+ +v+LBX.list.length)%LBX.list.length;lbRender()}
+});
+document.addEventListener("input",e=>{
+  const el=e.target;if(!ED)return;
+  if(el.dataset.f){ED.p[el.dataset.f]=el.value;return}
+  if(el.dataset.bi!==undefined){const b=ED.p.blocks[+el.dataset.bi];if(el.dataset.pj!==undefined)b.items[+el.dataset.pj].cap=el.value;else b[el.dataset.k]=el.value;if(el.tagName==="TEXTAREA"){el.style.height="auto";el.style.height=Math.max(el.scrollHeight,80)+"px"}}
+});
+document.addEventListener("change",e=>{
+  const el=e.target;
+  if(el.id==="fi"&&ED&&pending&&pending.bi!==undefined){addFiles(pending.bi,[...el.files]);return}
+  if(ED&&el.dataset.f){ED.p[el.dataset.f]=el.value}
+  if(ED&&el.dataset.bi!==undefined&&el.tagName==="SELECT")ED.p.blocks[+el.dataset.bi][el.dataset.k]=el.value;
+});
+document.addEventListener("keydown",e=>{
+  if(LBX){if(e.key==="Escape")lbClose();if(e.key==="ArrowLeft")A.lbn(1);if(e.key==="ArrowRight")A.lbn(-1);return}
+  if(e.key==="Escape"){if($("#layer").innerHTML)$("#layer").innerHTML="";else if($("#ov").innerHTML)closeOv()}
+});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="pkq"){e.preventDefault();A.pksearch()}});
+
 document.addEventListener("click",e=>{const el=e.target.closest("[data-a]");if(el&&A[el.dataset.a])A[el.dataset.a](el.dataset.v,el,e)});
 document.addEventListener("submit",e=>{if(e.target.id==="ff")submitFlight(e)});
 document.addEventListener("change",e=>{
@@ -539,7 +972,7 @@ document.addEventListener("change",e=>{
 });
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#layer").innerHTML)$("#layer").innerHTML=""});
 setInterval(()=>{const c=$("#cd");if(c){const f=S.flights.find(x=>x.id===c.dataset.id);if(f){const t=countdown(f);c.innerHTML=t?"تقلع بعد "+t:""}}},30000);
-render();
+render();bootJournal();
 </script>
 
 </body>
