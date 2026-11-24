@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.Thawani" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#F7F7F3</item>
+        <item name="android:statusBarColor">#F7F7F3</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
