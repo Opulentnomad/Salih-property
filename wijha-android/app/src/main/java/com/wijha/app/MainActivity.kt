@@ -1,53 +1,41 @@
 package com.wijha.app
 
-import android.app.Application
+import android.Manifest
+import android.content.Context
+import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
-
-class AppVm(app: Application) : AndroidViewModel(app) {
-    private val store = Store(app)
-    var state by mutableStateOf(store.load())
-        private set
-
-    fun update(f: (UserState) -> UserState) {
-        state = f(state)
-        store.save(state)
-    }
-
-    /** إعجاب بوجهة: يرفع وزن وسومها (تعلّم مباشر على الجهاز). */
-    fun toggleLike(d: Destination) = update { s ->
-        val liked = d.id in s.liked
-        val w = s.weights.toMutableMap()
-        if (!liked) d.tags.forEach { (t, v) -> w[t] = ((w[t] ?: 0f) + 0.12f * v).coerceAtMost(1f) }
-        s.copy(liked = if (liked) s.liked - d.id else s.liked + d.id, weights = w)
-    }
-
-    /** «ليس لي»: يخفي الوجهة ويخفّض وزن وسومها. */
-    fun dismiss(d: Destination) = update { s ->
-        val w = s.weights.toMutableMap()
-        d.tags.forEach { (t, v) -> w[t] = ((w[t] ?: 0f) - 0.08f * v).coerceAtLeast(0f) }
-        s.copy(hidden = s.hidden + d.id, weights = w)
-    }
-
-    fun toggleFavPhoto(url: String) = update { s ->
-        s.copy(favPhotos = if (url in s.favPhotos) s.favPhotos - url else s.favPhotos + url)
-    }
-}
+import com.wijha.app.ui.WijhaApp
+import com.wijha.app.ui.WijhaTheme
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+    /** يجعل نوافذ النظام (التاريخ والوقت) بالعربية بغض النظر عن لغة الجهاز. */
+    override fun attachBaseContext(base: Context) {
+        val cfg = Configuration(base.resources.configuration)
+        cfg.setLocale(Locale("ar"))
+        super.attachBaseContext(base.createConfigurationContext(cfg))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val vm: AppVm = viewModel()
-            WijhaTheme(vm.state.lang) { AppRoot(vm) }
+            WijhaTheme {
+                val vm: AppViewModel = viewModel()
+                val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+                LaunchedEffect(Unit) {
+                    if (Build.VERSION.SDK_INT >= 33) ask.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+                WijhaApp(vm)
+            }
         }
     }
 }
