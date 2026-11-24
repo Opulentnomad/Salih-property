@@ -5,6 +5,29 @@ const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const SRC = { audius: 'Audius', jamendo: 'Jamendo', youtube: 'YouTube' };
 
+/* ---------------- native (Android) ---------------- */
+const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const NP = n => (NATIVE && window.Capacitor.Plugins && window.Capacitor.Plugins[n]) || null;
+const Bg = {
+  on: false, timer: null, plugin: () => NP('BackgroundMode'),
+  opts(t) {
+    return { title: t ? t.title : 'نغم', text: t ? (t.artist || SRC[t.src]) : 'جاهز للتشغيل', subText: 'نغم', bigText: false, resume: true, silent: false, hidden: false,
+      color: '#7656F5', icon: 'ic_stat_naghm', channelName: 'تشغيل الموسيقى', channelDescription: 'يُبقي الموسيقى تعمل عند إغلاق الشاشة', allowClose: false,
+      showWhen: false, visibility: 'public', disableWebViewOptimization: true, allowMicrophoneInBackground: false };
+  },
+  async start(t) {
+    const B = this.plugin(); if (!B) return; clearTimeout(this.timer);
+    try {
+      if (!this.on) {
+        try { const st = await B.checkNotificationsPermission(); if (st.notifications !== 'granted') await B.requestNotificationsPermission(); } catch {}
+        await B.enable(this.opts(t)); await B.disableWebViewOptimizations(); this.on = true;
+      } else await B.updateNotification(this.opts(t));
+    } catch (e) { console.error('bg', e); }
+  },
+  idle() { if (!this.on) return; clearTimeout(this.timer); this.timer = setTimeout(() => this.stop(), 5 * 60 * 1000); },
+  async stop() { const B = this.plugin(); if (!B || !this.on) return; try { await B.enableWebViewOptimizations(); await B.disable(); } catch {} this.on = false; }
+};
+
 /* ---------------- moods ---------------- */
 const MOODS = [
   { id: 'focus',  ar: 'تركيز', g: 'a2', q: ['lofi', 'focus', 'ambient study'],       jt: ['lofi', 'ambient'] },
@@ -115,7 +138,7 @@ const P = {
   async play(q, i) { this.q = q.slice(); this.i = i; this.errs = 0; await this.load(); },
   async load() {
     const t = this.cur(); if (!t) return;
-    this.stopAll(); this.setUI(t); this.showStage(t);
+    this.stopAll(); this.setUI(t); this.showStage(t); Bg.start(t);
     if (t.src === 'youtube') await this.loadYT(t);
     else {
       try { this.audio.src = t.src === 'audius' ? await Audius.streamUrl(t.sid) : t.url; await this.audio.play(); }
@@ -130,7 +153,7 @@ const P = {
     await YT.loadApi();
     if (!(window.YT && window.YT.Player)) { toast('تعذّر تحميل مشغّل YouTube'); return this.fail(); }
     if (this.yt && this.yt.loadVideoById) { this.yt.loadVideoById(t.sid); return; }
-    this.yt = new window.YT.Player('ytbox', { videoId: t.sid, playerVars: { playsinline: 1, rel: 0, autoplay: 1 },
+    this.yt = new window.YT.Player('ytbox', { videoId: t.sid, playerVars: { playsinline: 1, rel: 0, autoplay: 1, enablejsapi: 1, origin: location.origin, widget_referrer: location.href },
       events: { onReady: e => e.target.playVideo(), onStateChange: e => this.ytState(e.data), onError: () => this.fail() } });
   },
   ytState(s) {
@@ -149,7 +172,7 @@ const P = {
   seek(r) { const t = this.cur(); if (!t) return; if (t.src === 'youtube') { if (this.yt && this.yt.getDuration) this.yt.seekTo(r * this.yt.getDuration(), true); } else if (isFinite(this.audio.duration)) this.audio.currentTime = r * this.audio.duration; },
   playNext(t) { if (!this.q.length) return this.play([t], 0); this.q.splice(this.i + 1, 0, t); toast('سيُشغَّل بعد المقطع الحالي'); },
   tick(c, d) { const r = d > 0 ? c / d : 0; $('#pfill').style.width = r * 100 + '%'; $('#mFill').style.width = r * 100 + '%'; $('#pcur').textContent = fmt(c); $('#ptot').textContent = fmt(d); },
-  setPlaying(b) { this.playing = b; const g = b ? '❚❚' : '▶'; $('#pPlay').textContent = g; $('#mPlay').textContent = g; $('#pdisc').classList.toggle('spin', b); },
+  setPlaying(b) { this.playing = b; b ? Bg.start(this.cur()) : Bg.idle(); if ('mediaSession' in navigator) try { navigator.mediaSession.playbackState = b ? 'playing' : 'paused'; } catch {} const g = b ? '❚❚' : '▶'; $('#pPlay').textContent = g; $('#mPlay').textContent = g; $('#pdisc').classList.toggle('spin', b); },
   setUI(t) {
     $('#mini').hidden = false; $('#mTitle').textContent = t.title; $('#mArtist').textContent = t.artist || SRC[t.src];
     $('#mArt').className = 'art ' + grad(t.id); $('#mArt').innerHTML = t.art ? `<img src="${esc(t.art)}" alt="" referrerpolicy="no-referrer">` : '';
@@ -166,6 +189,7 @@ const P = {
       navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.artist || SRC[t.src], album: 'نغم', artwork: t.art ? [{ src: t.art, sizes: '300x300' }] : [] });
       navigator.mediaSession.setActionHandler('play', () => this.toggle()); navigator.mediaSession.setActionHandler('pause', () => this.toggle());
       navigator.mediaSession.setActionHandler('nexttrack', () => this.next()); navigator.mediaSession.setActionHandler('previoustrack', () => this.prev());
+      navigator.mediaSession.setActionHandler('seekto', d => { if (d.seekTime != null && this.audio.duration) this.audio.currentTime = d.seekTime; });
     } catch {}
   }
 };
@@ -257,6 +281,7 @@ const Views = {
       <div class="sec">مفتاح Jamendo (اختياري)</div>
       <div class="setrow" style="flex-direction:column;align-items:stretch"><small>سجّل مجانًا في <a href="https://devportal.jamendo.com" target="_blank" rel="noopener">devportal.jamendo.com</a> وألصق الـ client_id هنا.</small>
       <input class="field" id="jid" dir="ltr" placeholder="client_id" value="${esc(S.jamendoId)}" autocomplete="off"></div>
+      ${NATIVE ? `<div class="sec">العمل في الخلفية</div><div class="setrow" style="flex-direction:column;align-items:stretch"><small>يظهر إشعار ثابت أثناء التشغيل ليبقى الصوت يعمل عند قفل الشاشة. لأفضل نتيجة اسمح للتطبيق بتجاوز توفير البطارية.</small><button class="lightbtn" data-a="battery">السماح بتجاوز توفير البطارية</button></div>` : ''}
       <div class="sec">مزاجك المفضل</div>${moodTiles(S.moods, 'set-mood')}
       <div class="sec">البيانات</div><button class="lightbtn" data-a="reset">مسح المكتبة والإعدادات</button>
       <p class="sub">نغم للاستخدام الشخصي. Audius وJamendo تُشغَّلان داخل التطبيق، وYouTube داخل مشغّله المضمّن. كل شيء محفوظ على جهازك فقط.</p>`;
@@ -345,10 +370,19 @@ document.addEventListener('click', async e => {
     case 'ob-mood': case 'set-mood': { const i = S.moods.indexOf(d.m); i < 0 ? S.moods.push(d.m) : S.moods.splice(i, 1); S.daily = null; save(); el.classList.toggle('sel'); el.setAttribute('aria-pressed', i < 0); break; }
     case 'src': { S.src[d.k] = !S.src[d.k]; S.daily = null; save(); el.setAttribute('aria-checked', S.src[d.k]); break; }
     case 'ob-done': S.onboarded = true; save(); go('home'); break;
+    case 'battery': { const B = Bg.plugin(); if (B) { try { const r = await B.checkBatteryOptimizations(); if (r && r.enabled === false) toast('مسموح بالفعل'); else await B.requestDisableBatteryOptimizations(); } catch { toast('تعذّر فتح الإعداد'); } } break; }
     case 'reset': S = JSON.parse(JSON.stringify(DEF)); save(); toast('تم المسح'); go('onboard'); break;
   }
 });
 $('#pbar').addEventListener('keydown', e => { if (e.key === 'ArrowLeft') P.seek(Math.max(0, (P.audio.currentTime + 5) / (P.audio.duration || 1))); });
+const AppP = NP('App');
+if (AppP) AppP.addListener('backButton', () => {
+  if (!$('#sheet').hidden) return closeSheet();
+  if (!$('#player').hidden) { $('#player').hidden = true; return; }
+  if (V.stack.length) return back();
+  if (['discover', 'library'].includes(V.name)) { go('home'); return; }
+  AppP.minimizeApp();
+});
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 V.name = S.onboarded ? 'home' : 'onboard'; render();
 window.__naghm = { P, S: () => S };

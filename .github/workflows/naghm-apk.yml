@@ -44,6 +44,11 @@ jobs:
         continue-on-error: true
         run: npx @capacitor/assets generate --android --iconBackgroundColor '#7656F5' --iconBackgroundColorDark '#7656F5'
 
+      - name: Add notification icon for background playback
+        run: |
+          mkdir -p android/app/src/main/res/drawable
+          cp assets/android/ic_stat_naghm.xml android/app/src/main/res/drawable/ic_stat_naghm.xml
+
       - name: Use fixed signing key (keeps updates installable)
         run: |
           mkdir -p ~/.android
